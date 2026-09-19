@@ -5,8 +5,29 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:loc="clr-namespace:Node.Localize"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-        <Button Grid.Row="0" Content="{x:Static loc:TextUi.OpenNodeEditorButtonLabel}" Click="Button_Click" />
-    </Grid>
+             d:DesignHeight="80" d:DesignWidth="300">
+    <StackPanel>
+        <ComboBox x:Name="GraphComboBox"
+                  DisplayMemberPath="Name"
+                  SelectedValuePath="Id"
+                  SelectionChanged="GraphComboBox_SelectionChanged"
+                  Margin="0,0,0,4" />
+        <UniformGrid Rows="1" Columns="5">
+            <Button Content="{x:Static loc:TextUi.NewGraphButtonLabel}"
+                    Click="NewButton_Click"
+                    ToolTip="{x:Static loc:TextUi.NewGraphButtonLabel}" />
+            <Button Content="{x:Static loc:TextUi.OpenNodeEditorButtonLabel}"
+                    Click="EditButton_Click"
+                    ToolTip="{x:Static loc:TextUi.OpenNodeEditorButtonLabel}" />
+            <Button Content="{x:Static loc:TextUi.RenameGraphButtonLabel}"
+                    Click="RenameButton_Click"
+                    ToolTip="{x:Static loc:TextUi.RenameGraphButtonLabel}" />
+            <Button Content="{x:Static loc:TextUi.CloneGraphButtonLabel}"
+                    Click="CloneButton_Click"
+                    ToolTip="{x:Static loc:TextUi.CloneGraphButtonLabel}" />
+            <Button Content="{x:Static loc:TextUi.ManageGraphButtonLabel}"
+                    Click="ManageButton_Click"
+                    ToolTip="{x:Static loc:TextUi.ManageGraphButtonLabel}" />
+        </UniformGrid>
+    </StackPanel>
 </UserControl>

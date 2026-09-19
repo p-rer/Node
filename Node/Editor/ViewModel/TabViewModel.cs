@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Node.Editor.Command;
 using Node.Graph;
+using Node.Graph.Snapshot;
 using YukkuriMovieMaker.Commons;
 
 namespace Node.Editor.ViewModel;
@@ -10,38 +11,64 @@ namespace Node.Editor.ViewModel;
 public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly Action<TabViewModel>? _closeAction;
+    private readonly PropertyChangedEventHandler? _entryPropertyChangedHandler;
+    private readonly NamedGraphSnapshot? _subscribedEntry;
+    private string _title;
 
     public TabViewModel(
         NodeGraph graph,
         string title,
         NodeEditorViewModel nodeEditorViewModel,
         Action<TabViewModel>? closeAction = null,
-        IEditorInfo? editorInfo = null)
+        IEditorInfo? editorInfo = null,
+        Guid? graphId = null)
     {
         Graph = graph;
-        Title = title;
+        _title = title;
         GraphViewModel = new GraphViewModel(graph, nodeEditorViewModel, editorInfo);
         _closeAction = closeAction;
 
         CloseCommand = new RelayCommand(Close, () => _closeAction != null);
+
+        if (graphId is { } id &&
+            GraphLibraryViewModel.Current is { } library &&
+            library.TryGetEntry(id, out var entry))
+        {
+            _subscribedEntry = entry;
+            _entryPropertyChangedHandler = (_, args) =>
+            {
+                if (args.PropertyName == nameof(NamedGraphSnapshot.Name))
+                    Title = entry.Name;
+            };
+            entry.PropertyChanged += _entryPropertyChangedHandler;
+        }
     }
 
-    public string Title { get; }
+    public string Title
+    {
+        get => _title;
+        private set => SetField(ref _title, value);
+    }
+
     public GraphViewModel GraphViewModel { get; }
     public ICommand CloseCommand { get; }
     public NodeGraph Graph { get; }
 
     public void Dispose()
     {
+        if (_subscribedEntry != null && _entryPropertyChangedHandler != null)
+            _subscribedEntry.PropertyChanged -= _entryPropertyChangedHandler;
+
         GraphViewModel.Dispose();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>
-    ///     開いた後に IEditorInfo が更新された場合（OpenNodeEditorButton.SetEditorInfo の再呼び出し等）に、
-    ///     このタブのグラフへ最新の値を反映する。
-    /// </summary>
+    internal void SetTitle(string title)
+    {
+        Title = title;
+    }
+
     internal void SetEditorInfo(IEditorInfo? info)
     {
         GraphViewModel.EditorInfo = info;

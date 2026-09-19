@@ -50,3 +50,19 @@ BezierSmoothMenu,ベジェ編集:スムーズメニュー,スムーズ,Smooth,�
 BezierCornerMenu,ベジェ編集:コーナーメニュー,コーナー,Corner,尖角,尖角,코너,Vértice,زاوية,Sudut
 BezierFixedNodeDeleteError,ベジェ編集:固定ノード削除エラー,固定ノードは削除できません。,Cannot delete a fixed node.,无法删除固定节点。,無法刪除固定節點。,고정된 노드는 삭제할 수 없습니다.,No se puede eliminar un nodo fijo.,لا يمكن حذف عقدة ثابتة.,Tidak dapat menghapus node tetap.
 BezierMinKeyframesError,ベジェ編集:キーフレーム不足エラー,少なくとも2つのキーフレームが必要です。,At least two keyframes are required.,至少需要两个关键帧。,至少需要兩個關鍵影格。,최소 2개의 키프레임이 필요합니다.,Se requieren al menos dos fotogramas clave.,يلزم توفر إطارين رئيسيين على الأقل.,Diperlukan minimal dua keyframe.
+GraphLibraryToolName,ノードグラフライブラリのツール名,ノードグラフライブラリ,Node Graph Library,Node Graph Library,Node Graph Library,Node Graph Library,Node Graph Library,Node Graph Library,Node Graph Library
+NewGraphButtonLabel,グラフを新規作成するボタン,新規作成,New,New,New,New,New,New,New
+RenameGraphButtonLabel,グラフの名前を変更するボタン,名前を変更,Rename,Rename,Rename,Rename,Rename,Rename,Rename
+CloneGraphButtonLabel,グラフをクローンするボタン,クローン,Clone,Clone,Clone,Clone,Clone,Clone,Clone
+ManageGraphButtonLabel,グラフライブラリの管理ダイアログを開くボタン,管理,Manage,Manage,Manage,Manage,Manage,Manage,Manage
+MoveUpToolTip,並び順を1つ上げるボタンのツールチップ,上へ,Move up,Move up,Move up,Move up,Move up,Move up,Move up
+MoveDownToolTip,並び順を1つ下げるボタンのツールチップ,下へ,Move down,Move down,Move down,Move down,Move down,Move down,Move down
+DeleteGraphToolTip,グラフを削除するボタンのツールチップ,削除,Delete,Delete,Delete,Delete,Delete,Delete,Delete
+DeleteGraphConfirmMessage,グラフ削除確認メッセージ(0番目に名前が入る),グラフ「{0}」を削除しますか？このグラフを参照しているエフェクトがある場合、次回参照時に内容が復元されます。,"Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.","Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.","Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.","Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.","Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.","Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.","Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed."
+DeleteGraphConfirmTitle,グラフ削除確認ダイアログのタイトル,グラフの削除,Delete Graph,Delete Graph,Delete Graph,Delete Graph,Delete Graph,Delete Graph,Delete Graph
+GraphNameInputTitle,グラフ名入力ダイアログのタイトル,グラフ名の入力,Graph Name,Graph Name,Graph Name,Graph Name,Graph Name,Graph Name,Graph Name
+OkButtonLabel,OKボタン,OK,OK,OK,OK,OK,OK,OK,OK
+CancelButtonLabel,キャンセルボタン,キャンセル,Cancel,Cancel,Cancel,Cancel,Cancel,Cancel,Cancel
+NewGraphNamePrompt,新規作成ダイアログのプロンプト文言,新しいグラフの名前を入力してください。,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.
+RenameGraphNamePrompt,名前変更ダイアログのプロンプト文言,グラフの新しい名前を入力してください。,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.
+CloneGraphNamePrompt,クローンダイアログのプロンプト文言,複製後のグラフの名前を入力してください。,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.

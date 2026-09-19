@@ -77,38 +77,30 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
         GraphUpdated?.Invoke(this, EventArgs.Empty);
     }
 
-    public void OpenGraph(NodeGraph graph, string title = "Main", IEditorInfo? editorInfo = null)
+    public void OpenGraph(NodeGraph graph, string title = "Main", IEditorInfo? editorInfo = null,
+        Guid? graphId = null)
     {
         if (Tabs.Any(tab => tab.Graph == graph))
         {
             var existing = Tabs.First(tab => tab.Graph == graph);
             if (editorInfo != null)
                 existing.SetEditorInfo(editorInfo);
+            existing.SetTitle(title);
             SelectedTab = existing;
             return;
         }
 
-        var mainTab = new TabViewModel(graph, title, this, CloseTab, editorInfo);
+        var mainTab = new TabViewModel(graph, title, this, CloseTab, editorInfo, graphId);
         Tabs.Add(mainTab);
         SelectedTab = mainTab;
     }
 
-    /// <summary>
-    ///     既に開いているグラフタブへ、最新の IEditorInfo を反映する。
-    ///     OpenNodeEditorButton.SetEditorInfo が、タブを開いた後にも再度呼ばれた場合に使う。
-    /// </summary>
     public void UpdateEditorInfo(NodeGraph graph, IEditorInfo? editorInfo)
     {
         var tab = Tabs.FirstOrDefault(t => t.Graph == graph);
         tab?.SetEditorInfo(editorInfo);
     }
 
-    /// <summary>
-    ///     現在開いている全タブの表示を、グラフの現在状態から作り直す。
-    ///     Undo/Redo がプロパティセッタを経由せずグラフデータを直接書き換えるような実装だと、
-    ///     GraphUpdated イベントが発火せず、パネルの表示（カスタムエディタの内容含む）が
-    ///     古いままになることがある。この保険として、パネルがアクティブになったタイミングで呼ぶ。
-    /// </summary>
     public void RefreshAllOpenGraphs()
     {
         foreach (var tab in Tabs)

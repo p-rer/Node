@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 using Newtonsoft.Json;
+using Node.Editor.ViewModel;
 using Node.Graph;
 using Node.Graph.Events;
 using Node.Graph.Port;
@@ -33,35 +34,56 @@ public sealed class NodeEffect : VideoEffectBase
     private readonly Dispatcher _uiDispatcher = Application.Current.Dispatcher;
 
     internal readonly Lock ProcessorInitializationLock = new();
-
     private GraphSnapshot _graph = new();
+
+    private Guid _graphId = Guid.NewGuid();
+
+    private volatile GraphSnapshot? _pendingExternalUpdate;
+
+    public NodeEffect()
+    {
+        GraphLibraryViewModel.Current?.Subscribe(_graphId, this);
+    }
 
     public override string Label => TextUi.Node;
 
     [Display(Name = nameof(TextUi.NodeEditor), GroupName = nameof(TextUi.Node),
         ResourceType = typeof(TextUi))]
     [OpenNodeEditor]
+    public Guid GraphId
+    {
+        get => _graphId;
+        set
+        {
+            var oldId = _graphId;
+            Set(ref _graphId, value);
+            if (oldId == value) return;
+
+            var library = GraphLibraryViewModel.Current;
+            library?.Unsubscribe(oldId, this);
+            library?.Subscribe(value, this);
+        }
+    }
+
     public GraphSnapshot Graph
     {
         get => _graph;
         set
         {
             Set(ref _graph, value);
-            if (InternalGraph is null) return;
-            var tempGraph = Serializer.Restore(value);
-            lock (InternalGraph.GraphLock)
-            {
-                InternalGraph.UpdateGraph(tempGraph);
-            }
-
-            InvokeGraphUpdated();
+            ApplyToInternalGraph(value);
+            GraphLibraryViewModel.Current?.PropagateChange(GraphId, this, value);
         }
     }
 
     public GraphSnapshot InternalGraphSnapshot
     {
         get => _graph;
-        set => Set(ref _graph, value, nameof(Graph));
+        set
+        {
+            Set(ref _graph, value, nameof(Graph));
+            GraphLibraryViewModel.Current?.PropagateChange(GraphId, this, value);
+        }
     }
 
     [JsonIgnore]
@@ -76,6 +98,48 @@ public sealed class NodeEffect : VideoEffectBase
             if (field != null)
                 SubscribeChildUndoRedoable(field.PreviewNotifier);
         }
+    }
+
+    private void ApplyToInternalGraph(GraphSnapshot value)
+    {
+        if (InternalGraph is null) return;
+        var tempGraph = Serializer.Restore(value);
+        lock (InternalGraph.GraphLock)
+        {
+            InternalGraph.UpdateGraph(tempGraph);
+        }
+
+        InvokeGraphUpdated();
+    }
+
+    internal void ApplyExternalGraphUpdate(GraphSnapshot snapshot)
+    {
+        _graph = snapshot;
+        _pendingExternalUpdate = snapshot;
+    }
+
+    internal bool ApplyPendingExternalUpdateLocked()
+    {
+        var pending = _pendingExternalUpdate;
+        if (pending is null || InternalGraph is null) return false;
+
+        _pendingExternalUpdate = null;
+        var tempGraph = Serializer.Restore(pending);
+        InternalGraph.UpdateGraph(tempGraph);
+        return true;
+    }
+
+    public void SwitchGraph(Guid newGraphId)
+    {
+        if (GraphId == newGraphId) return;
+
+        var library = GraphLibraryViewModel.Current;
+        var snapshot = library != null && library.TryGetSnapshot(newGraphId, out var s)
+            ? s
+            : new GraphSnapshot();
+
+        GraphId = newGraphId;
+        Graph = snapshot;
     }
 
     public event EventHandler? GraphUpdated;
@@ -160,7 +224,7 @@ public sealed class NodeEffect : VideoEffectBase
 
         try
         {
-            var tempGraph = Serializer.Restore(_graph);
+            var tempGraph = Serializer.Restore(Graph);
             return EnumerateFilePathPorts(tempGraph)
                 .Select(p => p.Path)
                 .Distinct()
@@ -178,7 +242,7 @@ public sealed class NodeEffect : VideoEffectBase
         {
             try
             {
-                var tempGraph = Serializer.Restore(_graph);
+                var tempGraph = Serializer.Restore(Graph);
                 var savedMatches = EnumerateFilePathPorts(tempGraph)
                     .Where(p => p.Path == from)
                     .ToList();
@@ -222,7 +286,6 @@ public sealed class NodeEffect : VideoEffectBase
 public sealed class Processor : IVideoEffectProcessor
 {
     private readonly IGraphicsDevicesAndContext _devices;
-    private readonly Lock _lock;
     private readonly NodeEffect _nodeEffect;
     private ID2D1Image? _affineOutput;
 
@@ -235,6 +298,7 @@ public sealed class Processor : IVideoEffectProcessor
 
     private volatile ArgumentsNode _inputNode = null!;
     private bool _isEvaluating;
+    private volatile Lock _lock;
     private ID2D1Image? _outputImage;
     private volatile ReturnNode _outputNode = null!;
 
@@ -257,6 +321,14 @@ public sealed class Processor : IVideoEffectProcessor
     {
         lock (_lock)
         {
+            if (_nodeEffect.ApplyPendingExternalUpdateLocked())
+            {
+                _inputNode = _nodeEffect.InternalGraph!.Nodes.Values.OfType<ArgumentsNode>().FirstOrDefault()
+                             ?? _inputNode;
+                _outputNode = _nodeEffect.InternalGraph.Nodes.Values.OfType<ReturnNode>().FirstOrDefault()
+                              ?? _outputNode;
+            }
+
             try
             {
                 if (_isEvaluating)
@@ -329,17 +401,13 @@ public sealed class Processor : IVideoEffectProcessor
         lock (_lock)
         {
             if (_nodeEffect.InternalGraph != null!)
+            {
                 _nodeEffect.InternalGraph.Committed -= OnGraphCommitted;
+                _nodeEffect.InternalGraph.GraphChanged -= OnGraphChangedForBroadcast;
+            }
 
             _nodeEffect.GraphUpdated -= OnGraphUpdated;
 
-            // このProcessorが使用していたノードのD2Dリソースを解放する。
-            // ノードはD2Dリソースを遅延初期化するため、次回Calculate時に再生成される。
-            // グラフは同一 NodeEffect の複数 Processor 間で共有されうるため（InitializeGraph
-            // 参照）、ここでの解放は他の Processor が参照しているノードにも及ぶ。ただし
-            // Dispose/Update は同じ _lock（共有グラフの GraphLock）で排他されているため、
-            // 他 Processor の評価中に解放が割り込むことはなく、その Processor の次回
-            // Calculate 時にリソースが再生成されるだけで済む。
             if (_nodeEffect.InternalGraph != null)
                 foreach (var node in _nodeEffect.InternalGraph.Nodes.Values)
                     node.Dispose();
@@ -360,7 +428,7 @@ public sealed class Processor : IVideoEffectProcessor
     }
 
     /// <summary>
-    ///     グラフの初期化。自分が InternalGraph に割り当てたグラフをそのまま返す。
+    ///     グラフの初期化。
     /// </summary>
     private NodeGraph InitializeGraph()
     {
@@ -373,6 +441,8 @@ public sealed class Processor : IVideoEffectProcessor
 
                 existingGraph.Committed -= OnGraphCommitted;
                 existingGraph.Committed += OnGraphCommitted;
+                existingGraph.GraphChanged -= OnGraphChangedForBroadcast;
+                existingGraph.GraphChanged += OnGraphChangedForBroadcast;
 
                 return existingGraph;
             }
@@ -436,6 +506,8 @@ public sealed class Processor : IVideoEffectProcessor
 
             graph.Committed -= OnGraphCommitted;
             graph.Committed += OnGraphCommitted;
+            graph.GraphChanged -= OnGraphChangedForBroadcast;
+            graph.GraphChanged += OnGraphChangedForBroadcast;
 
             _nodeEffect.InvokeGraphUpdated();
 
@@ -445,17 +517,22 @@ public sealed class Processor : IVideoEffectProcessor
 
     private void OnGraphUpdated(object? sender, EventArgs e)
     {
-        lock (_lock)
+        var currentLock = _lock;
+        lock (currentLock)
         {
             if (_nodeEffect.InternalGraph == null!) return;
 
             _nodeEffect.InternalGraph.Committed -= OnGraphCommitted;
             _nodeEffect.InternalGraph.Committed += OnGraphCommitted;
+            _nodeEffect.InternalGraph.GraphChanged -= OnGraphChangedForBroadcast;
+            _nodeEffect.InternalGraph.GraphChanged += OnGraphChangedForBroadcast;
 
             _inputNode = _nodeEffect.InternalGraph.Nodes.Values.OfType<ArgumentsNode>().FirstOrDefault()
                          ?? _inputNode;
             _outputNode = _nodeEffect.InternalGraph.Nodes.Values.OfType<ReturnNode>().FirstOrDefault()
                           ?? _outputNode;
+
+            _lock = _nodeEffect.InternalGraph.GraphLock;
         }
     }
 
@@ -473,6 +550,26 @@ public sealed class Processor : IVideoEffectProcessor
             }
 
             _nodeEffect.InternalGraphSnapshot = snapshot;
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception.Message);
+        }
+    }
+
+    private void OnGraphChangedForBroadcast(object? sender, GraphChangedEventArgs e)
+    {
+        try
+        {
+            if (_nodeEffect.InternalGraph == null!) return;
+
+            GraphSnapshot snapshot;
+            lock (_lock)
+            {
+                snapshot = Serializer.Create(_nodeEffect.InternalGraph);
+            }
+
+            GraphLibraryViewModel.Current?.PropagateChange(_nodeEffect.GraphId, _nodeEffect, snapshot);
         }
         catch (Exception exception)
         {

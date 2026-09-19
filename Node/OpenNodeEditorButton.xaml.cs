@@ -1,12 +1,15 @@
-using System.Collections;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using AvalonDock;
 using AvalonDock.Layout;
+using Node.Editor.View;
 using Node.Editor.ViewModel;
 using Node.Graph;
 using Node.Graph.Events;
+using Node.Graph.Port;
 using Node.Graph.Snapshot;
 using Node.Localize;
 using Node.Nodes.Effect.DynamicLoaded;
@@ -25,6 +28,7 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
     private EventHandler<CommittedEventArgs>? _committedHandler;
     private IEditorInfo? _editorInfo;
     private EventHandler? _graphUpdatedHandler;
+    private ItemProperty[]? _itemProperties;
     private NodeEditorViewModel? _lastResolvedViewModel;
     private EventHandler? _layoutIsActiveChangedHandler;
     private EventHandler? _layoutIsSelectedChangedHandler;
@@ -32,13 +36,25 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
     private NodeGraph? _subscribedGraph;
     private LayoutAnchorable? _subscribedLayout;
     private NodeEffect? _subscribedNodeEffect;
+    private bool _suppressSelectionChanged;
+
+    private int _syncRetryCount;
 
     public OpenNodeEditorButton()
     {
         InitializeComponent();
     }
 
-    public ItemProperty[]? ItemProperties { get; set; }
+    public ItemProperty[]? ItemProperties
+    {
+        get => _itemProperties;
+        set
+        {
+            _itemProperties = value;
+            SyncComboBox();
+        }
+    }
+
     public event EventHandler? BeginEdit;
     public event EventHandler? EndEdit;
 
@@ -86,53 +102,222 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         _boundWindow = null;
     }
 
-    private static void EnsureInternalGraph(NodeEffect pluginItem)
+    private void SyncComboBox()
     {
-        if (pluginItem.InternalGraph != null) return;
-
-        if (pluginItem.Graph.Nodes.Count > 0)
+        _suppressSelectionChanged = true;
+        try
         {
-            pluginItem.InternalGraph = Serializer.Restore(pluginItem.Graph);
+            var library = GraphLibraryViewModel.Current;
+            GraphComboBox.ItemsSource = library?.Entries;
+
+            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem)
+            {
+                GraphComboBox.SelectedValue = null;
+                return;
+            }
+
+            GraphComboBox.SelectedValue = pluginItem.GraphId;
+
+            if (library is null && _syncRetryCount < 50)
+            {
+                _syncRetryCount++;
+                Dispatcher.BeginInvoke(SyncComboBox, DispatcherPriority.Background);
+            }
+            else
+            {
+                _syncRetryCount = 0;
+            }
         }
-        else
+        finally
         {
-            var graph = new NodeGraph();
-
-            var inputNode = new ArgumentsNode(
-                new PortDefinition("InputImage", typeof(ImageWrapper)),
-                new PortDefinition("FrameIndex", typeof(int))
-            )
-            {
-                Id = Guid.NewGuid()
-            };
-
-            var outputNode = new ReturnNode(
-                new PortDefinition("OutputImage", typeof(ImageWrapper))
-            )
-            {
-                Id = Guid.NewGuid()
-            };
-
-            graph.AddNode(inputNode);
-            graph.AddNode(outputNode);
-
-            graph.SetVisualState(inputNode.Id, 100, 100);
-            graph.SetVisualState(outputNode.Id, 500, 100);
-
-            graph.Connect(inputNode.Id, "InputImage", outputNode.Id, "OutputImage");
-
-            pluginItem.InternalGraph = graph;
-            pluginItem.Graph = Serializer.Create(graph);
+            _suppressSelectionChanged = false;
         }
-
-        pluginItem.InvokeGraphUpdated();
     }
 
-    private void Button_Click(object sender, RoutedEventArgs e)
+    private void GraphComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressSelectionChanged) return;
+        if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
+        if (GraphComboBox.SelectedValue is not Guid newGraphId) return;
+        if (newGraphId == pluginItem.GraphId) return;
+
+        BeginEdit?.Invoke(this, EventArgs.Empty);
+        try
+        {
+            pluginItem.SwitchGraph(newGraphId);
+        }
+        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+        {
+            Debug.WriteLine($"[OpenNodeEditorButton] Failed to switch graph: {ex}");
+        }
+        finally
+        {
+            EndEdit?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void NewButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            Button_Click_Core();
+            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
+            var library = GraphLibraryViewModel.Current;
+            if (library is null) return;
+
+            var parentWindow = Window.GetWindow(this);
+            if (parentWindow is null) return;
+
+            if (!GraphNameInputWindow.TryGetName(parentWindow, TextUi.NewGraphNamePrompt,
+                    $"Graph {library.Entries.Count + 1}", out var name))
+                return;
+
+            var entry = library.CreateNew(name);
+
+            BeginEdit?.Invoke(this, EventArgs.Empty);
+            try
+            {
+                pluginItem.SwitchGraph(entry.Id);
+            }
+            finally
+            {
+                EndEdit?.Invoke(this, EventArgs.Empty);
+            }
+
+            SyncComboBox();
+        }
+        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+        {
+            Debug.WriteLine($"[OpenNodeEditorButton] Failed to create new graph: {ex}");
+        }
+    }
+
+    private void RenameButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
+            var library = GraphLibraryViewModel.Current;
+            if (library is null || !library.TryGetEntry(pluginItem.GraphId, out var entry)) return;
+
+            var parentWindow = Window.GetWindow(this);
+            if (parentWindow is null) return;
+
+            if (!GraphNameInputWindow.TryGetName(parentWindow, TextUi.RenameGraphNamePrompt, entry.Name,
+                    out var name))
+                return;
+
+            library.Rename(pluginItem.GraphId, name);
+        }
+        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+        {
+            Debug.WriteLine($"[OpenNodeEditorButton] Failed to rename graph: {ex}");
+        }
+    }
+
+    private void CloneButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
+            var library = GraphLibraryViewModel.Current;
+            if (library is null) return;
+
+            var parentWindow = Window.GetWindow(this);
+            if (parentWindow is null) return;
+
+            var currentName =
+                library.TryGetEntry(pluginItem.GraphId, out var currentEntry) ? currentEntry.Name : "Graph";
+
+            if (!GraphNameInputWindow.TryGetName(parentWindow, TextUi.CloneGraphNamePrompt, $"{currentName} Copy",
+                    out var name))
+                return;
+
+            var cloned = library.Clone(pluginItem.GraphId, name, pluginItem.Graph);
+
+            BeginEdit?.Invoke(this, EventArgs.Empty);
+            try
+            {
+                pluginItem.SwitchGraph(cloned.Id);
+            }
+            finally
+            {
+                EndEdit?.Invoke(this, EventArgs.Empty);
+            }
+
+            SyncComboBox();
+        }
+        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+        {
+            Debug.WriteLine($"[OpenNodeEditorButton] Failed to clone graph: {ex}");
+        }
+    }
+
+    private void ManageButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (GraphLibraryViewModel.Current is null) return;
+
+            var parentWindow = Window.GetWindow(this);
+            var window = new GraphLibraryManageWindow { Owner = parentWindow };
+            window.ShowDialog();
+        }
+        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+        {
+            Debug.WriteLine($"[OpenNodeEditorButton] Failed to open manage window: {ex}");
+        }
+    }
+
+    private static void EnsureInternalGraph(NodeEffect pluginItem)
+    {
+        if (pluginItem.InternalGraph is not null) return;
+
+        lock (pluginItem.ProcessorInitializationLock)
+        {
+            if (pluginItem.InternalGraph is not null) return;
+
+            if (pluginItem.Graph.Nodes.Count > 0)
+            {
+                pluginItem.InternalGraph = Serializer.Restore(pluginItem.Graph);
+            }
+            else
+            {
+                var graph = new NodeGraph();
+
+                var inputNode = new ArgumentsNode(
+                    new PortDefinition("InputImage", typeof(ImageWrapper)),
+                    new PortDefinition("FrameIndex", typeof(int))
+                )
+                {
+                    Id = Guid.NewGuid()
+                };
+
+                var outputNode = new ReturnNode(
+                    new PortDefinition("OutputImage", typeof(ImageWrapper))
+                )
+                {
+                    Id = Guid.NewGuid()
+                };
+
+                graph.AddNode(inputNode);
+                graph.AddNode(outputNode);
+                graph.SetVisualState(inputNode.Id, 100, 100);
+                graph.SetVisualState(outputNode.Id, 500, 100);
+                graph.Connect(inputNode.Id, "InputImage", outputNode.Id, "OutputImage");
+
+                pluginItem.InternalGraph = graph;
+                pluginItem.Graph = Serializer.Create(graph);
+            }
+
+            pluginItem.InvokeGraphUpdated();
+        }
+    }
+
+    private void EditButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            EditButton_Click_Core();
         }
         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
         {
@@ -140,7 +325,7 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         }
     }
 
-    private void Button_Click_Core()
+    private void EditButton_Click_Core()
     {
         if (ItemProperties is null) throw new InvalidOperationException(TextUi.ItemPropertiesNotSet);
 
@@ -150,7 +335,8 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         var mainViewModel = parentWindow.DataContext!;
 
         var toolAreaViewModels =
-            mainViewModel.GetType().GetProperty("AnchorableAreaViewModels")!.GetValue(mainViewModel) as IEnumerable;
+            mainViewModel.GetType().GetProperty("AnchorableAreaViewModels")!.GetValue(mainViewModel) as
+                System.Collections.IEnumerable;
         var toolAreaViewModel =
             toolAreaViewModels
                 ?.Cast<object>()
@@ -173,8 +359,15 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         _lastResolvedViewModel = vm;
 
         EnsureInternalGraph(pluginItem);
+        if (pluginItem.InternalGraph is null)
+            throw new InvalidOperationException("グラフの解決に失敗しました。");
 
-        vm?.OpenGraph(pluginItem.InternalGraph!, editorInfo: _editorInfo);
+        var title = GraphLibraryViewModel.Current is { } library &&
+                    library.TryGetEntry(pluginItem.GraphId, out var entry)
+            ? entry.Name
+            : "Main";
+
+        vm?.OpenGraph(pluginItem.InternalGraph!, title, _editorInfo, pluginItem.GraphId);
 
         if (vm != null)
         {
@@ -197,7 +390,8 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
                 BeginEdit?.Invoke(this, EventArgs.Empty);
                 try
                 {
-                    pluginItem.InternalGraphSnapshot = await Serializer.CreateAsync(pluginItem.InternalGraph);
+                    var snapshot = await Serializer.CreateAsync(pluginItem.InternalGraph);
+                    pluginItem.InternalGraphSnapshot = snapshot;
                 }
                 finally
                 {
@@ -233,8 +427,15 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
                     previousGraph = newGraph;
                 }
 
+                var newTitle = GraphLibraryViewModel.Current is { } lib &&
+                               lib.TryGetEntry(pluginItem.GraphId, out var newEntry)
+                    ? newEntry.Name
+                    : "Main";
+
                 vm?.OnGraphUpdated();
-                vm?.OpenGraph(newGraph, editorInfo: _editorInfo);
+                vm?.OpenGraph(newGraph, newTitle, _editorInfo, pluginItem.GraphId);
+
+                SyncComboBox();
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
@@ -251,8 +452,6 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         if (layout is null) return;
 
         // 既存のショートカット登録・ハンドラを解除してから積み直す。
-        // 解除しないと、パネルを閉じずにボタンを複数回押した場合や
-        // プロパティエディタが再生成された場合に古いハンドラ・ショートカットが残り続ける。
         ReleaseShortcutBindings();
 
         var nodeBindings = new[]
