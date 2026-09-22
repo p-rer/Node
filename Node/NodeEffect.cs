@@ -33,10 +33,8 @@ public sealed class NodeEffect : VideoEffectBase
 {
     internal const int ArgumentSlotCount = 16;
 
-    internal const double ArgumentNumberLimit = 1_000_000_000d;
-
     private readonly Animation[] _argumentSlots = Enumerable.Range(0, ArgumentSlotCount)
-        .Select(_ => new Animation(0, -ArgumentNumberLimit, ArgumentNumberLimit))
+        .Select(_ => new Animation(0, double.MinValue, double.MaxValue))
         .ToArray();
 
     private readonly Dispatcher _uiDispatcher = Application.Current.Dispatcher;

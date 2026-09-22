@@ -120,10 +120,14 @@ public sealed class ArgumentsEditor : UserControl, IPropertyEditorControl2
             }
             else
             {
-                var hostType = typeof(ArgumentValueHost<>).MakeGenericType(ArgumentPortKinds.GetEditorValueType(kind));
-                host = (IArgumentValueHost)Activator.CreateInstance(hostType, effect, definition, kind)!;
+                host = kind switch
+                {
+                    ArgumentPortKind.Bool => new BoolArgumentValueHost(effect, definition),
+                    ArgumentPortKind.Color => new ColorArgumentValueHost(effect, definition),
+                    _ => new TextArgumentValueHost(effect, definition)
+                };
                 owner = host;
-                valueProperty = hostType.GetProperty(nameof(ArgumentValueHost<int>.Value))!;
+                valueProperty = host.GetType().GetProperty("Value")!;
             }
 
             EventHandler begin = (_, _) => BeginEdit?.Invoke(this, EventArgs.Empty);

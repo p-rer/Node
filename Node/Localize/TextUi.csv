@@ -68,7 +68,7 @@ RenameGraphNamePrompt,名前変更ダイアログのプロンプト文言,グラ
 CloneGraphNamePrompt,クローンダイアログのプロンプト文言,複製後のグラフの名前を入力してください。,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.
 ArgumentValues,プロパティパネルの引数セクション見出し,引数,Arguments,参数,參數,인수,Argumentos,المعاملات,Argumen
 AddArgumentPortButton,ノード上の引数追加ボタン,+ 引数を追加,+ Add Argument,+ 添加参数,+ 新增參數,+ 인수 추가,+ Añadir argumento,+ إضافة معامل,+ Tambah Argumen
-EditArgumentPortsTitle,引数編集ダイアログのタイトル,引数の編集...,Edit Arguments...,编辑参数...,編輯參數...,인수 편집...,Editar argumentos...,تحرير المعاملات...,Edit Argumen...
+EditArgumentPortsTitle,引数編集ダイアログのタイトル,引数の編集,Edit Arguments,编辑参数,編輯參數,인수 편집,Editar argumentos,تحرير المعاملات,Edit Argumen
 ArgumentPortDialogTitle,引数の追加・編集ダイアログのタイトル,引数,Argument,参数,參數,인수,Argumento,معامل,Argumen
 ArgumentPortNameLabel,引数名ラベル,名前,Name,名称,名稱,이름,Nombre,الاسم,Nama
 ArgumentPortTypeLabel,引数の型ラベル,型,Type,类型,類型,형식,Tipo,النوع,Tipe

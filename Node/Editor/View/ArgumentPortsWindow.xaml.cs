@@ -7,7 +7,7 @@ using Node.Nodes.Func;
 
 namespace Node.Editor.View;
 
-public partial class ArgumentPortsWindow : Window
+public partial class ArgumentPortsWindow
 {
     private readonly ObservableCollection<PortItem> _items;
 

@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Node.Editor.ViewModel;
 using Node.Graph.Port;
+using Node.Localize;
 
 namespace Node.Editor.View;
 
@@ -141,7 +142,7 @@ public partial class NodeView
         vm.ApplyArgumentPorts([.. current, definition]);
     }
 
-    internal void EditArgumentPorts(NodeViewModel vm)
+    private void EditArgumentPorts(NodeViewModel vm)
     {
         if (GetDialogOwner() is not { } owner) return;
 

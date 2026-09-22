@@ -237,8 +237,6 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public event EventHandler? EditArgumentPortsRequested;
-
     internal Node.Graph.Port.PortDefinition[] GetArgumentPortDefinitions()
     {
         return (NodeLogic as ArgumentsNode)?.GetPortDefinitions() ?? [];
@@ -248,6 +246,8 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     {
         _graphViewModel.ApplyArgumentPorts(Id, definitions);
     }
+
+    public event EventHandler? EditArgumentPortsRequested;
 
     public void CommitPosition()
     {

@@ -133,7 +133,7 @@
     <data name="CloneGraphNamePrompt" xml:space="preserve"><value>Enter a name for the cloned graph.</value></data>
     <data name="ArgumentValues" xml:space="preserve"><value>Arguments</value></data>
     <data name="AddArgumentPortButton" xml:space="preserve"><value>+ Add Argument</value></data>
-    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>Edit Arguments...</value></data>
+    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>Edit Arguments</value></data>
     <data name="ArgumentPortDialogTitle" xml:space="preserve"><value>Argument</value></data>
     <data name="ArgumentPortNameLabel" xml:space="preserve"><value>Name</value></data>
     <data name="ArgumentPortTypeLabel" xml:space="preserve"><value>Type</value></data>

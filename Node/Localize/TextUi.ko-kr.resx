@@ -133,7 +133,7 @@
     <data name="CloneGraphNamePrompt" xml:space="preserve"><value>Enter a name for the cloned graph.</value></data>
     <data name="ArgumentValues" xml:space="preserve"><value>인수</value></data>
     <data name="AddArgumentPortButton" xml:space="preserve"><value>+ 인수 추가</value></data>
-    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>인수 편집...</value></data>
+    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>인수 편집</value></data>
     <data name="ArgumentPortDialogTitle" xml:space="preserve"><value>인수</value></data>
     <data name="ArgumentPortNameLabel" xml:space="preserve"><value>이름</value></data>
     <data name="ArgumentPortTypeLabel" xml:space="preserve"><value>형식</value></data>

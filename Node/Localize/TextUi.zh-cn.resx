@@ -133,7 +133,7 @@
     <data name="CloneGraphNamePrompt" xml:space="preserve"><value>Enter a name for the cloned graph.</value></data>
     <data name="ArgumentValues" xml:space="preserve"><value>参数</value></data>
     <data name="AddArgumentPortButton" xml:space="preserve"><value>+ 添加参数</value></data>
-    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>编辑参数...</value></data>
+    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>编辑参数</value></data>
     <data name="ArgumentPortDialogTitle" xml:space="preserve"><value>参数</value></data>
     <data name="ArgumentPortNameLabel" xml:space="preserve"><value>名称</value></data>
     <data name="ArgumentPortTypeLabel" xml:space="preserve"><value>类型</value></data>
