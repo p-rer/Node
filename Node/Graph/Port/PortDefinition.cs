@@ -5,5 +5,6 @@ public record PortDefinition(
     Type ValueType,
     string Label = "",
     string Description = "",
-    object? DefaultValue = null
+    object? DefaultValue = null,
+    bool IsCustom = false
 );

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using Node.Editor.Attributes;
 using Node.Editor.Command;
@@ -10,6 +11,7 @@ using Node.Graph;
 using Node.Graph.Attributes;
 using Node.Graph.Events;
 using Node.Nodes.Effect.DynamicLoaded;
+using Node.Nodes.Func;
 using YukkuriMovieMaker.Commons;
 
 namespace Node.Editor.ViewModel;
@@ -34,6 +36,9 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         ParentEditor = graphViewModel.ParentEditor;
 
         Id = nodeLogic.Id;
+
+        EditArgumentPortsCommand =
+            new RelayCommand(() => { EditArgumentPortsRequested?.Invoke(this, EventArgs.Empty); });
 
         var nodeAttr = nodeLogic.GetType().GetCustomAttribute<NodeAttribute>();
         if (nodeAttr == null) throw new InvalidOperationException();
@@ -149,6 +154,8 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         nodeLogic.NeedToReinitializeInputPorts += _needToReinitializeInputPortsHandler;
     }
 
+    public ICommand EditArgumentPortsCommand { get; }
+
     public NodeEditorViewModel ParentEditor { get; }
 
     public bool IsSelected
@@ -175,6 +182,8 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     public ObservableCollection<SubGraphViewModel> SubGraphs { get; }
 
     public bool HasSubGraph { get; }
+
+    public bool CanEditPorts => NodeLogic is ArgumentsNode { AllowCustomPorts: true };
 
     public double X
     {
@@ -227,6 +236,18 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public event EventHandler? EditArgumentPortsRequested;
+
+    internal Node.Graph.Port.PortDefinition[] GetArgumentPortDefinitions()
+    {
+        return (NodeLogic as ArgumentsNode)?.GetPortDefinitions() ?? [];
+    }
+
+    internal void ApplyArgumentPorts(Node.Graph.Port.PortDefinition[] definitions)
+    {
+        _graphViewModel.ApplyArgumentPorts(Id, definitions);
+    }
 
     public void CommitPosition()
     {
@@ -288,18 +309,6 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    /// <summary>
-    ///     プロパティに付与された PropertyEditorAttribute2 継承属性を解決する。
-    ///     通常は GetCustomAttribute で十分だが、Reflection.Emit で動的生成された型
-    ///     （EffectNodeFactory / BrushNodeFactory / ContainerFactory が生成する型）の場合、
-    ///     元の属性が「別アセンブリの internal 型」（YMM4本体組み込みのエディタ等、こちらが
-    ///     InternalsVisibleTo を付与できない相手）だと、CustomAttributeBuilder で複製した属性を
-    ///     GetCustomAttribute で再インスタンス化する際にアクセス例外で失敗することがある。
-    ///     そのため、動的生成側でビルド時に直接インスタンス化して静的フィールド（_portDefs）に
-    ///     保持してある PropertyEditorAttribute2 インスタンスがあれば、そちらを優先して使う。
-    ///     手書きの NodeLogic クラス（通常のコンパイル時属性）には _portDefs が存在しないため、
-    ///     その場合は今までどおり GetCustomAttribute で解決する。
-    /// </summary>
     private static PropertyEditorAttribute2? ResolveEditorAttribute(PropertyInfo? prop)
     {
         if (prop == null) return null;
@@ -317,15 +326,18 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     private IEnumerable<PortViewModel> CreateOutputPorts(NodeLogic node, NodeGraph graph)
     {
+        var argumentDefinitions = (node as ArgumentsNode)?.GetPortDefinitions();
+
         foreach (var (name, port) in node.Outputs)
         {
             var prop = node.GetType().GetProperty(name);
             var portAttr = prop?.GetCustomAttribute<OutputPortAttribute>();
             var portColorAttr = prop?.GetCustomAttribute<PortColorSettingAttribute>();
+            var definitionLabel = argumentDefinitions?.FirstOrDefault(d => d.Name == name)?.Label;
 
             yield return new PortViewModel(
                 name,
-                portAttr?.GetLabel() ?? name,
+                portAttr?.GetLabel() ?? (string.IsNullOrEmpty(definitionLabel) ? name : definitionLabel),
                 portAttr?.GetDescription() ?? "",
                 portColorAttr?.Color ?? nameof(Colors.SlateGray),
                 port.ValueType,

@@ -31,9 +31,25 @@ namespace Node;
     ResourceType = typeof(TextUi))]
 public sealed class NodeEffect : VideoEffectBase
 {
+    internal const int ArgumentSlotCount = 16;
+
+    internal const double ArgumentNumberLimit = 1_000_000_000d;
+
+    private readonly Animation[] _argumentSlots = Enumerable.Range(0, ArgumentSlotCount)
+        .Select(_ => new Animation(0, -ArgumentNumberLimit, ArgumentNumberLimit))
+        .ToArray();
+
     private readonly Dispatcher _uiDispatcher = Application.Current.Dispatcher;
 
     internal readonly Lock ProcessorInitializationLock = new();
+
+    private Dictionary<string, int> _argumentAnimationSlots = new();
+
+    private string _argumentSignature = "";
+
+    private volatile ArgumentValueCache _argumentValueCache = new("{}", new Dictionary<string, object?>());
+
+    private string _argumentValues = "{}";
     private GraphSnapshot _graph = new();
 
     private Guid _graphId = Guid.NewGuid();
@@ -65,12 +81,45 @@ public sealed class NodeEffect : VideoEffectBase
         }
     }
 
+    [Display(Name = nameof(TextUi.ArgumentValues), GroupName = nameof(TextUi.Node),
+        ResourceType = typeof(TextUi))]
+    [ArgumentsEditor]
+    public string ArgumentValues
+    {
+        get => _argumentValues;
+        set => Set(ref _argumentValues, value ?? "{}");
+    }
+
+    public Dictionary<string, int> ArgumentAnimationSlots
+    {
+        get => _argumentAnimationSlots;
+        set => _argumentAnimationSlots = value ?? new Dictionary<string, int>();
+    }
+
+    public Animation ArgumentSlot00 => _argumentSlots[0];
+    public Animation ArgumentSlot01 => _argumentSlots[1];
+    public Animation ArgumentSlot02 => _argumentSlots[2];
+    public Animation ArgumentSlot03 => _argumentSlots[3];
+    public Animation ArgumentSlot04 => _argumentSlots[4];
+    public Animation ArgumentSlot05 => _argumentSlots[5];
+    public Animation ArgumentSlot06 => _argumentSlots[6];
+    public Animation ArgumentSlot07 => _argumentSlots[7];
+    public Animation ArgumentSlot08 => _argumentSlots[8];
+    public Animation ArgumentSlot09 => _argumentSlots[9];
+    public Animation ArgumentSlot10 => _argumentSlots[10];
+    public Animation ArgumentSlot11 => _argumentSlots[11];
+    public Animation ArgumentSlot12 => _argumentSlots[12];
+    public Animation ArgumentSlot13 => _argumentSlots[13];
+    public Animation ArgumentSlot14 => _argumentSlots[14];
+    public Animation ArgumentSlot15 => _argumentSlots[15];
+
     public GraphSnapshot Graph
     {
         get => _graph;
         set
         {
             Set(ref _graph, value);
+            NotifyArgumentDefinitionsIfChanged();
             ApplyToInternalGraph(value);
             GraphLibraryViewModel.Current?.PropagateChange(GraphId, this, value);
         }
@@ -82,6 +131,7 @@ public sealed class NodeEffect : VideoEffectBase
         set
         {
             Set(ref _graph, value, nameof(Graph));
+            NotifyArgumentDefinitionsIfChanged();
             GraphLibraryViewModel.Current?.PropagateChange(GraphId, this, value);
         }
     }
@@ -100,6 +150,110 @@ public sealed class NodeEffect : VideoEffectBase
         }
     }
 
+    public event EventHandler? ArgumentDefinitionsChanged;
+
+    private IEnumerable<PortDefinitionSnapshot> EnumerateCustomArgumentSnapshots()
+    {
+        return _graph.Nodes
+            .SelectMany(node => node.PortDefinitions.Values)
+            .Where(definition => definition.IsCustom)
+            .DistinctBy(definition => definition.Name);
+    }
+
+    internal PortDefinition[] GetCustomArgumentDefinitions()
+    {
+        return EnumerateCustomArgumentSnapshots()
+            .Select(definition => definition.ToDefinition())
+            .ToArray();
+    }
+
+    private Dictionary<string, object?> GetArgumentValueMap()
+    {
+        var json = _argumentValues;
+        var cache = _argumentValueCache;
+        if (ReferenceEquals(cache.Json, json)) return cache.Values;
+
+        Dictionary<string, object?> values;
+        try
+        {
+            values = JsonConvert.DeserializeObject<Dictionary<string, object?>>(json) ?? new();
+        }
+        catch (JsonException)
+        {
+            values = new Dictionary<string, object?>();
+        }
+
+        _argumentValueCache = new ArgumentValueCache(json, values);
+        return values;
+    }
+
+    internal object? GetArgumentStorageValue(string name)
+    {
+        return GetArgumentValueMap().GetValueOrDefault(name);
+    }
+
+    internal void SetArgumentStorageValue(string name, object storageValue)
+    {
+        var values = new Dictionary<string, object?>(GetArgumentValueMap()) { [name] = storageValue };
+        ArgumentValues = JsonConvert.SerializeObject(values);
+    }
+
+    internal int? EnsureArgumentSlot(string name, IEnumerable<string> liveNames)
+    {
+        var current = _argumentAnimationSlots;
+        if (current.TryGetValue(name, out var existing)) return existing;
+
+        var live = liveNames.ToHashSet();
+        var next = current.Where(pair => live.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
+        for (var index = 0; index < ArgumentSlotCount; index++)
+        {
+            if (next.ContainsValue(index)) continue;
+
+            next[name] = index;
+            _argumentAnimationSlots = next;
+            return index;
+        }
+
+        return null;
+    }
+
+    internal static System.Reflection.PropertyInfo GetArgumentSlotProperty(int slot)
+    {
+        return typeof(NodeEffect).GetProperty($"ArgumentSlot{slot:00}")!;
+    }
+
+    internal object? ResolveArgumentValue(PortDefinition definition, EffectDescription description)
+    {
+        if (!ArgumentPortKinds.TryGetKind(definition.ValueType, out var kind)) return null;
+
+        if (kind == ArgumentPortKind.Number)
+        {
+            if (!_argumentAnimationSlots.TryGetValue(definition.Name, out var slot) ||
+                slot < 0 || slot >= ArgumentSlotCount)
+                return ArgumentPortKinds.ToPortValue(kind, definition.DefaultValue);
+
+            var value = _argumentSlots[slot].GetValue(
+                description.ItemPosition.Frame, description.ItemDuration.Frame, description.FPS);
+            return (float)value;
+        }
+
+        var stored = GetArgumentValueMap().GetValueOrDefault(definition.Name);
+        return ArgumentPortKinds.ToPortValue(kind, stored ?? definition.DefaultValue);
+    }
+
+    private void NotifyArgumentDefinitionsIfChanged()
+    {
+        var signature = string.Join('|',
+            EnumerateCustomArgumentSnapshots().Select(d => $"{d.Name}:{d.TypeName}:{d.Label}"));
+        if (signature == _argumentSignature) return;
+
+        _argumentSignature = signature;
+        if (_uiDispatcher.CheckAccess())
+            ArgumentDefinitionsChanged?.Invoke(this, EventArgs.Empty);
+        else
+            _uiDispatcher.BeginInvoke(() => ArgumentDefinitionsChanged?.Invoke(this, EventArgs.Empty));
+    }
+
     private void ApplyToInternalGraph(GraphSnapshot value)
     {
         if (InternalGraph is null) return;
@@ -116,6 +270,7 @@ public sealed class NodeEffect : VideoEffectBase
     {
         _graph = snapshot;
         _pendingExternalUpdate = snapshot;
+        NotifyArgumentDefinitionsIfChanged();
     }
 
     internal bool ApplyPendingExternalUpdateLocked()
@@ -154,7 +309,7 @@ public sealed class NodeEffect : VideoEffectBase
 
     protected override IEnumerable<IAnimatable> GetAnimatables()
     {
-        return [];
+        return _argumentSlots;
     }
 
     public override IEnumerable<string> CreateExoVideoFilters(int keyFrameIndex,
@@ -281,6 +436,8 @@ public sealed class NodeEffect : VideoEffectBase
             InternalGraph.EndEdit();
         }
     }
+
+    private sealed record ArgumentValueCache(string Json, Dictionary<string, object?> Values);
 }
 
 public sealed class Processor : IVideoEffectProcessor
@@ -342,11 +499,16 @@ public sealed class Processor : IVideoEffectProcessor
                 // 評価開始
                 var context = new EvaluationContext(_devices, effectDescription);
 
-                _inputNode.InjectArguments(new Dictionary<string, object?>
+                var arguments = new Dictionary<string, object?>
                 {
                     ["InputImage"] = new ImageWrapper { Image = _currentInputImage },
                     ["FrameIndex"] = effectDescription.ItemPosition.Frame
-                });
+                };
+                foreach (var definition in _inputNode.GetPortDefinitions())
+                    if (definition.IsCustom)
+                        arguments[definition.Name] = _nodeEffect.ResolveArgumentValue(definition, effectDescription);
+
+                _inputNode.InjectArguments(arguments);
 
                 var outputDict = _outputNode.ExtractReturns(context).GetAwaiter().GetResult();
                 var outputImage = (outputDict["OutputImage"] as ImageWrapper)?.Image;

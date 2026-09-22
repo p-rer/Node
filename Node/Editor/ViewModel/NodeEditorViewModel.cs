@@ -42,6 +42,9 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
                 SelectedTab?.GraphViewModel.SelectedNodes.Any(n =>
                     n.NodeLogic.GetType() != typeof(ArgumentsNode) && n.NodeLogic.GetType() != typeof(ReturnNode))
                 == true);
+        EditArgumentCommand = new RelayCommand(EditSelectedNodePort, () =>
+            SelectedTab?.GraphViewModel.SelectedNodes.Count == 1 &&
+            (SelectedTab?.GraphViewModel.SelectedNodes.First().CanEditPorts ?? false));
     }
 
     public ObservableCollection<TabViewModel> Tabs { get; }
@@ -61,6 +64,7 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
     public ICommand CutCommand { get; private set; }
     public ICommand PasteCommand { get; private set; }
     public ICommand DeleteSelectedCommand { get; private set; }
+    public ICommand EditArgumentCommand { get; private set; }
 
     public GraphControlMode CurrentMode
     {
@@ -348,6 +352,11 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
     private void DeleteSelected()
     {
         SelectedTab?.GraphViewModel.DeleteSelectedNode();
+    }
+
+    private void EditSelectedNodePort()
+    {
+        SelectedTab?.GraphViewModel.SelectedNodes.First().EditArgumentPortsCommand.Execute(null);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

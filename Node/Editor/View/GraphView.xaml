@@ -28,6 +28,9 @@
                       InputGestureText="Ctrl+V" />
             <MenuItem Header="{x:Static loc:TextUi.DeleteMenu}" Command="{Binding ParentEditor.DeleteSelectedCommand}"
                       InputGestureText="Delete" />
+            <Separator />
+            <MenuItem Header="{x:Static loc:TextUi.EditArgumentPortsTitle}"
+                      Command="{Binding ParentEditor.EditArgumentCommand}" />
         </ContextMenu>
     </UserControl.ContextMenu>
     <Grid x:Name="RootGrid" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">

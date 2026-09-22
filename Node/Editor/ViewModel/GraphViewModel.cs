@@ -7,6 +7,7 @@ using System.Windows.Input;
 using Node.Editor.Command;
 using Node.Graph;
 using Node.Graph.Events;
+using Node.Graph.Port;
 using Node.Graph.Snapshot;
 using Node.Nodes.Func;
 using Node.Utility;
@@ -307,6 +308,22 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
             try
             {
                 _graph.RemoveNode(nodeId);
+            }
+            finally
+            {
+                _graph.EndEdit();
+            }
+        }
+    }
+
+    internal void ApplyArgumentPorts(Guid nodeId, PortDefinition[] definitions)
+    {
+        lock (_graph.GraphLock)
+        {
+            _graph.BeginEdit();
+            try
+            {
+                _graph.ReplaceArgumentPorts(nodeId, definitions);
             }
             finally
             {

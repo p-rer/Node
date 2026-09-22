@@ -20,6 +20,8 @@ public class ArgumentsNode : NodeLogic
         Initialize(argumentPorts);
     }
 
+    public bool AllowCustomPorts { get; set; }
+
     public void Initialize(PortDefinition[] argumentPorts)
     {
         _portDefinitions = argumentPorts;
@@ -30,7 +32,12 @@ public class ArgumentsNode : NodeLogic
             var port = new OutputPort(this, portDef.ValueType);
             Outputs.Add(portDef.Name, port);
 
-            if (portDef.DefaultValue != null) port.SetValue(portDef.DefaultValue);
+            if (portDef.DefaultValue == null) continue;
+
+            if (portDef.IsCustom && ArgumentPortKinds.TryGetKind(portDef.ValueType, out var kind))
+                port.SetValue(ArgumentPortKinds.ToPortValue(kind, portDef.DefaultValue));
+            else
+                port.SetValue(portDef.DefaultValue);
         }
     }
 

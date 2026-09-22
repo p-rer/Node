@@ -1,6 +1,7 @@
 using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
+using Node.Nodes.Func;
 
 namespace Node.Graph;
 
@@ -195,6 +196,47 @@ public sealed class NodeGraph
         node.SubGraphs[subGraphName] = subGraph;
 
         OnGraphChanged(new ValueChangedEventArgs(nodeId, subGraphName, subGraph));
+    }
+
+    /// <summary>
+    ///     引数ノードのポート定義を丸ごと差し替えます（引数ポートの追加・削除・型/名前の変更・並べ替え）。
+    ///     ポートは作り直されるため、いったん引数ノードからの接続をすべて外し、
+    ///     同じ名前のポートが残っていて型が互換な接続だけを張り直します。
+    /// </summary>
+    /// <param name="nodeId">自由追加に対応した引数ノードのID</param>
+    /// <param name="portDefinitions">新しいポート定義（並び順がそのまま表示順になる）</param>
+    /// <returns>
+    ///     差し替えた場合はtrue。対象が自由追加に対応した引数ノードでない場合、元からある固定ポートが
+    ///     変更・削除されている場合、ポート名が重複している場合、追加ポートの型が未対応の場合は何もせずfalse。
+    /// </returns>
+    public bool ReplaceArgumentPorts(Guid nodeId, PortDefinition[] portDefinitions)
+    {
+        if (!_nodes.TryGetValue(nodeId, out var node) ||
+            node is not ArgumentsNode { AllowCustomPorts: true } argumentsNode)
+            return false;
+
+        if (portDefinitions.Select(d => d.Name).Distinct().Count() != portDefinitions.Length)
+            return false;
+
+        if (argumentsNode.GetPortDefinitions().Any(d => !d.IsCustom && !portDefinitions.Contains(d)))
+            return false;
+
+        if (portDefinitions.Any(d => d.IsCustom && !ArgumentPortKinds.TryGetKind(d.ValueType, out _)))
+            return false;
+
+        var outgoing = Connections.Where(c => c.FromId == nodeId).ToList();
+        foreach (var c in outgoing)
+            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        argumentsNode.Initialize(portDefinitions);
+
+        foreach (var c in outgoing)
+            if (argumentsNode.Outputs.ContainsKey(c.FromPort))
+                Connect(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        argumentsNode.Invalidate();
+        OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
+        return true;
     }
 
     /// <summary>

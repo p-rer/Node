@@ -40,10 +40,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="8" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Grid.RowSpan="6" Grid.Column="1"
+        <Border Grid.Row="0" Grid.RowSpan="7" Grid.Column="1"
                 Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <Border.Style>
                 <Style TargetType="Border">
@@ -142,8 +143,17 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <!-- 引数ポート追加ボタン -->
+        <Button Grid.Row="4" Grid.Column="1"
+                Content="{x:Static loc:TextUi.AddArgumentPortButton}"
+                Style="{StaticResource NodeEditorButtonStyle}"
+                HorizontalAlignment="Right"
+                Margin="0,4,12,0"
+                Visibility="{Binding CanEditPorts, Converter={StaticResource BoolToVisibilityConverter}}"
+                Click="AddArgumentPortButton_Click" />
+
         <!-- サブグラフボタン -->
-        <ItemsControl Grid.Row="4" Grid.Column="1"
+        <ItemsControl Grid.Row="5" Grid.Column="1"
                       Visibility="{Binding HasSubGraph, Converter={StaticResource BoolToVisibilityConverter}}"
                       ItemsSource="{Binding SubGraphs}">
             <ItemsControl.ItemTemplate>

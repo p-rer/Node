@@ -90,12 +90,23 @@ public static class Serializer
                     TypeName = portDef.ValueType.AssemblyQualifiedName ?? portDef.ValueType.Name,
                     Label = portDef.Label,
                     Description = portDef.Description,
-                    DefaultValue = portDef.DefaultValue
+                    DefaultValue = portDef.DefaultValue,
+                    IsCustom = portDef.IsCustom
                 };
         }
     }
 
     public static NodeGraph Restore(GraphSnapshot snapshot)
+    {
+        return Restore(snapshot, true);
+    }
+
+    /// <param name="snapshot">復元するスナップショット</param>
+    /// <param name="isRoot">
+    ///     ノードエフェクトのルートのグラフかどうか。ルートのグラフの ArgumentsNode だけ、
+    ///     引数ポートの自由追加（AllowCustomPorts）に対応させる。サブグラフは false。
+    /// </param>
+    private static NodeGraph Restore(GraphSnapshot snapshot, bool isRoot)
     {
         var graph = new NodeGraph();
         var nodeMap = new Dictionary<Guid, NodeLogic>();
@@ -136,6 +147,9 @@ public static class Serializer
             {
                 var node = (NodeLogic)Activator.CreateInstance(type)!;
                 node.Id = nodeSnap.Id;
+
+                if (node is ArgumentsNode rootArgumentsNode)
+                    rootArgumentsNode.AllowCustomPorts = isRoot;
 
                 switch (node)
                 {
@@ -190,7 +204,7 @@ public static class Serializer
 
                 foreach (var subGraphKvp in nodeSnap.SubGraphs)
                 {
-                    var subGraph = Restore(subGraphKvp.Value);
+                    var subGraph = Restore(subGraphKvp.Value, false);
                     graph.SetSubgraph(node.Id, subGraphKvp.Key, subGraph);
 
                     AutoBindSubGraphNodes(node, subGraphKvp.Key, subGraph);
@@ -237,17 +251,7 @@ public static class Serializer
 
         PortDefinition[] RestorePortDefinitions(Dictionary<string, PortDefinitionSnapshot> snapshots)
         {
-            return snapshots.Values.Select(snap =>
-            {
-                var type = Type.GetType(snap.TypeName) ?? typeof(object);
-                return new PortDefinition(
-                    snap.Name,
-                    type,
-                    snap.Label,
-                    snap.Description,
-                    snap.DefaultValue
-                );
-            }).ToArray();
+            return snapshots.Values.Select(snap => snap.ToDefinition()).ToArray();
         }
 
         void AutoBindSubGraphNodes(NodeLogic node, string subGraphPropName, NodeGraph subGraph)

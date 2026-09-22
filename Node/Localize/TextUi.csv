@@ -66,3 +66,19 @@ CancelButtonLabel,キャンセルボタン,キャンセル,Cancel,Cancel,Cancel,
 NewGraphNamePrompt,新規作成ダイアログのプロンプト文言,新しいグラフの名前を入力してください。,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.,Enter a name for the new graph.
 RenameGraphNamePrompt,名前変更ダイアログのプロンプト文言,グラフの新しい名前を入力してください。,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.,Enter a new name for the graph.
 CloneGraphNamePrompt,クローンダイアログのプロンプト文言,複製後のグラフの名前を入力してください。,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.,Enter a name for the cloned graph.
+ArgumentValues,プロパティパネルの引数セクション見出し,引数,Arguments,参数,參數,인수,Argumentos,المعاملات,Argumen
+AddArgumentPortButton,ノード上の引数追加ボタン,+ 引数を追加,+ Add Argument,+ 添加参数,+ 新增參數,+ 인수 추가,+ Añadir argumento,+ إضافة معامل,+ Tambah Argumen
+EditArgumentPortsTitle,引数編集ダイアログのタイトル,引数の編集...,Edit Arguments...,编辑参数...,編輯參數...,인수 편집...,Editar argumentos...,تحرير المعاملات...,Edit Argumen...
+ArgumentPortDialogTitle,引数の追加・編集ダイアログのタイトル,引数,Argument,参数,參數,인수,Argumento,معامل,Argumen
+ArgumentPortNameLabel,引数名ラベル,名前,Name,名称,名稱,이름,Nombre,الاسم,Nama
+ArgumentPortTypeLabel,引数の型ラベル,型,Type,类型,類型,형식,Tipo,النوع,Tipe
+ArgumentTypeNumber,引数の型「数値」,数値,Number,数值,數值,숫자,Número,رقم,Angka
+ArgumentTypeBool,引数の型「真偽値」,真偽値,Boolean,布尔值,布林值,불리언,Booleano,قيمة منطقية,Boolean
+ArgumentTypeColor,引数の型「色」,色,Color,颜色,顏色,색상,Color,اللون,Warna
+ArgumentTypeText,引数の型「文字列」,文字列,Text,文本,文字,텍스트,Texto,نص,Teks
+ArgumentPortAddLabel,引数編集ダイアログの追加ボタン,追加...,Add...,添加...,新增...,추가...,Añadir...,إضافة...,Tambah...
+ArgumentPortEditLabel,引数編集ダイアログの編集ボタン,編集...,Edit...,编辑...,編輯...,편집...,Editar...,تحرير...,Edit...
+ArgumentPortDeleteLabel,引数編集ダイアログの削除ボタン,削除,Delete,删除,刪除,삭제,Eliminar,حذف,Hapus
+ArgumentPortFixedLabel,固定引数の表示,固定,Fixed,固定,固定,고정,Fijo,ثابت,Tetap
+ArgumentPortNameInvalid,引数名が不正な場合のメッセージ,名前を入力してください（他の引数と同じ名前は使えません）。,Enter a name that is not used by another argument.,请输入未被其他参数使用的名称。,請輸入未被其他參數使用的名稱。,다른 인수와 겹치지 않는 이름을 입력하세요.,Introduce un nombre que no esté usado por otro argumento.,أدخل اسمًا غير مستخدم في معامل آخر.,Masukkan nama yang tidak dipakai argumen lain.
+ArgumentSlotsExhausted,数値の引数が上限に達した場合のメッセージ,数値の引数は1つのエフェクトにつき最大16個までです。,A single effect supports up to 16 number arguments.,每个效果最多支持16个数值参数。,每個效果最多支援16個數值參數。,이펙트 하나에서 숫자 인수는 최대 16개까지 지원합니다.,Un efecto admite hasta 16 argumentos numéricos.,يدعم التأثير الواحد ما يصل إلى 16 معاملًا رقميًا.,Satu efek mendukung hingga 16 argumen angka.

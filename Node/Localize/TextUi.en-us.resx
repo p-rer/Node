@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+                xmlns="">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string"/>
+                            <xsd:attribute name="type" type="xsd:string"/>
+                            <xsd:attribute name="mimetype" type="xsd:string"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string"/>
+                            <xsd:attribute name="name" type="xsd:string"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <data name="CurrentCulture" xml:space="preserve"><value>en-us</value></data>
+    <data name="Node" xml:space="preserve"><value>Node</value></data>
+    <data name="NodeEditor" xml:space="preserve"><value>Node Editor</value></data>
+    <data name="OutputImageIsNull" xml:space="preserve"><value>Output image is null.</value></data>
+    <data name="ItemPropertiesNotSet" xml:space="preserve"><value>Item Properties is not set.</value></data>
+    <data name="UnableLoadEffect" xml:space="preserve"><value>Unable load effect</value></data>
+    <data name="UnableGenerateEffect" xml:space="preserve"><value>Unable generate effect</value></data>
+    <data name="PropertyNotFound" xml:space="preserve"><value>The specified property {0} was not found.</value></data>
+    <data name="PropertyReadOnly" xml:space="preserve"><value>The property {0} is read-only.</value></data>
+    <data name="UnableCreateAnimationInstance" xml:space="preserve"><value>Unable to create an instance of Animation type.</value></data>
+    <data name="AnimationValuesPropertyError" xml:space="preserve"><value>The Values property of the Animation object was not found or is read-only.</value></data>
+    <data name="ShaderResourceIdEmpty" xml:space="preserve"><value>Shader resource id is empty.</value></data>
+    <data name="ShaderResourceNotFound" xml:space="preserve"><value>The shader resource *.{0} not found.</value></data>
+    <data name="CannotCreateEffectInstance" xml:space="preserve"><value>Cannot create effect instance</value></data>
+    <data name="CannotCastToShaderEffect" xml:space="preserve"><value>Cannot cast to ShaderEffect</value></data>
+    <data name="IndexOutOfRange" xml:space="preserve"><value>The specified index is out of range.</value></data>
+    <data name="CannotCreateType" xml:space="preserve"><value>Cannot create the type</value></data>
+    <data name="Input" xml:space="preserve"><value>Input</value></data>
+    <data name="Output" xml:space="preserve"><value>Output</value></data>
+    <data name="ColorRgbHeader" xml:space="preserve"><value>RGB</value></data>
+    <data name="ColorRedLabel" xml:space="preserve"><value>R:</value></data>
+    <data name="ColorGreenLabel" xml:space="preserve"><value>G:</value></data>
+    <data name="ColorBlueLabel" xml:space="preserve"><value>B:</value></data>
+    <data name="ColorAlphaLabel" xml:space="preserve"><value>A:</value></data>
+    <data name="ColorHsvHeader" xml:space="preserve"><value>HSV</value></data>
+    <data name="ColorHueLabel" xml:space="preserve"><value>H:</value></data>
+    <data name="ColorSaturationLabel" xml:space="preserve"><value>S:</value></data>
+    <data name="ColorValueLabel" xml:space="preserve"><value>V:</value></data>
+    <data name="SelectFileButton" xml:space="preserve"><value>Select</value></data>
+    <data name="OpenSubGraphButton" xml:space="preserve"><value>Open SubGraph</value></data>
+    <data name="AddNodeMenu" xml:space="preserve"><value>Add Node</value></data>
+    <data name="CopyMenu" xml:space="preserve"><value>Copy</value></data>
+    <data name="CutMenu" xml:space="preserve"><value>Cut</value></data>
+    <data name="PasteMenu" xml:space="preserve"><value>Paste</value></data>
+    <data name="DeleteMenu" xml:space="preserve"><value>Delete</value></data>
+    <data name="EditMenu" xml:space="preserve"><value>Edit</value></data>
+    <data name="ModeMenu" xml:space="preserve"><value>Mode</value></data>
+    <data name="RectSelectionMenu" xml:space="preserve"><value>Rect Selection</value></data>
+    <data name="LassoSelectionMenu" xml:space="preserve"><value>Lasso Selection</value></data>
+    <data name="PanMenu" xml:space="preserve"><value>Pan</value></data>
+    <data name="ViewMenu" xml:space="preserve"><value>View</value></data>
+    <data name="ZoomInMenu" xml:space="preserve"><value>Zoom +</value></data>
+    <data name="ZoomOutMenu" xml:space="preserve"><value>Zoom -</value></data>
+    <data name="ResetZoomMenu" xml:space="preserve"><value>Reset Zoom</value></data>
+    <data name="FitMenu" xml:space="preserve"><value>Fit</value></data>
+    <data name="CloseTabToolTip" xml:space="preserve"><value>Close Tab</value></data>
+    <data name="ModeStatusLabel" xml:space="preserve"><value>Mode:</value></data>
+    <data name="OpenNodeEditorButtonLabel" xml:space="preserve"><value>Open Node Editor...</value></data>
+    <data name="BezierSmoothMenu" xml:space="preserve"><value>Smooth</value></data>
+    <data name="BezierCornerMenu" xml:space="preserve"><value>Corner</value></data>
+    <data name="BezierFixedNodeDeleteError" xml:space="preserve"><value>Cannot delete a fixed node.</value></data>
+    <data name="BezierMinKeyframesError" xml:space="preserve"><value>At least two keyframes are required.</value></data>
+    <data name="GraphLibraryToolName" xml:space="preserve"><value>Node Graph Library</value></data>
+    <data name="NewGraphButtonLabel" xml:space="preserve"><value>New</value></data>
+    <data name="RenameGraphButtonLabel" xml:space="preserve"><value>Rename</value></data>
+    <data name="CloneGraphButtonLabel" xml:space="preserve"><value>Clone</value></data>
+    <data name="ManageGraphButtonLabel" xml:space="preserve"><value>Manage</value></data>
+    <data name="MoveUpToolTip" xml:space="preserve"><value>Move up</value></data>
+    <data name="MoveDownToolTip" xml:space="preserve"><value>Move down</value></data>
+    <data name="DeleteGraphToolTip" xml:space="preserve"><value>Delete</value></data>
+    <data name="DeleteGraphConfirmMessage" xml:space="preserve"><value>Delete graph {0}? If any effects still reference it, its content will be restored the next time it is accessed.</value></data>
+    <data name="DeleteGraphConfirmTitle" xml:space="preserve"><value>Delete Graph</value></data>
+    <data name="GraphNameInputTitle" xml:space="preserve"><value>Graph Name</value></data>
+    <data name="OkButtonLabel" xml:space="preserve"><value>OK</value></data>
+    <data name="CancelButtonLabel" xml:space="preserve"><value>Cancel</value></data>
+    <data name="NewGraphNamePrompt" xml:space="preserve"><value>Enter a name for the new graph.</value></data>
+    <data name="RenameGraphNamePrompt" xml:space="preserve"><value>Enter a new name for the graph.</value></data>
+    <data name="CloneGraphNamePrompt" xml:space="preserve"><value>Enter a name for the cloned graph.</value></data>
+    <data name="ArgumentValues" xml:space="preserve"><value>Arguments</value></data>
+    <data name="AddArgumentPortButton" xml:space="preserve"><value>+ Add Argument</value></data>
+    <data name="EditArgumentPortsTitle" xml:space="preserve"><value>Edit Arguments...</value></data>
+    <data name="ArgumentPortDialogTitle" xml:space="preserve"><value>Argument</value></data>
+    <data name="ArgumentPortNameLabel" xml:space="preserve"><value>Name</value></data>
+    <data name="ArgumentPortTypeLabel" xml:space="preserve"><value>Type</value></data>
+    <data name="ArgumentTypeNumber" xml:space="preserve"><value>Number</value></data>
+    <data name="ArgumentTypeBool" xml:space="preserve"><value>Boolean</value></data>
+    <data name="ArgumentTypeColor" xml:space="preserve"><value>Color</value></data>
+    <data name="ArgumentTypeText" xml:space="preserve"><value>Text</value></data>
+    <data name="ArgumentPortAddLabel" xml:space="preserve"><value>Add...</value></data>
+    <data name="ArgumentPortEditLabel" xml:space="preserve"><value>Edit...</value></data>
+    <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>Delete</value></data>
+    <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>Fixed</value></data>
+    <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>Enter a name that is not used by another argument.</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>A single effect supports up to 16 number arguments.</value></data>
+</root>

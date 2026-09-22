@@ -1,0 +1,11 @@
+<Window x:Class="Node.Editor.View.GraphLibraryManageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:view="clr-namespace:Node.Editor.View"
+        xmlns:loc="clr-namespace:Node.Localize"
+        Title="{x:Static loc:TextUi.GraphLibraryToolName}"
+        Width="420" Height="480"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <view:GraphLibraryManageView />
+</Window>

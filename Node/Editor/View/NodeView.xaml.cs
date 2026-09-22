@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Node.Editor.ViewModel;
+using Node.Graph.Port;
 
 namespace Node.Editor.View;
 
@@ -22,6 +23,7 @@ public partial class NodeView
         Loaded += (_, _) => FindParent<Canvas>(this);
         SizeChanged += OnSizeChanged;
         LostMouseCapture += OnLostMouseCapture;
+        DataContextChanged += OnDataContextChanged;
     }
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -115,6 +117,46 @@ public partial class NodeView
 
         if (!graphVm.SelectedNodes.Contains(vm))
             graphVm.SelectSingle(vm);
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is not NodeViewModel { CanEditPorts: true } vm)
+        {
+            return;
+        }
+
+        vm.EditArgumentPortsRequested += (_, _) => EditArgumentPorts(vm);
+    }
+
+    private void AddArgumentPortButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not NodeViewModel { CanEditPorts: true } vm) return;
+        if (GetDialogOwner() is not { } owner) return;
+
+        var current = vm.GetArgumentPortDefinitions();
+        if (!ArgumentPortEditWindow.TryCreate(owner, current.Select(GetLabel).ToList(), out var definition))
+            return;
+
+        vm.ApplyArgumentPorts([.. current, definition]);
+    }
+
+    internal void EditArgumentPorts(NodeViewModel vm)
+    {
+        if (GetDialogOwner() is not { } owner) return;
+
+        if (ArgumentPortsWindow.TryEdit(owner, vm.GetArgumentPortDefinitions(), out var result))
+            vm.ApplyArgumentPorts(result);
+    }
+
+    private Window? GetDialogOwner()
+    {
+        return Window.GetWindow(this) ?? Application.Current?.MainWindow;
+    }
+
+    private static string GetLabel(PortDefinition definition)
+    {
+        return string.IsNullOrEmpty(definition.Label) ? definition.Name : definition.Label;
     }
 
     private void OnLostMouseCapture(object sender, MouseEventArgs e)
