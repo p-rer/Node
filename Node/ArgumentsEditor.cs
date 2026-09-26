@@ -107,6 +107,9 @@ public sealed class ArgumentsEditor : UserControl, IPropertyEditorControl2
                 throw new InvalidOperationException(
                     $"{control.GetType().FullName} は IPropertyEditorControl を実装していません。");
 
+            if (kind == ArgumentPortKind.Color)
+                control.MinHeight = 28;
+
             object owner;
             PropertyInfo valueProperty;
             IArgumentValueHost? host = null;

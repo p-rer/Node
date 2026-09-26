@@ -31,7 +31,7 @@ namespace Node;
     ResourceType = typeof(TextUi))]
 public sealed class NodeEffect : VideoEffectBase
 {
-    internal const int ArgumentSlotCount = 16;
+    internal const int ArgumentSlotCount = 64;
 
     private readonly Animation[] _argumentSlots = Enumerable.Range(0, ArgumentSlotCount)
         .Select(_ => new Animation(0, double.MinValue, double.MaxValue))
@@ -110,6 +110,54 @@ public sealed class NodeEffect : VideoEffectBase
     public Animation ArgumentSlot13 => _argumentSlots[13];
     public Animation ArgumentSlot14 => _argumentSlots[14];
     public Animation ArgumentSlot15 => _argumentSlots[15];
+    public Animation ArgumentSlot16 => _argumentSlots[16];
+    public Animation ArgumentSlot17 => _argumentSlots[17];
+    public Animation ArgumentSlot18 => _argumentSlots[18];
+    public Animation ArgumentSlot19 => _argumentSlots[19];
+    public Animation ArgumentSlot20 => _argumentSlots[20];
+    public Animation ArgumentSlot21 => _argumentSlots[21];
+    public Animation ArgumentSlot22 => _argumentSlots[22];
+    public Animation ArgumentSlot23 => _argumentSlots[23];
+    public Animation ArgumentSlot24 => _argumentSlots[24];
+    public Animation ArgumentSlot25 => _argumentSlots[25];
+    public Animation ArgumentSlot26 => _argumentSlots[26];
+    public Animation ArgumentSlot27 => _argumentSlots[27];
+    public Animation ArgumentSlot28 => _argumentSlots[28];
+    public Animation ArgumentSlot29 => _argumentSlots[29];
+    public Animation ArgumentSlot30 => _argumentSlots[30];
+    public Animation ArgumentSlot31 => _argumentSlots[31];
+    public Animation ArgumentSlot32 => _argumentSlots[32];
+    public Animation ArgumentSlot33 => _argumentSlots[33];
+    public Animation ArgumentSlot34 => _argumentSlots[34];
+    public Animation ArgumentSlot35 => _argumentSlots[35];
+    public Animation ArgumentSlot36 => _argumentSlots[36];
+    public Animation ArgumentSlot37 => _argumentSlots[37];
+    public Animation ArgumentSlot38 => _argumentSlots[38];
+    public Animation ArgumentSlot39 => _argumentSlots[39];
+    public Animation ArgumentSlot40 => _argumentSlots[40];
+    public Animation ArgumentSlot41 => _argumentSlots[41];
+    public Animation ArgumentSlot42 => _argumentSlots[42];
+    public Animation ArgumentSlot43 => _argumentSlots[43];
+    public Animation ArgumentSlot44 => _argumentSlots[44];
+    public Animation ArgumentSlot45 => _argumentSlots[45];
+    public Animation ArgumentSlot46 => _argumentSlots[46];
+    public Animation ArgumentSlot47 => _argumentSlots[47];
+    public Animation ArgumentSlot48 => _argumentSlots[48];
+    public Animation ArgumentSlot49 => _argumentSlots[49];
+    public Animation ArgumentSlot50 => _argumentSlots[50];
+    public Animation ArgumentSlot51 => _argumentSlots[51];
+    public Animation ArgumentSlot52 => _argumentSlots[52];
+    public Animation ArgumentSlot53 => _argumentSlots[53];
+    public Animation ArgumentSlot54 => _argumentSlots[54];
+    public Animation ArgumentSlot55 => _argumentSlots[55];
+    public Animation ArgumentSlot56 => _argumentSlots[56];
+    public Animation ArgumentSlot57 => _argumentSlots[57];
+    public Animation ArgumentSlot58 => _argumentSlots[58];
+    public Animation ArgumentSlot59 => _argumentSlots[59];
+    public Animation ArgumentSlot60 => _argumentSlots[60];
+    public Animation ArgumentSlot61 => _argumentSlots[61];
+    public Animation ArgumentSlot62 => _argumentSlots[62];
+    public Animation ArgumentSlot63 => _argumentSlots[63];
 
     public GraphSnapshot Graph
     {
