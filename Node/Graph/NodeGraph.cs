@@ -34,6 +34,8 @@ public sealed class NodeGraph
     /// </summary>
     public bool IsInTransaction { get; private set; }
 
+    internal Action? SynchronizeBeforeEdit { get; set; }
+
     public void UpdateGraph(NodeGraph graph)
     {
         // 旧ノードのD2Dリソースを解放してから差し替える。
@@ -412,6 +414,7 @@ public sealed class NodeGraph
     /// </summary>
     public void BeginEdit()
     {
+        SynchronizeBeforeEdit?.Invoke();
         IsInTransaction = true;
     }
 

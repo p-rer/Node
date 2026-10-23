@@ -149,6 +149,7 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
 
     private void SyncFromGraph()
     {
+        var selectedIds = SelectedNodes.Select(node => node.Id).ToHashSet();
         var nodeViewModels = new Dictionary<Guid, NodeViewModel>();
         ClearSelection();
 
@@ -176,6 +177,11 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
 
                 Nodes.Add(vm);
                 nodeViewModels[node.Id] = vm;
+                if (selectedIds.Contains(vm.Id))
+                {
+                    vm.IsSelected = true;
+                    SelectedNodes.Add(vm);
+                }
             }
 
             foreach (var node in Nodes)

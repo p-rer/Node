@@ -52,10 +52,12 @@ public sealed class NodeEffect : VideoEffectBase
 
     private Guid _graphId = Guid.NewGuid();
 
-    private volatile GraphSnapshot? _pendingExternalUpdate;
+    private readonly SharedGraphUpdateState<GraphSnapshot> _sharedUpdates;
+    internal int LiveGraphRevision { get; private set; }
 
     public NodeEffect()
     {
+        _sharedUpdates = new(_graphId);
         GraphLibraryViewModel.Current?.Subscribe(_graphId, this);
     }
 
@@ -70,8 +72,9 @@ public sealed class NodeEffect : VideoEffectBase
         set
         {
             var oldId = _graphId;
-            Set(ref _graphId, value);
             if (oldId == value) return;
+            _sharedUpdates.Reset(value);
+            Set(ref _graphId, value);
 
             var library = GraphLibraryViewModel.Current;
             library?.Unsubscribe(oldId, this);
@@ -164,6 +167,7 @@ public sealed class NodeEffect : VideoEffectBase
         get => _graph;
         set
         {
+            _sharedUpdates.Reset(GraphId);
             Set(ref _graph, value);
             NotifyArgumentDefinitionsIfChanged();
             ApplyToInternalGraph(value);
@@ -176,6 +180,7 @@ public sealed class NodeEffect : VideoEffectBase
         get => _graph;
         set
         {
+            _sharedUpdates.Reset(GraphId);
             Set(ref _graph, value, nameof(Graph));
             NotifyArgumentDefinitionsIfChanged();
             GraphLibraryViewModel.Current?.PropagateChange(GraphId, this, value);
@@ -189,10 +194,16 @@ public sealed class NodeEffect : VideoEffectBase
         set
         {
             if (field != null)
+            {
                 UnSubscribeChildUndoRedoable(field.PreviewNotifier);
+                field.SynchronizeBeforeEdit = null;
+            }
             field = value;
             if (field != null)
+            {
                 SubscribeChildUndoRedoable(field.PreviewNotifier);
+                field.SynchronizeBeforeEdit = SynchronizePendingBeforeEdit;
+            }
         }
     }
 
@@ -307,26 +318,61 @@ public sealed class NodeEffect : VideoEffectBase
         lock (InternalGraph.GraphLock)
         {
             InternalGraph.UpdateGraph(tempGraph);
+            LiveGraphRevision++;
         }
 
         InvokeGraphUpdated();
     }
 
-    internal void ApplyExternalGraphUpdate(GraphSnapshot snapshot)
+    internal SharedGraphUpdateState<GraphSnapshot>.Stamp CaptureGraphStamp() => _sharedUpdates.BeginSave();
+
+    internal bool TryCommitSnapshot(NodeGraph graph, SharedGraphUpdateState<GraphSnapshot>.Stamp stamp,
+        GraphSnapshot snapshot)
     {
+        if (!_uiDispatcher.CheckAccess())
+        {
+            _uiDispatcher.BeginInvoke(() => TryCommitSnapshot(graph, stamp, snapshot));
+            return false;
+        }
+
+        lock (graph.GraphLock)
+        {
+            if (!ReferenceEquals(InternalGraph, graph) || !_sharedUpdates.IsCurrent(stamp)) return false;
+            InternalGraphSnapshot = snapshot;
+            return true;
+        }
+    }
+
+    internal void ApplyExternalGraphUpdate(Guid graphId, GraphSnapshot snapshot)
+    {
+        if (!_sharedUpdates.Queue(graphId, snapshot)) return;
         _graph = snapshot;
-        _pendingExternalUpdate = snapshot;
         NotifyArgumentDefinitionsIfChanged();
+        // Apply even when playback is stopped or this effect has no processor.
+        _uiDispatcher.BeginInvoke(() =>
+        {
+            if (InternalGraph is not { } graph) return;
+            lock (graph.GraphLock) ApplyPendingExternalUpdateLocked();
+        });
+    }
+
+    private void SynchronizePendingBeforeEdit()
+    {
+        if (InternalGraph is not { } graph) return;
+        lock (graph.GraphLock) ApplyPendingExternalUpdateLocked();
     }
 
     internal bool ApplyPendingExternalUpdateLocked()
     {
-        var pending = _pendingExternalUpdate;
-        if (pending is null || InternalGraph is null) return false;
+        if (InternalGraph is null) return false;
+        var pending = _sharedUpdates.TakePending(GraphId);
+        if (pending is null) return false;
 
-        _pendingExternalUpdate = null;
         var tempGraph = Serializer.Restore(pending);
         InternalGraph.UpdateGraph(tempGraph);
+        LiveGraphRevision++;
+        // Never invoke UI handlers synchronously while holding the render lock.
+        _uiDispatcher.BeginInvoke(InvokeGraphUpdated);
         return true;
     }
 
@@ -501,6 +547,7 @@ public sealed class Processor : IVideoEffectProcessor
 
     private volatile ArgumentsNode _inputNode = null!;
     private bool _isEvaluating;
+    private int _liveGraphRevision = -1;
     private volatile Lock _lock;
     private ID2D1Image? _outputImage;
     private volatile ReturnNode _outputNode = null!;
@@ -524,12 +571,13 @@ public sealed class Processor : IVideoEffectProcessor
     {
         lock (_lock)
         {
-            if (_nodeEffect.ApplyPendingExternalUpdateLocked())
+            if (_nodeEffect.ApplyPendingExternalUpdateLocked() || _liveGraphRevision != _nodeEffect.LiveGraphRevision)
             {
                 _inputNode = _nodeEffect.InternalGraph!.Nodes.Values.OfType<ArgumentsNode>().FirstOrDefault()
                              ?? _inputNode;
                 _outputNode = _nodeEffect.InternalGraph.Nodes.Values.OfType<ReturnNode>().FirstOrDefault()
                               ?? _outputNode;
+                _liveGraphRevision = _nodeEffect.LiveGraphRevision;
             }
 
             try
@@ -750,6 +798,7 @@ public sealed class Processor : IVideoEffectProcessor
         {
             if (_nodeEffect.InternalGraph == null!) return;
 
+            var stamp = _nodeEffect.CaptureGraphStamp();
             GraphSnapshot snapshot;
             lock (_lock)
             {
@@ -757,7 +806,7 @@ public sealed class Processor : IVideoEffectProcessor
                 snapshot = Serializer.Create(_nodeEffect.InternalGraph);
             }
 
-            _nodeEffect.InternalGraphSnapshot = snapshot;
+            _nodeEffect.TryCommitSnapshot(_nodeEffect.InternalGraph, stamp, snapshot);
         }
         catch (Exception exception)
         {
@@ -767,17 +816,19 @@ public sealed class Processor : IVideoEffectProcessor
 
     private void OnGraphChangedForBroadcast(object? sender, GraphChangedEventArgs e)
     {
+        if (e.IsInTransaction) return;
         try
         {
             if (_nodeEffect.InternalGraph == null!) return;
 
+            var stamp = _nodeEffect.CaptureGraphStamp();
             GraphSnapshot snapshot;
             lock (_lock)
             {
                 snapshot = Serializer.Create(_nodeEffect.InternalGraph);
             }
 
-            GraphLibraryViewModel.Current?.PropagateChange(_nodeEffect.GraphId, _nodeEffect, snapshot);
+            _nodeEffect.TryCommitSnapshot(_nodeEffect.InternalGraph, stamp, snapshot);
         }
         catch (Exception exception)
         {
