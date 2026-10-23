@@ -14,15 +14,18 @@ namespace Node.Editor.ViewModel;
 public sealed class GraphLibraryViewModel : IToolViewModel
 {
     private readonly Lock _lock = new();
+    private readonly Dictionary<Guid, NamedGraphSnapshot> _removedEntries = new();
 
     private readonly Dictionary<Guid, List<WeakReference<NodeEffect>>> _subscribers = new();
 
     public GraphLibraryViewModel()
     {
         Current = this;
+        CurrentChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public static GraphLibraryViewModel? Current { get; private set; }
+    public static event EventHandler? CurrentChanged;
 
     public ObservableCollection<NamedGraphSnapshot> Entries { get; } = [];
 
@@ -114,10 +117,13 @@ public sealed class GraphLibraryViewModel : IToolViewModel
             if (TryGetEntry(id, out var entry))
                 entry.Graph = snapshot;
             else
-                Entries.Add(new NamedGraphSnapshot
-                {
-                    Id = id, Name = $"Graph {Entries.Count + 1}", Graph = snapshot, Order = Entries.Count
-                });
+            {
+                if (!_removedEntries.Remove(id, out var restored))
+                    restored = new NamedGraphSnapshot { Id = id, Name = $"Graph {Entries.Count + 1}" };
+                restored.Graph = snapshot;
+                restored.Order = Entries.Count;
+                Entries.Add(restored);
+            }
 
             if (_subscribers.TryGetValue(id, out var list))
             {
@@ -133,7 +139,7 @@ public sealed class GraphLibraryViewModel : IToolViewModel
 
         if (targets == null) return;
         foreach (var target in targets)
-            target.ApplyExternalGraphUpdate(snapshot);
+            target.ApplyExternalGraphUpdate(id, snapshot);
     }
 
     public NamedGraphSnapshot CreateNew(string name)
@@ -173,6 +179,7 @@ public sealed class GraphLibraryViewModel : IToolViewModel
         {
             var entry = Entries.FirstOrDefault(e => e.Id == id);
             if (entry == null) return;
+            _removedEntries[id] = entry;
             Entries.Remove(entry);
         }
     }

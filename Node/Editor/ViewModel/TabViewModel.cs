@@ -11,8 +11,8 @@ namespace Node.Editor.ViewModel;
 public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly Action<TabViewModel>? _closeAction;
-    private readonly PropertyChangedEventHandler? _entryPropertyChangedHandler;
-    private readonly NamedGraphSnapshot? _subscribedEntry;
+    private PropertyChangedEventHandler? _entryPropertyChangedHandler;
+    private NamedGraphSnapshot? _subscribedEntry;
     private string _title;
 
     public TabViewModel(
@@ -30,17 +30,27 @@ public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
 
         CloseCommand = new RelayCommand(Close, () => _closeAction != null);
 
-        if (graphId is { } id &&
-            GraphLibraryViewModel.Current is { } library &&
+        SetGraphIdentity(graphId, title);
+    }
+
+    internal void SetGraphIdentity(Guid? graphId, string title)
+    {
+        if (_subscribedEntry != null && _entryPropertyChangedHandler != null)
+            _subscribedEntry.PropertyChanged -= _entryPropertyChangedHandler;
+        _subscribedEntry = null;
+        _entryPropertyChangedHandler = null;
+        Title = title;
+
+        if (graphId is { } id && GraphLibraryViewModel.Current is { } library &&
             library.TryGetEntry(id, out var entry))
         {
             _subscribedEntry = entry;
             _entryPropertyChangedHandler = (_, args) =>
             {
-                if (args.PropertyName == nameof(NamedGraphSnapshot.Name))
-                    Title = entry.Name;
+                if (args.PropertyName == nameof(NamedGraphSnapshot.Name)) Title = entry.Name;
             };
             entry.PropertyChanged += _entryPropertyChangedHandler;
+            Title = entry.Name;
         }
     }
 
@@ -63,11 +73,6 @@ public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    internal void SetTitle(string title)
-    {
-        Title = title;
-    }
 
     internal void SetEditorInfo(IEditorInfo? info)
     {
