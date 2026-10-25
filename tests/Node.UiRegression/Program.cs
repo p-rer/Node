@@ -48,10 +48,6 @@ internal static class Program
             var source = f.Port(30, 30); var target = f.Port(150, 80); Start(source); Preview(f);
             Check(source.IsMouseCaptured && ReferenceEquals(f.Vm.DraggingFromPort, source.DataContext), "source capture/owner missing before move");
             f.Move(155, 85);
-            var root = (UIElement)f.Graph.FindName("RootGrid");
-            var point = Mouse.GetPosition(root);
-            Console.WriteLine($"DROP capture={Mouse.Captured?.GetType().Name} owner={f.Vm.DraggingFromPort?.NodeId} point={point} hit={root.InputHitTest(point)?.GetType().FullName} targetOrigin={target.TranslatePoint(new(0, 0), root)} sourcePosition={source.TranslatePoint(new(0, 0), root)}");
-            Console.WriteLine($"DROP portHit={ReferenceEquals(Call(source, "HitTestPortView", Args(MouseButton.Left)), target)}");
             Up(source);
             Check(f.Vm.ConnectCount == 1, "connection was not requested");
             var pair = ((PortViewModel, PortViewModel))f.Vm.LastConnection!;
@@ -129,6 +125,12 @@ internal static class Program
             Call(f.Graph, "OnMouseLeftButtonUp", f.Graph, Args(MouseButton.Left));
             Check(!Get<bool>(f.Graph, "_isPanning") && !f.Graph.IsMouseCaptured, "own release failed");
         }),
+        ("fresh right click clears suppression left by Ctrl-right pan", f =>
+        {
+            Set(f.Graph, "_suppressNextContextMenu", true);
+            Call(f.Graph, "OnMouseDown", f.Graph, Args(MouseButton.Right));
+            Check(!Get<bool>(f.Graph, "_suppressNextContextMenu"), "next context menu still suppressed");
+        }),
         ("node capture loss commits a drag once", f =>
         {
             var n = f.Node(); Check(n.CaptureMouse(), "capture unavailable");
@@ -195,7 +197,15 @@ internal static class Program
     private static void Start(PortView p) => p.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonDownEvent });
     private static void Up(UIElement p) => p.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
     private static void Preview(Fixture f) { f.Vm.DraggingFromPort ??= new PortViewModel { Position = new(20, 20) }; f.Vm.TemporaryEndPoint = new(180, 140); Pump(); }
-    private static void Pump() => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+    private static void Pump()
+    {
+        // A same-thread Dispatcher.Invoke can return before native WM_MOUSEMOVE
+        // reaches WPF. Run a nested frame long enough to process native input.
+        var frame = new DispatcherFrame();
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(20) };
+        timer.Tick += (_, _) => { timer.Stop(); frame.Continue = false; };
+        timer.Start(); Dispatcher.PushFrame(frame);
+    }
     private static int DrawingCount(Fixture f)
     {
         Pump(); var bitmap = new RenderTargetBitmap(500, 400, 96, 96, PixelFormats.Pbgra32); bitmap.Render(f.Adorner);
@@ -224,7 +234,18 @@ internal static class Program
             _window = new Window { Content = _decorator, Width = 520, Height = 440, Left = 20, Top = 20, ShowInTaskbar = false };
             _window.Show(); _window.Activate(); Pump();
         }
-        public void Move(double x, double y) { var p = Graph.PointToScreen(new(x, y)); Check(SetCursorPos((int)p.X, (int)p.Y), "cursor move failed"); Mouse.Synchronize(); Pump(); }
+        public void Move(double x, double y)
+        {
+            var p = Graph.PointToScreen(new(x, y));
+            Check(SetCursorPos((int)p.X, (int)p.Y), "cursor move failed");
+            for (int i = 0; i < 50; i++)
+            {
+                Pump(); Mouse.Synchronize();
+                var actual = Mouse.GetPosition(Graph);
+                if (Math.Abs(actual.X - x) <= 1 && Math.Abs(actual.Y - y) <= 1) return;
+            }
+            throw new InvalidOperationException($"Native cursor movement was not delivered to WPF: expected={x},{y}, actual={Mouse.GetPosition(Graph)}");
+        }
         public void Add(FrameworkElement element) { Overlay.Children.Add(element); Pump(); }
         public PortView Port(double x, double y)
         {

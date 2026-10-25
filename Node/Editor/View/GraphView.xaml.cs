@@ -328,6 +328,9 @@ public partial class GraphView
         {
             case MouseButton.Right:
             {
+                // A handled Ctrl+right release may never open a context menu.
+                // Do not carry its suppression flag into a later right click.
+                _suppressNextContextMenu = false;
                 if (DataContext is not GraphViewModel vm) return;
 
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
