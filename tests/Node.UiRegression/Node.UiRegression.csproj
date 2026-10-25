@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Node</AssemblyName>
+  </PropertyGroup>
+  <!-- Compile the production UI directly, without the YMM4 host or its native DLLs. -->
+  <ItemGroup>
+    <Compile Include="../../Node/Editor/View/Addnodepopup.cs" Link="Addnodepopup.cs" />
+    <Compile Include="../../Node/Editor/NodeTypeInfo.cs" Link="NodeTypeInfo.cs" />
+    <Compile Include="../../Node/Editor/Converters/ColorToBrushConverter.cs" Link="ColorToBrushConverter.cs" />
+    <Compile Include="../../Node/Editor/View/GraphView.xaml.cs" Link="GraphView.xaml.cs" />
+    <Compile Include="../../Node/Editor/View/PortView.xaml.cs" Link="PortView.xaml.cs" />
+    <Compile Include="../../Node/Editor/View/NodeView.xaml.cs" Link="NodeView.xaml.cs" />
+    <Compile Include="../../Node/Editor/View/ConnectionAdorner.cs" Link="ConnectionAdorner.cs" />
+    <Compile Include="../../Node/Editor/View/Adorners/*.cs" Link="Adorners/%(Filename)%(Extension)" />
+    <Compile Include="../../Node/Editor/Control/NumberPort.xaml.cs" Link="NumberPort.xaml.cs" />
+    <Compile Include="../../Node/Editor/Control/ColorPicker.xaml.cs" Link="ColorPicker.xaml.cs" />
+    <Compile Include="../../Node/Editor/Control/PortControlBase.cs" Link="PortControlBase.cs" />
+    <Compile Include="../../Node/Editor/Control/Bezier/Model/*.cs" Link="Bezier/Model/%(Filename)%(Extension)" />
+    <Compile Include="../../Node/Editor/Control/Bezier/View/*.cs" Link="Bezier/View/%(Filename)%(Extension)" />
+    <Compile Include="../../Node/Editor/Control/Bezier/ViewModel/*.cs" Link="Bezier/ViewModel/%(Filename)%(Extension)" />
+    <Page Include="../../Node/Editor/View/GraphView.xaml" Link="GraphView.xaml" />
+    <Page Include="../../Node/Editor/View/PortView.xaml" Link="PortView.xaml" />
+    <Page Include="../../Node/Editor/Control/NumberPort.xaml" Link="NumberPort.xaml" />
+    <Page Include="../../Node/Editor/Control/ColorPicker.xaml" Link="ColorPicker.xaml" />
+    <Page Include="../../Node/Editor/View/Style/*.xaml" Link="Editor/View/Style/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

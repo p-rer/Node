@@ -1,0 +1,17 @@
+name: WPF UI regression
+on:
+  pull_request:
+  push:
+    branches: [fix/wpf-ui-gesture-lifecycle]
+permissions:
+  contents: read
+jobs:
+  ui:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet run --project tests/Node.UiRegression/Node.UiRegression.csproj -c Release

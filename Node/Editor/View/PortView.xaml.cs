@@ -8,21 +8,28 @@ namespace Node.Editor.View;
 
 public partial class PortView
 {
+    private GraphViewModel? _dragGraph;
+    private bool _positionUpdatePending;
     public PortView()
     {
         InitializeComponent();
         Loaded += UpdatePosition;
         LayoutUpdated += UpdatePosition;
         LostMouseCapture += OnLostMouseCapture;
+        Unloaded += (_, _) => CancelConnection();
+        DataContextChanged += (_, _) => CancelConnection();
     }
 
     private void UpdatePosition(object? sender, EventArgs e)
     {
-        if (DataContext is not PortViewModel vm)
+        if (_positionUpdatePending || !IsLoaded || DataContext is not PortViewModel vm)
             return;
+        _positionUpdatePending = true;
 
         Dispatcher.BeginInvoke(() =>
         {
+            _positionUpdatePending = false;
+            if (!IsLoaded || !ReferenceEquals(DataContext, vm)) return;
             var graphView = FindParent<GraphView>(this);
             if (graphView == null)
                 return;
@@ -38,7 +45,8 @@ public partial class PortView
             var center = transform.Transform(
                 new Point(ActualWidth / 2, ActualHeight / 2));
 
-            vm.Position = ((GraphViewModel)graphView.DataContext).TransformToCanvas(center);
+            if (graphView.DataContext is GraphViewModel graph)
+                vm.Position = graph.TransformToCanvas(center);
         }, DispatcherPriority.Render);
     }
 
@@ -47,8 +55,7 @@ public partial class PortView
         if (FindParent<GraphView>(this)?.DataContext is not GraphViewModel graph) return;
         if (e.ClickCount == 2)
         {
-            graph.DraggingFromPort = null;
-            graph.TemporaryEndPoint = null;
+            CancelConnection();
             if (DataContext is not PortViewModel vm) return;
 
             var related = graph.Connections
@@ -66,43 +73,44 @@ public partial class PortView
 
         if (DataContext is not PortViewModel port) return;
 
+        _dragGraph = graph;
         graph.DraggingFromPort = port;
-        CaptureMouse();
+        graph.TemporaryEndPoint = null;
+        if (!CaptureMouse()) CancelConnection();
         e.Handled = true;
     }
 
     private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        var graph = FindParent<GraphView>(this)?.DataContext as GraphViewModel;
-        var source = graph?.DraggingFromPort;
-
-        if (IsMouseCaptured)
-            ReleaseMouseCapture();
-
+        var graph = _dragGraph;
         if (graph == null) return;
-        if (source == null) return;
+        var source = graph.DraggingFromPort;
+        var targetView = HitTestPortView(e);
+        var target = targetView?.DataContext as PortViewModel;
 
-        var targetPortView = HitTestPortView(e);
-        var target = targetPortView?.DataContext as PortViewModel ?? DataContext as PortViewModel;
-
-        if (target != null)
-            graph.ConnectPortsCommand.Execute((source, target));
-
-        graph.DraggingFromPort = null;
-        graph.TemporaryEndPoint = null;
-
+        // Resolve the target before release, and clear state before callbacks can
+        // unload/rebind this view (ConnectPorts rebuilds the node views).
+        CancelConnection();
         e.Handled = true;
+        if (source != null && target != null)
+            graph.ConnectPortsCommand.Execute((source, target));
+    }
+
+    internal void CancelConnection()
+    {
+        var graph = _dragGraph;
+        _dragGraph = null;
+        if (graph != null)
+        {
+            graph.DraggingFromPort = null;
+            graph.TemporaryEndPoint = null;
+        }
+        if (IsMouseCaptured) ReleaseMouseCapture();
     }
 
     private void OnLostMouseCapture(object sender, MouseEventArgs e)
     {
-        if (FindParent<GraphView>(this)?.DataContext is not GraphViewModel graph) return;
-        if (graph.DraggingFromPort == null) return;
-        if (DataContext is not PortViewModel port) return;
-        if (!ReferenceEquals(graph.DraggingFromPort, port)) return;
-
-        graph.DraggingFromPort = null;
-        graph.TemporaryEndPoint = null;
+        if (ReferenceEquals(e.OriginalSource, this)) CancelConnection();
     }
 
     private PortView? HitTestPortView(MouseButtonEventArgs e)
@@ -110,7 +118,7 @@ public partial class PortView
         var graphView = FindParent<GraphView>(this);
         if (graphView?.FindName("RootGrid") is not UIElement root) return null;
 
-        var hit = VisualTreeHelper.HitTest(root, e.GetPosition(root))?.VisualHit;
+        var hit = root.InputHitTest(e.GetPosition(root)) as DependencyObject;
         return FindSelfOrParent<PortView>(hit);
     }
 

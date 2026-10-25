@@ -1,10 +1,8 @@
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Node.Editor.View.Adorners;
 using Node.Editor.ViewModel;
 
@@ -20,7 +18,7 @@ public partial class GraphView
             new PropertyMetadata(GraphControlMode.RectSelection, OnModeChanged));
 
     private ConnectionAdorner? _connectionAdorner;
-    private NotifyCollectionChangedEventHandler? _connectionsChangedHandler;
+    private GraphViewModel? _observedGraph;
     private bool _ctrlRightPanning;
 
     private bool _isPanning;
@@ -28,7 +26,7 @@ public partial class GraphView
     private Point _panStart;
     private SelectionAdornerBase? _selectionAdorner;
     private Point _selectionStart;
-    private ObservableCollection<ConnectionViewModel>? _subscribedConnections;
+    private MouseButton? _panButton;
     private bool _suppressNextContextMenu;
 
     public GraphView()
@@ -50,10 +48,12 @@ public partial class GraphView
     private static void OnModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (GraphView)d;
+        control.CancelInteraction();
         var layer = AdornerLayer.GetAdornerLayer(control.RootGrid);
         if (layer is null) return;
         if (control._selectionAdorner != null)
             layer.Remove(control._selectionAdorner);
+        control._selectionAdorner = null;
 
         switch ((GraphControlMode)e.NewValue)
         {
@@ -70,12 +70,12 @@ public partial class GraphView
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        ObserveGraph(DataContext as GraphViewModel);
+        UpdateViewportSize();
         var layer = AdornerLayer.GetAdornerLayer(RootGrid);
         if (layer is null) return;
 
         RemoveAdorners(layer);
-
-        if (Mode == GraphControlMode.Pan) return;
 
         _connectionAdorner = new ConnectionAdorner(RootGrid);
         layer.Add(_connectionAdorner);
@@ -97,7 +97,8 @@ public partial class GraphView
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        UnsubscribeConnections();
+        CancelInteraction();
+        ObserveGraph(null);
 
         var layer = AdornerLayer.GetAdornerLayer(RootGrid);
         if (layer != null)
@@ -128,27 +129,50 @@ public partial class GraphView
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        UnsubscribeConnections();
-
-        if (e.NewValue is GraphViewModel vm)
+        CancelInteraction();
+        ObserveGraph(IsLoaded ? e.NewValue as GraphViewModel : null);
+        UpdateViewportSize();
+        if (_connectionAdorner != null)
         {
-            _connectionsChangedHandler = (_, _) =>
-            {
-                Dispatcher.BeginInvoke(new Action(() => { _connectionAdorner?.InvalidateVisual(); }),
-                    DispatcherPriority.Loaded);
-            };
-            _subscribedConnections = vm.Connections;
-            _subscribedConnections.CollectionChanged += _connectionsChangedHandler;
+            _connectionAdorner.DataContext = e.NewValue;
+            _connectionAdorner.InvalidateVisual();
         }
     }
 
-    private void UnsubscribeConnections()
+    private void ObserveGraph(GraphViewModel? graph)
     {
-        if (_subscribedConnections != null && _connectionsChangedHandler != null)
-            _subscribedConnections.CollectionChanged -= _connectionsChangedHandler;
+        if (ReferenceEquals(_observedGraph, graph)) return;
+        if (_observedGraph != null)
+            PropertyChangedEventManager.RemoveHandler(_observedGraph, OnGraphPropertyChanged, "");
+        _observedGraph = graph;
+        if (graph != null)
+            PropertyChangedEventManager.AddHandler(graph, OnGraphPropertyChanged, "");
+    }
 
-        _subscribedConnections = null;
-        _connectionsChangedHandler = null;
+    private void OnGraphPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // DrawingContext content is retained; clearing the VM alone does not erase it.
+        if (e.PropertyName is nameof(GraphViewModel.DraggingFromPort)
+            or nameof(GraphViewModel.TemporaryEndPoint) or nameof(GraphViewModel.Zoom)
+            or nameof(GraphViewModel.PanX) or nameof(GraphViewModel.PanY) or null or "")
+            _connectionAdorner?.InvalidateVisual();
+    }
+
+    private void CancelInteraction()
+    {
+        _isSelecting = false;
+        _isPanning = false;
+        _ctrlRightPanning = false;
+        _panButton = null;
+        _selectionAdorner?.Clear();
+        if (Mouse.Captured is PortView port && port.IsDescendantOf(this))
+            port.CancelConnection();
+        if (_observedGraph != null)
+        {
+            _observedGraph.DraggingFromPort = null;
+            _observedGraph.TemporaryEndPoint = null;
+        }
+        if (IsMouseCaptured) ReleaseMouseCapture();
     }
 
     private static bool IsAdditiveSelectionModifier()
@@ -160,9 +184,9 @@ public partial class GraphView
     {
         if (DataContext is not GraphViewModel vm) return;
 
-        if (vm.DraggingFromPort != null) return;
+        if (vm.DraggingFromPort != null || _isPanning || _isSelecting) return;
 
-        _isSelecting = true;
+        _isSelecting = Mode != GraphControlMode.Pan;
         _selectionStart = e.GetPosition(this);
 
         if (!IsAdditiveSelectionModifier())
@@ -179,10 +203,11 @@ public partial class GraphView
         else if (Mode is GraphControlMode.Pan)
         {
             _isPanning = true;
+            _panButton = MouseButton.Left;
             _panStart = e.GetPosition(RootGrid);
         }
 
-        CaptureMouse();
+        if (!CaptureMouse()) CancelInteraction();
     }
 
     private void OnMouseMove(object sender, MouseEventArgs e)
@@ -226,9 +251,10 @@ public partial class GraphView
     {
         if (DataContext is not GraphViewModel vm) return;
 
-        if (Mode == GraphControlMode.Pan && _isPanning)
+        if (_isPanning && _panButton == MouseButton.Left)
         {
             _isPanning = false;
+            _panButton = null;
             ReleaseMouseCapture();
         }
 
@@ -266,29 +292,9 @@ public partial class GraphView
 
     private void OnLostMouseCapture(object sender, MouseEventArgs e)
     {
-        _isPanning = false;
-        _ctrlRightPanning = false;
-
-        if (!_isSelecting) return;
-
-        _isSelecting = false;
-
-        if (DataContext is not GraphViewModel vm) return;
-
-        var add = IsAdditiveSelectionModifier();
-        var selectionAdorner = _selectionAdorner;
-
-        switch (Mode)
-        {
-            case GraphControlMode.RectSelection when selectionAdorner is RectSelectionAdorner rectSelectionAdorner:
-                vm.ApplyRectSelection(rectSelectionAdorner.CurrentRect, add);
-                break;
-            case GraphControlMode.LassoSelection when selectionAdorner is LassoSelectionAdorner lassoSelectionAdorner:
-                vm.ApplyLassoSelection(lassoSelectionAdorner.Points, add);
-                break;
-        }
-
-        selectionAdorner?.Clear();
+        // Child controls also bubble this event. Only cancel our own capture.
+        if (!ReferenceEquals(e.OriginalSource, this) || (!_isSelecting && !_isPanning)) return;
+        CancelInteraction();
     }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -315,6 +321,9 @@ public partial class GraphView
 
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (_isSelecting || _isPanning ||
+            DataContext is GraphViewModel { DraggingFromPort: not null }) return;
+
         switch (e.ChangedButton)
         {
             case MouseButton.Right:
@@ -325,8 +334,9 @@ public partial class GraphView
                 {
                     _isPanning = true;
                     _ctrlRightPanning = true;
+                    _panButton = MouseButton.Right;
                     _panStart = e.GetPosition(RootGrid);
-                    CaptureMouse();
+                    if (!CaptureMouse()) CancelInteraction();
                     e.Handled = true;
                     return;
                 }
@@ -339,8 +349,9 @@ public partial class GraphView
             case MouseButton.Middle:
             {
                 _isPanning = true;
+                _panButton = MouseButton.Middle;
                 _panStart = e.GetPosition(RootGrid);
-                CaptureMouse();
+                if (!CaptureMouse()) CancelInteraction();
 
                 e.Handled = true;
                 break;
@@ -354,6 +365,7 @@ public partial class GraphView
         {
             _isPanning = false;
             _ctrlRightPanning = false;
+            _panButton = null;
             _suppressNextContextMenu = true;
             ReleaseMouseCapture();
             e.Handled = true;
@@ -362,9 +374,10 @@ public partial class GraphView
 
         if (e.ChangedButton != MouseButton.Middle) return;
 
-        if (_isPanning)
+        if (_isPanning && _panButton == MouseButton.Middle)
         {
             _isPanning = false;
+            _panButton = null;
             ReleaseMouseCapture();
         }
 
@@ -372,6 +385,11 @@ public partial class GraphView
     }
 
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateViewportSize();
+    }
+
+    private void UpdateViewportSize()
     {
         if (DataContext is GraphViewModel vm)
         {

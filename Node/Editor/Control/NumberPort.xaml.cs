@@ -66,6 +66,12 @@ public sealed partial class NumberPort
     {
         InitializeComponent();
         Update();
+        AddHandler(Mouse.LostMouseCaptureEvent, new MouseEventHandler((_, e) =>
+        {
+            if (_isClicking && !_isEditing && e.OriginalSource is TextBox)
+                CancelNumericDrag();
+        }), true);
+        Unloaded += (_, _) => CancelNumericDrag();
     }
 
     public bool IsFocusable
@@ -193,14 +199,14 @@ public sealed partial class NumberPort
     private void Box_PreviewMouseLeftButtonDown(object o, MouseButtonEventArgs e)
     {
         if (o is not TextBox box) return;
+        if (_isEditing || _isClicking) return;
         _isClicking = true;
-        if (_isEditing) return;
         _startPoint = box.PointToScreen(e.GetPosition(box));
         e.Handled = true;
         IsFocusable = false;
         Mouse.OverrideCursor = Cursors.None;
         BeginEditCommand?.Execute(null);
-        box.CaptureMouse();
+        if (!box.CaptureMouse()) CancelNumericDrag();
     }
 
     private void Box_PreviewMouseMove(object o, MouseEventArgs e)
@@ -225,16 +231,15 @@ public sealed partial class NumberPort
         }
         catch (Exception ex)
         {
-            Mouse.OverrideCursor = null;
-            box.ReleaseMouseCapture();
-            EndEditCommand?.Execute(null);
+            CancelNumericDrag();
+            if (box.IsMouseCaptured) box.ReleaseMouseCapture();
             Console.Error.WriteLine(ex);
         }
     }
 
     private void Box_PreviewMouseLeftButtonUp(object o, MouseButtonEventArgs e)
     {
-        if (o is not TextBox box) return;
+        if (o is not TextBox box || !_isClicking || _isEditing) return;
         _isClicking = false;
         Mouse.OverrideCursor = null;
         box.ReleaseMouseCapture();
@@ -253,6 +258,15 @@ public sealed partial class NumberPort
             IsFocusable = true;
             Keyboard.Focus(box);
         }
+    }
+
+    private void CancelNumericDrag()
+    {
+        if (!_isClicking || _isEditing) return;
+        _isClicking = false;
+        _isDragging = false;
+        Mouse.OverrideCursor = null;
+        EndEditCommand?.Execute(null);
     }
 
     private void Box_LostFocus(object _, RoutedEventArgs e)
