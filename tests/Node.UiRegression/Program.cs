@@ -46,7 +46,13 @@ internal static class Program
         ("port drop resolves physical target before capture release", f =>
         {
             var source = f.Port(30, 30); var target = f.Port(150, 80); Start(source); Preview(f);
-            f.Move(155, 85); Up(source);
+            Check(source.IsMouseCaptured && ReferenceEquals(f.Vm.DraggingFromPort, source.DataContext), "source capture/owner missing before move");
+            f.Move(155, 85);
+            var root = (UIElement)f.Graph.FindName("RootGrid");
+            var point = Mouse.GetPosition(root);
+            Console.WriteLine($"DROP capture={Mouse.Captured?.GetType().Name} owner={f.Vm.DraggingFromPort?.NodeId} point={point} hit={root.InputHitTest(point)?.GetType().FullName} targetOrigin={target.TranslatePoint(new(0, 0), root)} sourcePosition={source.TranslatePoint(new(0, 0), root)}");
+            Console.WriteLine($"DROP portHit={ReferenceEquals(Call(source, "HitTestPortView", Args(MouseButton.Left)), target)}");
+            Up(source);
             Check(f.Vm.ConnectCount == 1, "connection was not requested");
             var pair = ((PortViewModel, PortViewModel))f.Vm.LastConnection!;
             Check(ReferenceEquals(pair.Item1, source.DataContext) && ReferenceEquals(pair.Item2, target.DataContext), "wrong ports");
@@ -185,7 +191,7 @@ internal static class Program
     private static T Get<T>(object o, string name) => (T)Field(o, name).GetValue(o)!;
     private static void Set(object o, string name, object? value) => Field(o, name).SetValue(o, value);
     private static object? Call(object o, string name, params object[] args) => o.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)!.Invoke(o, args);
-    private static MouseButtonEventArgs Args(MouseButton button) => new(Mouse.PrimaryDevice, Environment.TickCount, button);
+    private static MouseButtonEventArgs Args(MouseButton button) => new(Mouse.PrimaryDevice, Environment.TickCount, button) { RoutedEvent = Mouse.MouseUpEvent };
     private static void Start(PortView p) => p.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonDownEvent });
     private static void Up(UIElement p) => p.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonUpEvent });
     private static void Preview(Fixture f) { f.Vm.DraggingFromPort ??= new PortViewModel { Position = new(20, 20) }; f.Vm.TemporaryEndPoint = new(180, 140); Pump(); }
@@ -218,7 +224,7 @@ internal static class Program
             _window = new Window { Content = _decorator, Width = 520, Height = 440, Left = 20, Top = 20, ShowInTaskbar = false };
             _window.Show(); _window.Activate(); Pump();
         }
-        public void Move(double x, double y) { var p = Graph.PointToScreen(new(x, y)); Check(SetCursorPos((int)p.X, (int)p.Y), "cursor move failed"); Pump(); }
+        public void Move(double x, double y) { var p = Graph.PointToScreen(new(x, y)); Check(SetCursorPos((int)p.X, (int)p.Y), "cursor move failed"); Mouse.Synchronize(); Pump(); }
         public void Add(FrameworkElement element) { Overlay.Children.Add(element); Pump(); }
         public PortView Port(double x, double y)
         {
