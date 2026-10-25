@@ -71,6 +71,11 @@ public partial class ColorPicker
     {
         InitializeComponent();
         Loaded += ColorPicker_Loaded;
+        ColorWheelCanvas.LostMouseCapture += (_, e) =>
+        {
+            if (ReferenceEquals(e.OriginalSource, ColorWheelCanvas)) EndColorDrag();
+        };
+        Unloaded += (_, _) => EndColorDrag();
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
@@ -543,6 +548,7 @@ public partial class ColorPicker
 
     private void ColorWheelCanvas_MouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ChangedButton != MouseButton.Left || _isDragging) return;
         var pos = e.GetPosition(ColorWheelCanvas);
         var vec = pos - new Point(125, 125);
         var dist = vec.Length;
@@ -551,14 +557,22 @@ public partial class ColorPicker
         {
             _draggingInRing = true;
             _isDragging = true;
-            ColorWheelCanvas.CaptureMouse();
+            if (!ColorWheelCanvas.CaptureMouse())
+            {
+                EndColorDrag();
+                return;
+            }
             UpdateHueFromPoint(pos);
         }
         else if (PointInTriangle(pos, _a, _b, _c))
         {
             _draggingInTriangle = true;
             _isDragging = true;
-            ColorWheelCanvas.CaptureMouse();
+            if (!ColorWheelCanvas.CaptureMouse())
+            {
+                EndColorDrag();
+                return;
+            }
             UpdateSvFromPoint(pos);
         }
 
@@ -579,11 +593,17 @@ public partial class ColorPicker
 
     private void ColorWheelCanvas_MouseUp(object sender, MouseButtonEventArgs e)
     {
+        if (e.ChangedButton != MouseButton.Left || !_isDragging) return;
+        EndColorDrag();
+        e.Handled = true;
+    }
+
+    private void EndColorDrag()
+    {
         _isDragging = false;
         _draggingInRing = false;
         _draggingInTriangle = false;
-        ColorWheelCanvas.ReleaseMouseCapture();
-        e.Handled = true;
+        if (ColorWheelCanvas.IsMouseCaptured) ColorWheelCanvas.ReleaseMouseCapture();
     }
 
     #endregion

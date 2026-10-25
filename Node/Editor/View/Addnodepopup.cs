@@ -18,6 +18,7 @@ public sealed class AddNodePopup : Popup
     private readonly Dictionary<string, List<NodeTypeInfo>> _nodeCategories;
     private readonly Action<Type> _onNodeSelected;
     private readonly List<Popup> _openSubmenus = [];
+    private readonly List<DispatcherTimer> _submenuCloseTimers = [];
     private readonly TextBox _searchBox;
 
     public AddNodePopup(Dictionary<string, List<NodeTypeInfo>> nodeCategories, Action<Type> onNodeSelected)
@@ -103,6 +104,8 @@ public sealed class AddNodePopup : Popup
 
     private void CloseAllSubmenus()
     {
+        foreach (var timer in _submenuCloseTimers) timer.Stop();
+        _submenuCloseTimers.Clear();
         foreach (var p in _openSubmenus)
             if (p.IsOpen)
                 p.IsOpen = false;
@@ -150,6 +153,8 @@ public sealed class AddNodePopup : Popup
         Popup? openChild = null;
         Border? openChildRow = null;
         var closeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
+        _submenuCloseTimers.Add(closeTimer);
+        closeTimer.Tick += (_, _) => CloseChild();
 
         foreach (var child in node.Children.Values.OrderBy(c => c.Name))
         {
@@ -201,12 +206,7 @@ public sealed class AddNodePopup : Popup
                 childPopup.IsOpen = true;
             };
 
-            row.MouseLeave += (_, _) =>
-            {
-                if (openChild is { IsOpen: true })
-                    return;
-                closeTimer.Start();
-            };
+            row.MouseLeave += (_, _) => closeTimer.Start();
 
             host.Children.Add(row);
         }
@@ -222,11 +222,21 @@ public sealed class AddNodePopup : Popup
         {
             closeTimer.Stop();
             if (openChild == null) return;
-            _openSubmenus.Remove(openChild);
-            if (openChild.IsOpen) openChild.IsOpen = false;
+            CloseSubmenu(openChild);
             openChild = null;
             openChildRow = null;
         }
+    }
+
+    private void CloseSubmenu(Popup popup)
+    {
+        // Popups have separate visual trees. Their PlacementTarget identifies
+        // which submenu owns them; close descendants before closing the parent.
+        foreach (var child in _openSubmenus.Where(p => p.PlacementTarget is Visual target &&
+                     target.IsDescendantOf(popup.Child)).ToArray())
+            CloseSubmenu(child);
+        _openSubmenus.Remove(popup);
+        popup.IsOpen = false;
     }
 
     private void PopulateSearchRows(Panel host, string keyword)
