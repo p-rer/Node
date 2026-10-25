@@ -23,9 +23,9 @@
 
 ## 検証方法と限界
 
-`tests/Node.UiRegression/Node.UiRegression.csproj` は、変更した7個のUIコード、GraphView/PortView/NumberPort/ColorPickerの製品XAML、関連Adorner・スタイル・ベジェ処理を直接リンクする。NuGetのテストフレームワークやYMM4 DLLを必要とせず、WindowsのSTAスレッド上でWPFのWindow、Dispatcher、実マウスキャプチャ、ルーティング、ヒットテスト、保持描画を検証する。グラフとノードのViewModel、ダイアログ、翻訳文字列はテスト用代替であり、NodeViewのXAMLも操作ハンドラーだけを接続した最小構成である。したがって、YMM4内の全体統合試験の代替にはならない。
+`tests/Node.UiRegression/Node.UiRegression.csproj` は、変更した7個のUIコード、GraphView/PortView/NumberPort/ColorPickerの製品XAML、関連Adorner・スタイル・ベジェ処理を直接リンクする。既存のCSVローカライズジェネレーターを参照し、製品と同じCSVからクラスとリソースを生成する。NuGetのテストフレームワークやYMM4 DLLを必要とせず、WindowsのSTAスレッド上でWPFのWindow、Dispatcher、実マウスキャプチャ、ルーティング、ヒットテスト、保持描画を検証する。グラフとノードのViewModel、ダイアログ、生成ローカライザーが実装するホストのILocalizePlugin契約はテスト用代替であり、NodeViewのXAMLも操作ハンドラーだけを接続した最小構成である。したがって、YMM4内の全体統合試験の代替にはならない。
 
-実行コマンドは `dotnet run --project tests/Node.UiRegression/Node.UiRegression.csproj -c Release` である。GitHub Actionsの `WPF UI regression` で同じテストを実行する。個々のテストは結果をPASS/FAILで表示し、失敗が一つでもあれば終了コード1を返す。合計20ケースであり、通常ドロップ、背景ドロップ、キャプチャ喪失、ビュー再バインド、アンロード、Panモード、モード変更、タブ再表示、投げ縄の正常確定、選択中断、子イベント、複数ボタン、ノード移動終了の一回性、引数編集購読、コンテキストメニュー抑止の持越し、数値・色・ベジェ編集、サブメニュータイマーを対象とする。
+実行コマンドは `dotnet run --project tests/Node.UiRegression/Node.UiRegression.csproj -c Release` である。GitHub Actionsの `WPF UI regression` で同じテストを実行する。個々のテストは結果をPASS/FAILで表示し、失敗が一つでもあれば終了コード1を返す。合計21ケースであり、通常ドロップ、背景ドロップ、キャプチャ喪失、ビュー再バインド、アンロード、Panモード、モード変更、タブ再表示、投げ縄の正常確定、選択中断、子イベント、複数ボタン、ノード移動終了の一回性、引数編集購読、コンテキストメニュー抑止の持越し、数値・色・ベジェ編集、サブメニュータイマー、CSVから生成される日本語・英語リソースを対象とする。
 
 静的確認の対象にはタブ管理、グラフライブラリ、引数編集ダイアログ、ノード追加Popup、基本ポートコントロールも含める。ただし、すべてのUI経路の網羅や副作用の不存在を証明したものではない。ホスト依存のカスタムエディター置換、共有グラフ選択、実際の接続によるViewModel再構築、ホスト側Undo/Redo、モーダル表示、DPI変更、ウィンドウ非アクティブ化との組合せは実機統合確認が残る。表示ライフサイクルの変更が編集終了通知のタイミングに影響する可能性もあるため、以下をYMM4で確認する。
 

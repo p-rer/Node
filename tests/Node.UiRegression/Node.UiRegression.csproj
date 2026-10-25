@@ -7,7 +7,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>Node</AssemblyName>
+    <RootNamespace>Node</RootNamespace>
   </PropertyGroup>
+  <!-- Use the same CSV localization generator and resources as the plugin. -->
+  <ItemGroup>
+    <ProjectReference Include="../../YukkuriMovieMaker.Generator/YukkuriMovieMaker.Generator/YukkuriMovieMaker.Generator.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <AdditionalFiles Include="../../Node/Localize/*.csv" />
+    <Compile Include="../../Node/Localize/*.cs" Link="Localize/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../Node/Localize/*.resx" Link="Localize/%(Filename)%(Extension)" />
+  </ItemGroup>
   <!-- Compile the production UI directly, without the YMM4 host or its native DLLs. -->
   <ItemGroup>
     <Compile Include="../../Node/Editor/View/Addnodepopup.cs" Link="Addnodepopup.cs" />

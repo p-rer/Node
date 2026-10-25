@@ -83,3 +83,14 @@ namespace Node.Editor.View
         public static bool TryEdit(Window w, Node.Graph.Port.PortDefinition[] d, out Node.Graph.Port.PortDefinition[] r) { r = []; return false; }
     }
 }
+
+// The generated localizers implement the host contract; translations and
+// ResourceManager accessors are generated from the production CSV files.
+namespace YukkuriMovieMaker.Plugin
+{
+    public interface ILocalizePlugin
+    {
+        string Name { get; }
+        void SetCulture(System.Globalization.CultureInfo cultureInfo);
+    }
+}

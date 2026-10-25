@@ -22,6 +22,25 @@ internal static class Program
     [DllImport("user32.dll")] private static extern bool SetCursorPos(int x, int y);
     private static readonly List<(string Name, Action<Fixture> Test)> Tests =
     [
+        ("localizers use generated classes and production CSV resources", f =>
+        {
+            var uiCulture = Node.Localize.TextUi.Culture;
+            var nodeCulture = Node.Localize.TextNode.Culture;
+            try
+            {
+                Node.Localize.TextUi.Culture = new System.Globalization.CultureInfo("ja-JP");
+                Node.Localize.TextNode.Culture = new System.Globalization.CultureInfo("ja-JP");
+                Check(Node.Localize.TextUi.CopyMenu == "コピー" && Node.Localize.TextNode.NoMatchingResults == "(該当なし)", "Japanese resources missing");
+                Node.Localize.TextUi.Culture = new System.Globalization.CultureInfo("en-US");
+                Node.Localize.TextNode.Culture = new System.Globalization.CultureInfo("en-US");
+                Check(Node.Localize.TextUi.CopyMenu == "Copy" && Node.Localize.TextNode.NoMatchingResults == "(No results)", "English satellite resources missing");
+            }
+            finally
+            {
+                Node.Localize.TextUi.Culture = uiCulture;
+                Node.Localize.TextNode.Culture = nodeCulture;
+            }
+        }),
         ("submenu timer closes child and stops on root close", f =>
         {
             var popup = new AddNodePopup(new() { ["Category/Subcategory"] = [new NodeTypeInfo { Type = typeof(string), Label = "Test", Color = "White" }] }, _ => { });
