@@ -93,6 +93,7 @@ public class BezierEditor : System.Windows.Controls.Control, IBezierCoordinateCo
         SnapsToDevicePixels = true;
         UpdatePens();
         EditCompleted += (_, _) => StartPreview();
+        Unloaded += (_, _) => FinishMouseInteraction();
     }
 
     public Media.Brush ControlBrush
@@ -230,6 +231,7 @@ public class BezierEditor : System.Windows.Controls.Control, IBezierCoordinateCo
         if (ViewModel is null)
             return;
 
+        if (_dragContext != null || _panStartMouse != null) return;
         Focus();
 
         var mouse = e.GetPosition(this);
@@ -249,7 +251,7 @@ public class BezierEditor : System.Windows.Controls.Control, IBezierCoordinateCo
                 _panStartMouse = mouse;
                 _panStartOffset = _panOffset;
 
-                CaptureMouse();
+                if (!CaptureMouse()) FinishMouseInteraction();
 
                 e.Handled = true;
                 return;
@@ -280,7 +282,7 @@ public class BezierEditor : System.Windows.Controls.Control, IBezierCoordinateCo
                             hit.Node!,
                             mouse);
 
-                        CaptureMouse();
+                        if (!CaptureMouse()) FinishMouseInteraction();
                         break;
                     }
 
@@ -294,7 +296,7 @@ public class BezierEditor : System.Windows.Controls.Control, IBezierCoordinateCo
                             hit.Node!,
                             mouse);
 
-                        CaptureMouse();
+                        if (!CaptureMouse()) FinishMouseInteraction();
                         break;
                     }
 
@@ -407,42 +409,33 @@ public class BezierEditor : System.Windows.Controls.Control, IBezierCoordinateCo
     protected override void OnMouseUp(MouseButtonEventArgs e)
     {
         base.OnMouseUp(e);
-
-        if (_panStartMouse is not null)
+        if ((_panStartMouse != null && e.ChangedButton == MouseButton.Middle) ||
+            (_dragContext != null && e.ChangedButton == MouseButton.Left))
         {
-            _panStartMouse = null;
-
-            ReleaseMouseCapture();
-            return;
+            FinishMouseInteraction();
+            e.Handled = true;
         }
+    }
 
-        if (_dragContext is null)
-            return;
-
-        _dragContext = null;
-
-        ReleaseMouseCapture();
-        EditCompleted?.Invoke(this, EventArgs.Empty);
-        InvalidateVisual();
+    protected override void OnLostMouseCapture(MouseEventArgs e)
+    {
+        base.OnLostMouseCapture(e);
+        if (ReferenceEquals(e.OriginalSource, this)) FinishMouseInteraction();
     }
 
     protected override void OnMouseLeave(MouseEventArgs e)
     {
         base.OnMouseLeave(e);
+        FinishMouseInteraction();
+    }
 
-        if (_panStartMouse is not null)
-        {
-            _panStartMouse = null;
-            ReleaseMouseCapture();
-        }
-
-        if (_dragContext is null)
-            return;
-
+    private void FinishMouseInteraction()
+    {
+        var wasEditing = _dragContext != null;
+        _panStartMouse = null;
         _dragContext = null;
-
-        ReleaseMouseCapture();
-        EditCompleted?.Invoke(this, EventArgs.Empty);
+        if (IsMouseCaptured) ReleaseMouseCapture();
+        if (wasEditing) EditCompleted?.Invoke(this, EventArgs.Empty);
         InvalidateVisual();
     }
 

@@ -15,13 +15,20 @@ public partial class NodeView
     private bool _isDragging;
 
     private bool _isMouseDown;
+    private GraphViewModel? _dragGraph;
+    private NodeViewModel? _argumentPortsVm;
     private Point _mouseDownPos;
 
     public NodeView()
     {
         InitializeComponent();
 
-        Loaded += (_, _) => FindParent<Canvas>(this);
+        Loaded += (_, _) => ObserveArgumentPorts(DataContext as NodeViewModel);
+        Unloaded += (_, _) =>
+        {
+            FinishDrag();
+            ObserveArgumentPorts(null);
+        };
         SizeChanged += OnSizeChanged;
         LostMouseCapture += OnLostMouseCapture;
         DataContextChanged += OnDataContextChanged;
@@ -29,15 +36,17 @@ public partial class NodeView
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (_isMouseDown) return;
+        if (FindParent<GraphView>(this) is not { DataContext: GraphViewModel graphVm } graphView) return;
+        _dragGraph = graphVm;
         _isMouseDown = true;
         _isDragging = false;
 
-        if (FindParent<GraphView>(this) is { DataContext: GraphViewModel graphVm } graphView)
-            _mouseDownPos = graphVm.TransformToCanvas(e.GetPosition(graphView));
+        _mouseDownPos = graphVm.TransformToCanvas(e.GetPosition(graphView));
 
         e.Handled = true;
         Focus();
-        CaptureMouse();
+        if (!CaptureMouse()) FinishDrag();
     }
 
     private void OnMouseMove(object sender, MouseEventArgs e)
@@ -76,10 +85,11 @@ public partial class NodeView
 
         var wasDragging = _isDragging;
         var vm = DataContext as NodeViewModel;
-        var graphVm = FindParent<GraphView>(this)?.DataContext as GraphViewModel;
+        var graphVm = _dragGraph;
 
         _isMouseDown = false;
         _isDragging = false;
+        _dragGraph = null;
 
         ReleaseMouseCapture();
 
@@ -122,12 +132,22 @@ public partial class NodeView
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (e.NewValue is not NodeViewModel { CanEditPorts: true } vm)
-        {
-            return;
-        }
+        FinishDrag();
+        ObserveArgumentPorts(IsLoaded ? e.NewValue as NodeViewModel : null);
+    }
 
-        vm.EditArgumentPortsRequested += (_, _) => EditArgumentPorts(vm);
+    private void ObserveArgumentPorts(NodeViewModel? vm)
+    {
+        if (_argumentPortsVm != null)
+            _argumentPortsVm.EditArgumentPortsRequested -= OnEditArgumentPortsRequested;
+        _argumentPortsVm = vm is { CanEditPorts: true } ? vm : null;
+        if (_argumentPortsVm != null)
+            _argumentPortsVm.EditArgumentPortsRequested += OnEditArgumentPortsRequested;
+    }
+
+    private void OnEditArgumentPortsRequested(object? sender, EventArgs e)
+    {
+        if (sender is NodeViewModel vm) EditArgumentPorts(vm);
     }
 
     private void AddArgumentPortButton_Click(object sender, RoutedEventArgs e)
@@ -162,16 +182,18 @@ public partial class NodeView
 
     private void OnLostMouseCapture(object sender, MouseEventArgs e)
     {
-        if (!_isMouseDown) return;
+        if (ReferenceEquals(e.OriginalSource, this)) FinishDrag();
+    }
 
+    private void FinishDrag()
+    {
+        var graph = _dragGraph;
         var wasDragging = _isDragging;
-        var graphVm = FindParent<GraphView>(this)?.DataContext as GraphViewModel;
-
         _isMouseDown = false;
         _isDragging = false;
-
-        if (wasDragging)
-            graphVm?.EndNodeDrag();
+        _dragGraph = null;
+        if (IsMouseCaptured) ReleaseMouseCapture();
+        if (wasDragging) graph?.EndNodeDrag();
     }
 
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
