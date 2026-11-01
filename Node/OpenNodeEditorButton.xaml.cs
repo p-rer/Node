@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -38,7 +40,8 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
     private NodeEffect? _subscribedNodeEffect;
     private bool _suppressSelectionChanged;
 
-    private int _syncRetryCount;
+    private NodeEffect? _selectionEffect;
+    private GraphLibraryViewModel? _selectionLibrary;
 
     public OpenNodeEditorButton()
     {
@@ -50,7 +53,20 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         get => _itemProperties;
         set
         {
+            var nextEffect = value is { Length: > 0 } ? value[0].Item as NodeEffect : null;
+            if (!ReferenceEquals(_selectionEffect, nextEffect)) ReleaseSubscriptions();
+            GraphLibraryViewModel.CurrentChanged -= OnLibraryAvailable;
+            if (_selectionEffect != null) ((INotifyPropertyChanged)_selectionEffect).PropertyChanged -= OnSelectionEffectChanged;
+            if (_selectionLibrary != null) _selectionLibrary.Entries.CollectionChanged -= OnLibraryEntriesChanged;
             _itemProperties = value;
+            _selectionEffect = nextEffect;
+            _selectionLibrary = null;
+
+            if (_selectionEffect != null)
+            {
+                ((INotifyPropertyChanged)_selectionEffect).PropertyChanged += OnSelectionEffectChanged;
+                GraphLibraryViewModel.CurrentChanged += OnLibraryAvailable;
+            }
             SyncComboBox();
         }
     }
@@ -102,13 +118,32 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         _boundWindow = null;
     }
 
+    private void OnLibraryAvailable(object? sender, EventArgs e) => Dispatcher.BeginInvoke(SyncComboBox);
+
+    private void OnSelectionEffectChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(NodeEffect.GraphId) or null or "")
+            Dispatcher.BeginInvoke(SyncComboBox);
+    }
+
+    private void OnLibraryEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(SyncComboBox);
+    }
+
     private void SyncComboBox()
     {
         _suppressSelectionChanged = true;
         try
         {
             var library = GraphLibraryViewModel.Current;
-            GraphComboBox.ItemsSource = library?.Entries;
+            if (!ReferenceEquals(library, _selectionLibrary))
+            {
+                if (_selectionLibrary != null) _selectionLibrary.Entries.CollectionChanged -= OnLibraryEntriesChanged;
+                _selectionLibrary = _selectionEffect == null ? null : library;
+                if (_selectionLibrary != null) _selectionLibrary.Entries.CollectionChanged += OnLibraryEntriesChanged;
+            }
+            GraphComboBox.ItemsSource = _selectionLibrary?.Entries;
 
             if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem)
             {
@@ -118,15 +153,10 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
 
             GraphComboBox.SelectedValue = pluginItem.GraphId;
 
-            if (library is null && _syncRetryCount < 50)
-            {
-                _syncRetryCount++;
-                Dispatcher.BeginInvoke(SyncComboBox, DispatcherPriority.Background);
-            }
-            else
-            {
-                _syncRetryCount = 0;
-            }
+            library?.Subscribe(pluginItem.GraphId, pluginItem);
+            if (pluginItem.InternalGraph is { } graph && library != null &&
+                library.TryGetEntry(pluginItem.GraphId, out var entry))
+                _lastResolvedViewModel?.UpdateGraphIdentity(graph, entry.Name, pluginItem.GraphId);
         }
         finally
         {
@@ -153,6 +183,7 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         finally
         {
             EndEdit?.Invoke(this, EventArgs.Empty);
+            SyncComboBox();
         }
     }
 
@@ -382,16 +413,18 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         if (_subscribedNodeEffect != null && _graphUpdatedHandler != null)
             _subscribedNodeEffect.GraphUpdated -= _graphUpdatedHandler;
 
-        _committedHandler = async void (_, _) =>
+        _committedHandler = async void (sender, _) =>
         {
             try
             {
-                if (pluginItem.InternalGraph == null) return;
+                if (sender is not NodeGraph graph || !ReferenceEquals(pluginItem.InternalGraph, graph)) return;
+                var stamp = pluginItem.CaptureGraphStamp();
                 BeginEdit?.Invoke(this, EventArgs.Empty);
                 try
                 {
-                    var snapshot = await Serializer.CreateAsync(pluginItem.InternalGraph);
-                    pluginItem.InternalGraphSnapshot = snapshot;
+                    var snapshot = await Serializer.CreateAsync(graph);
+                    if (ReferenceEquals(_subscribedNodeEffect, pluginItem))
+                        pluginItem.TryCommitSnapshot(graph, stamp, snapshot);
                 }
                 finally
                 {
@@ -423,7 +456,10 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
                 if (!ReferenceEquals(previousGraph, newGraph))
                 {
                     if (previousGraph != null)
+                    {
+                        if (_committedHandler != null) previousGraph.Committed -= _committedHandler;
                         vm?.CloseGraphTab(previousGraph);
+                    }
                     previousGraph = newGraph;
                 }
 
@@ -432,8 +468,7 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
                     ? newEntry.Name
                     : "Main";
 
-                vm?.OnGraphUpdated();
-                vm?.OpenGraph(newGraph, newTitle, _editorInfo, pluginItem.GraphId);
+                vm?.RefreshGraph(newGraph, newTitle, _editorInfo, pluginItem.GraphId);
 
                 SyncComboBox();
             }

@@ -89,7 +89,7 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
             var existing = Tabs.First(tab => tab.Graph == graph);
             if (editorInfo != null)
                 existing.SetEditorInfo(editorInfo);
-            existing.SetTitle(title);
+            existing.SetGraphIdentity(graphId, title);
             SelectedTab = existing;
             return;
         }
@@ -97,6 +97,21 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
         var mainTab = new TabViewModel(graph, title, this, CloseTab, editorInfo, graphId);
         Tabs.Add(mainTab);
         SelectedTab = mainTab;
+    }
+
+    public void UpdateGraphIdentity(NodeGraph graph, string title, Guid? graphId)
+    {
+        Tabs.FirstOrDefault(t => t.Graph == graph)?.SetGraphIdentity(graphId, title);
+    }
+
+    // A background/shared update must not select a tab or reopen a closed tab.
+    public void RefreshGraph(NodeGraph graph, string title, IEditorInfo? editorInfo, Guid? graphId)
+    {
+        var tab = Tabs.FirstOrDefault(t => t.Graph == graph);
+        if (tab == null) return;
+        tab.SetGraphIdentity(graphId, title);
+        tab.SetEditorInfo(editorInfo);
+        tab.GraphViewModel.Refresh();
     }
 
     public void UpdateEditorInfo(NodeGraph graph, IEditorInfo? editorInfo)
