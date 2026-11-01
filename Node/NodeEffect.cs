@@ -37,6 +37,8 @@ public sealed class NodeEffect : VideoEffectBase
         .Select(_ => new Animation(0, double.MinValue, double.MaxValue))
         .ToArray();
 
+    private readonly SharedGraphUpdateState<GraphSnapshot> _sharedUpdates;
+
     private readonly Dispatcher _uiDispatcher = Application.Current.Dispatcher;
 
     internal readonly Lock ProcessorInitializationLock = new();
@@ -51,15 +53,16 @@ public sealed class NodeEffect : VideoEffectBase
     private GraphSnapshot _graph = new();
 
     private Guid _graphId = Guid.NewGuid();
-
-    private readonly SharedGraphUpdateState<GraphSnapshot> _sharedUpdates;
-    internal int LiveGraphRevision { get; private set; }
+    private string? _graphName;
+    private int? _graphOrder;
 
     public NodeEffect()
     {
         _sharedUpdates = new(_graphId);
         GraphLibraryViewModel.Current?.Subscribe(_graphId, this);
     }
+
+    internal int LiveGraphRevision { get; private set; }
 
     public override string Label => TextUi.Node;
 
@@ -79,6 +82,12 @@ public sealed class NodeEffect : VideoEffectBase
             var library = GraphLibraryViewModel.Current;
             library?.Unsubscribe(oldId, this);
             library?.Subscribe(value, this);
+
+            // 旧グラフの名前・順序を新しいグラフへ持ち越さない。
+            if (library != null && library.TryGetEntry(value, out var entry))
+                ApplyLibraryMetadata(entry.Name, entry.Order);
+            else
+                ApplyLibraryMetadata(null, null);
         }
     }
 
@@ -172,6 +181,36 @@ public sealed class NodeEffect : VideoEffectBase
             NotifyArgumentDefinitionsIfChanged();
             ApplyToInternalGraph(value);
             GraphLibraryViewModel.Current?.PropagateChange(GraphId, this, value);
+            AdoptLibraryMetadataIfMissing();
+        }
+    }
+
+    /// <summary>
+    ///     共有グラフライブラリのエントリー名。ライブラリ本体は ToolState に保存されるが、YMM4 は
+    ///     ツールの非表示中は直近に破棄した時点の状態しか保存しない。確実にプロジェクトへ残すため、
+    ///     参照するエフェクトのプロパティとしても保存し、読み込み時にライブラリへ復元する。
+    ///     GraphId より後に復元されることを前提とする（宣言順）。
+    /// </summary>
+    public string? GraphName
+    {
+        get => _graphName;
+        set
+        {
+            if (_graphName == value) return;
+            SetWithoutUndoRedo(ref _graphName, value);
+            GraphLibraryViewModel.Current?.RestoreEntryMetadata(GraphId, value, null);
+        }
+    }
+
+    /// <summary>共有グラフライブラリ内の並び順。GraphName と同じ理由でエフェクトに保存する。</summary>
+    public int? GraphOrder
+    {
+        get => _graphOrder;
+        set
+        {
+            if (_graphOrder == value) return;
+            SetWithoutUndoRedo(ref _graphOrder, value);
+            GraphLibraryViewModel.Current?.RestoreEntryMetadata(GraphId, null, value);
         }
     }
 
@@ -198,6 +237,7 @@ public sealed class NodeEffect : VideoEffectBase
                 UnSubscribeChildUndoRedoable(field.PreviewNotifier);
                 field.SynchronizeBeforeEdit = null;
             }
+
             field = value;
             if (field != null)
             {
@@ -322,6 +362,21 @@ public sealed class NodeEffect : VideoEffectBase
         }
 
         InvokeGraphUpdated();
+    }
+
+    // ライブラリ側の名前・順序をこのエフェクトの保存対象へ反映する。ライブラリへは書き戻さない。
+    internal void ApplyLibraryMetadata(string? name, int? order)
+    {
+        // 名前・順序はライブラリ側の状態の写しなので、Undo履歴には積まない。
+        if (_graphName != name) SetWithoutUndoRedo(ref _graphName, name, nameof(GraphName));
+        if (_graphOrder != order) SetWithoutUndoRedo(ref _graphOrder, order, nameof(GraphOrder));
+    }
+
+    private void AdoptLibraryMetadataIfMissing()
+    {
+        if (_graphName != null) return;
+        if (GraphLibraryViewModel.Current is { } library && library.TryGetEntry(GraphId, out var entry))
+            ApplyLibraryMetadata(entry.Name, entry.Order);
     }
 
     internal SharedGraphUpdateState<GraphSnapshot>.Stamp CaptureGraphStamp() => _sharedUpdates.BeginSave();
