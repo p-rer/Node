@@ -93,6 +93,12 @@
         <AdditionalFiles Include="**/*.csv"/>
     </ItemGroup>
 
+    <!--共有グラフ機能の一時撤廃: マネージャー用XAMLをビルド対象から外す。対応する.xaml.csは全体をコメントアウト済み。-->
+    <ItemGroup>
+        <Page Remove="Editor\View\GraphLibraryManageView.xaml"/>
+        <Page Remove="Editor\View\GraphLibraryManageWindow.xaml"/>
+    </ItemGroup>
+
     <ItemGroup>
         <Resource Include="..\Release\MaskClip.cso" Link="Resources\Shader\MaskClip.cso"/>
         <Resource Include="..\Release\MaskCreate.cso" Link="Resources\Shader\MaskCreate.cso"/>

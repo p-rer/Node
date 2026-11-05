@@ -141,5 +141,6 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>删除</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>固定</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>请输入未被其他参数使用的名称。</value></data>
-<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>每个效果最多支持16个数值参数。</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>每个效果最多支持{0}个数值参数。</value></data>
+    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>每个效果最多支持{0}个参数，无法再添加。</value></data>
 </root>

@@ -24,7 +24,8 @@
                      MouseDoubleClick="EditButton_Click" />
             <StackPanel Grid.Column="1" Margin="8,0,0,0">
                 <Button x:Name="AddButton" Content="{x:Static loc:TextUi.ArgumentPortAddLabel}"
-                        Width="80" Margin="0,0,0,6" Click="AddButton_Click" />
+                        Width="80" Margin="0,0,0,6" Click="AddButton_Click"
+                        ToolTipService.ShowOnDisabled="True" />
                 <Button x:Name="EditButton" Content="{x:Static loc:TextUi.ArgumentPortEditLabel}"
                         Width="80" Margin="0,0,0,6" Click="EditButton_Click" />
                 <Button x:Name="DeleteButton" Content="{x:Static loc:TextUi.ArgumentPortDeleteLabel}"

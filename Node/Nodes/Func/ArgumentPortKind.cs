@@ -15,6 +15,13 @@ public enum ArgumentPortKind
 
 public static class ArgumentPortKinds
 {
+    /// <summary>
+    ///     1つのエフェクトに設定できる引数ポート（全型の合計）の上限。
+    ///     数値引数は NodeEffect の ArgumentSlot00～63 に1つずつ割り当てるため、
+    ///     NodeEffect 側のスロット宣言数と常に一致させること。
+    /// </summary>
+    public const int MaxCustomPorts = 64;
+
     public static IReadOnlyList<ArgumentPortKind> All { get; } =
     [
         ArgumentPortKind.Number,

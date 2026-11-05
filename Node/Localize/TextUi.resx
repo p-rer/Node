@@ -141,5 +141,6 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>削除</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>固定</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>名前を入力してください（他の引数と同じ名前は使えません）。</value></data>
-<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>数値の引数は1つのエフェクトにつき最大16個までです。</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>数値の引数は1つのエフェクトにつき最大{0}個までです。</value></data>
+    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>引数は1つのエフェクトにつき最大{0}個までです。これ以上追加できません。</value></data>
 </root>

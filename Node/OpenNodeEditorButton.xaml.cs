@@ -1,13 +1,8 @@
-using System.ComponentModel;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Threading;
 using AvalonDock;
 using AvalonDock.Layout;
-using Node.Editor.View;
 using Node.Editor.ViewModel;
 using Node.Graph;
 using Node.Graph.Events;
@@ -30,7 +25,6 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
     private EventHandler<CommittedEventArgs>? _committedHandler;
     private IEditorInfo? _editorInfo;
     private EventHandler? _graphUpdatedHandler;
-    private ItemProperty[]? _itemProperties;
     private NodeEditorViewModel? _lastResolvedViewModel;
     private EventHandler? _layoutIsActiveChangedHandler;
     private EventHandler? _layoutIsSelectedChangedHandler;
@@ -38,38 +32,13 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
     private NodeGraph? _subscribedGraph;
     private LayoutAnchorable? _subscribedLayout;
     private NodeEffect? _subscribedNodeEffect;
-    private bool _suppressSelectionChanged;
-
-    private NodeEffect? _selectionEffect;
-    private GraphLibraryViewModel? _selectionLibrary;
 
     public OpenNodeEditorButton()
     {
         InitializeComponent();
     }
 
-    public ItemProperty[]? ItemProperties
-    {
-        get => _itemProperties;
-        set
-        {
-            var nextEffect = value is { Length: > 0 } ? value[0].Item as NodeEffect : null;
-            if (!ReferenceEquals(_selectionEffect, nextEffect)) ReleaseSubscriptions();
-            GraphLibraryViewModel.CurrentChanged -= OnLibraryAvailable;
-            if (_selectionEffect != null) ((INotifyPropertyChanged)_selectionEffect).PropertyChanged -= OnSelectionEffectChanged;
-            if (_selectionLibrary != null) _selectionLibrary.Entries.CollectionChanged -= OnLibraryEntriesChanged;
-            _itemProperties = value;
-            _selectionEffect = nextEffect;
-            _selectionLibrary = null;
-
-            if (_selectionEffect != null)
-            {
-                ((INotifyPropertyChanged)_selectionEffect).PropertyChanged += OnSelectionEffectChanged;
-                GraphLibraryViewModel.CurrentChanged += OnLibraryAvailable;
-            }
-            SyncComboBox();
-        }
-    }
+    public ItemProperty[]? ItemProperties { get; set; }
 
     public event EventHandler? BeginEdit;
     public event EventHandler? EndEdit;
@@ -116,187 +85,6 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         _layoutIsSelectedChangedHandler = null;
         _nodeBindings = null;
         _boundWindow = null;
-    }
-
-    private void OnLibraryAvailable(object? sender, EventArgs e) => Dispatcher.BeginInvoke(SyncComboBox);
-
-    private void OnSelectionEffectChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(NodeEffect.GraphId) or null or "")
-            Dispatcher.BeginInvoke(SyncComboBox);
-    }
-
-    private void OnLibraryEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        Dispatcher.BeginInvoke(SyncComboBox);
-    }
-
-    private void SyncComboBox()
-    {
-        _suppressSelectionChanged = true;
-        try
-        {
-            var library = GraphLibraryViewModel.Current;
-            if (!ReferenceEquals(library, _selectionLibrary))
-            {
-                if (_selectionLibrary != null) _selectionLibrary.Entries.CollectionChanged -= OnLibraryEntriesChanged;
-                _selectionLibrary = _selectionEffect == null ? null : library;
-                if (_selectionLibrary != null) _selectionLibrary.Entries.CollectionChanged += OnLibraryEntriesChanged;
-            }
-            GraphComboBox.ItemsSource = _selectionLibrary?.Entries;
-
-            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem)
-            {
-                GraphComboBox.SelectedValue = null;
-                return;
-            }
-
-            GraphComboBox.SelectedValue = pluginItem.GraphId;
-
-            library?.Subscribe(pluginItem.GraphId, pluginItem);
-            if (pluginItem.InternalGraph is { } graph && library != null &&
-                library.TryGetEntry(pluginItem.GraphId, out var entry))
-                _lastResolvedViewModel?.UpdateGraphIdentity(graph, entry.Name, pluginItem.GraphId);
-        }
-        finally
-        {
-            _suppressSelectionChanged = false;
-        }
-    }
-
-    private void GraphComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_suppressSelectionChanged) return;
-        if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
-        if (GraphComboBox.SelectedValue is not Guid newGraphId) return;
-        if (newGraphId == pluginItem.GraphId) return;
-
-        BeginEdit?.Invoke(this, EventArgs.Empty);
-        try
-        {
-            pluginItem.SwitchGraph(newGraphId);
-        }
-        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-        {
-            Debug.WriteLine($"[OpenNodeEditorButton] Failed to switch graph: {ex}");
-        }
-        finally
-        {
-            EndEdit?.Invoke(this, EventArgs.Empty);
-            SyncComboBox();
-        }
-    }
-
-    private void NewButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
-            var library = GraphLibraryViewModel.Current;
-            if (library is null) return;
-
-            var parentWindow = Window.GetWindow(this);
-            if (parentWindow is null) return;
-
-            if (!GraphNameInputWindow.TryGetName(parentWindow, TextUi.NewGraphNamePrompt,
-                    $"Graph {library.Entries.Count + 1}", out var name))
-                return;
-
-            var entry = library.CreateNew(name);
-
-            BeginEdit?.Invoke(this, EventArgs.Empty);
-            try
-            {
-                pluginItem.SwitchGraph(entry.Id);
-            }
-            finally
-            {
-                EndEdit?.Invoke(this, EventArgs.Empty);
-            }
-
-            SyncComboBox();
-        }
-        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-        {
-            Debug.WriteLine($"[OpenNodeEditorButton] Failed to create new graph: {ex}");
-        }
-    }
-
-    private void RenameButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
-            var library = GraphLibraryViewModel.Current;
-            if (library is null || !library.TryGetEntry(pluginItem.GraphId, out var entry)) return;
-
-            var parentWindow = Window.GetWindow(this);
-            if (parentWindow is null) return;
-
-            if (!GraphNameInputWindow.TryGetName(parentWindow, TextUi.RenameGraphNamePrompt, entry.Name,
-                    out var name))
-                return;
-
-            library.Rename(pluginItem.GraphId, name);
-        }
-        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-        {
-            Debug.WriteLine($"[OpenNodeEditorButton] Failed to rename graph: {ex}");
-        }
-    }
-
-    private void CloneButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (ItemProperties is not { Length: > 0 } || ItemProperties[0].Item is not NodeEffect pluginItem) return;
-            var library = GraphLibraryViewModel.Current;
-            if (library is null) return;
-
-            var parentWindow = Window.GetWindow(this);
-            if (parentWindow is null) return;
-
-            var currentName =
-                library.TryGetEntry(pluginItem.GraphId, out var currentEntry) ? currentEntry.Name : "Graph";
-
-            if (!GraphNameInputWindow.TryGetName(parentWindow, TextUi.CloneGraphNamePrompt, $"{currentName} Copy",
-                    out var name))
-                return;
-
-            var cloned = library.Clone(pluginItem.GraphId, name, pluginItem.Graph);
-
-            BeginEdit?.Invoke(this, EventArgs.Empty);
-            try
-            {
-                pluginItem.SwitchGraph(cloned.Id);
-            }
-            finally
-            {
-                EndEdit?.Invoke(this, EventArgs.Empty);
-            }
-
-            SyncComboBox();
-        }
-        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-        {
-            Debug.WriteLine($"[OpenNodeEditorButton] Failed to clone graph: {ex}");
-        }
-    }
-
-    private void ManageButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (GraphLibraryViewModel.Current is null) return;
-
-            var parentWindow = Window.GetWindow(this);
-            var window = new GraphLibraryManageWindow { Owner = parentWindow };
-            window.ShowDialog();
-        }
-        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-        {
-            Debug.WriteLine($"[OpenNodeEditorButton] Failed to open manage window: {ex}");
-        }
     }
 
     private static void EnsureInternalGraph(NodeEffect pluginItem)
@@ -393,12 +181,7 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         if (pluginItem.InternalGraph is null)
             throw new InvalidOperationException("グラフの解決に失敗しました。");
 
-        var title = GraphLibraryViewModel.Current is { } library &&
-                    library.TryGetEntry(pluginItem.GraphId, out var entry)
-            ? entry.Name
-            : "Main";
-
-        vm?.OpenGraph(pluginItem.InternalGraph!, title, _editorInfo, pluginItem.GraphId);
+        vm?.OpenGraph(pluginItem.InternalGraph!, editorInfo: _editorInfo);
 
         if (vm != null)
         {
@@ -460,17 +243,11 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
                         if (_committedHandler != null) previousGraph.Committed -= _committedHandler;
                         vm?.CloseGraphTab(previousGraph);
                     }
+
                     previousGraph = newGraph;
                 }
 
-                var newTitle = GraphLibraryViewModel.Current is { } lib &&
-                               lib.TryGetEntry(pluginItem.GraphId, out var newEntry)
-                    ? newEntry.Name
-                    : "Main";
-
-                vm?.RefreshGraph(newGraph, newTitle, _editorInfo, pluginItem.GraphId);
-
-                SyncComboBox();
+                vm?.RefreshGraph(newGraph, _editorInfo);
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {

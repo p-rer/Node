@@ -141,5 +141,6 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>حذف</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>ثابت</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>أدخل اسمًا غير مستخدم في معامل آخر.</value></data>
-<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى 16 معاملًا رقميًا.</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى {0} معاملًا رقميًا.</value></data>
+    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى {0} معاملًا. لا يمكن إضافة المزيد.</value></data>
 </root>

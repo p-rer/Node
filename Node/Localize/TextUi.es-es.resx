@@ -141,5 +141,6 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>Eliminar</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>Fijo</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>Introduce un nombre que no esté usado por otro argumento.</value></data>
-<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>Un efecto admite hasta 16 argumentos numéricos.</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>Un efecto admite hasta {0} argumentos numéricos.</value></data>
+    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>Un efecto admite hasta {0} argumentos. No se pueden añadir más.</value></data>
 </root>

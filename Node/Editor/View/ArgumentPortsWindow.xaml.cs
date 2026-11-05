@@ -24,6 +24,8 @@ public partial class ArgumentPortsWindow
 
     private PortItem? Selected => PortListBox.SelectedItem as PortItem;
 
+    private int CustomPortCount => _items.Count(item => item.Definition.IsCustom);
+
     private void PortListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateButtons();
@@ -34,6 +36,13 @@ public partial class ArgumentPortsWindow
         var index = PortListBox.SelectedIndex;
         var selected = Selected;
         var isCustom = selected is { Definition.IsCustom: true };
+
+        // 上限に達したら、それ以上の追加を受け付けない。
+        var atLimit = CustomPortCount >= ArgumentPortKinds.MaxCustomPorts;
+        AddButton.IsEnabled = !atLimit;
+        AddButton.ToolTip = atLimit
+            ? string.Format(TextUi.ArgumentPortLimitReached, ArgumentPortKinds.MaxCustomPorts)
+            : null;
 
         EditButton.IsEnabled = isCustom;
         DeleteButton.IsEnabled = isCustom;
@@ -48,10 +57,12 @@ public partial class ArgumentPortsWindow
 
     private void AddButton_Click(object sender, RoutedEventArgs e)
     {
+        if (CustomPortCount >= ArgumentPortKinds.MaxCustomPorts) return;
         if (!ArgumentPortEditWindow.TryCreate(this, TakenLabels(null), out var definition)) return;
 
         _items.Add(new PortItem(definition));
         PortListBox.SelectedIndex = _items.Count - 1;
+        UpdateButtons();
     }
 
     private void EditButton_Click(object sender, RoutedEventArgs e)
@@ -72,6 +83,7 @@ public partial class ArgumentPortsWindow
         var index = _items.IndexOf(selected);
         _items.RemoveAt(index);
         PortListBox.SelectedIndex = Math.Min(index, _items.Count - 1);
+        UpdateButtons();
     }
 
     private void UpButton_Click(object sender, RoutedEventArgs e)

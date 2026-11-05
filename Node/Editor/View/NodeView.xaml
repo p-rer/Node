@@ -150,6 +150,9 @@
                 HorizontalAlignment="Right"
                 Margin="0,4,12,0"
                 Visibility="{Binding CanEditPorts, Converter={StaticResource BoolToVisibilityConverter}}"
+                IsEnabled="{Binding CanAddArgumentPort, Mode=OneWay}"
+                ToolTip="{Binding AddArgumentPortToolTip, Mode=OneWay}"
+                ToolTipService.ShowOnDisabled="True"
                 Click="AddArgumentPortButton_Click" />
 
         <!-- サブグラフボタン -->

@@ -81,35 +81,28 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
         GraphUpdated?.Invoke(this, EventArgs.Empty);
     }
 
-    public void OpenGraph(NodeGraph graph, string title = "Main", IEditorInfo? editorInfo = null,
-        Guid? graphId = null)
+    public void OpenGraph(NodeGraph graph, string title = "Main", IEditorInfo? editorInfo = null)
     {
         if (Tabs.Any(tab => tab.Graph == graph))
         {
             var existing = Tabs.First(tab => tab.Graph == graph);
             if (editorInfo != null)
                 existing.SetEditorInfo(editorInfo);
-            existing.SetGraphIdentity(graphId, title);
+            existing.SetTitle(title);
             SelectedTab = existing;
             return;
         }
 
-        var mainTab = new TabViewModel(graph, title, this, CloseTab, editorInfo, graphId);
+        var mainTab = new TabViewModel(graph, title, this, CloseTab, editorInfo);
         Tabs.Add(mainTab);
         SelectedTab = mainTab;
     }
 
-    public void UpdateGraphIdentity(NodeGraph graph, string title, Guid? graphId)
-    {
-        Tabs.FirstOrDefault(t => t.Graph == graph)?.SetGraphIdentity(graphId, title);
-    }
-
-    // A background/shared update must not select a tab or reopen a closed tab.
-    public void RefreshGraph(NodeGraph graph, string title, IEditorInfo? editorInfo, Guid? graphId)
+    // 背景からの更新では、タブを選択したり、閉じたタブを開き直したりしない。
+    public void RefreshGraph(NodeGraph graph, IEditorInfo? editorInfo)
     {
         var tab = Tabs.FirstOrDefault(t => t.Graph == graph);
         if (tab == null) return;
-        tab.SetGraphIdentity(graphId, title);
         tab.SetEditorInfo(editorInfo);
         tab.GraphViewModel.Refresh();
     }

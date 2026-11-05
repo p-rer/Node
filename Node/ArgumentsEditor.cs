@@ -117,7 +117,8 @@ public sealed class ArgumentsEditor : UserControl, IPropertyEditorControl2
             if (kind == ArgumentPortKind.Number)
             {
                 var slot = effect.EnsureArgumentSlot(definition.Name, liveNames)
-                           ?? throw new InvalidOperationException(TextUi.ArgumentSlotsExhausted);
+                           ?? throw new InvalidOperationException(
+                               string.Format(TextUi.ArgumentSlotsExhausted, NodeEffect.ArgumentSlotCount));
                 owner = effect;
                 valueProperty = NodeEffect.GetArgumentSlotProperty(slot);
             }

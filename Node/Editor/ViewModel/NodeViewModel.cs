@@ -10,6 +10,7 @@ using Node.Editor.Command;
 using Node.Graph;
 using Node.Graph.Attributes;
 using Node.Graph.Events;
+using Node.Localize;
 using Node.Nodes.Effect.DynamicLoaded;
 using Node.Nodes.Func;
 using YukkuriMovieMaker.Commons;
@@ -184,6 +185,20 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     public bool HasSubGraph { get; }
 
     public bool CanEditPorts => NodeLogic is ArgumentsNode { AllowCustomPorts: true };
+
+    /// <summary>
+    ///     引数ポートをこれ以上追加できるか。上限に達している場合は追加ボタンを無効化する。
+    ///     ポート定義の変更時はノードのビューモデルが作り直されるため、変更通知は不要。
+    /// </summary>
+    public bool CanAddArgumentPort =>
+        NodeLogic is ArgumentsNode { AllowCustomPorts: true } argumentsNode &&
+        argumentsNode.GetPortDefinitions().Count(definition => definition.IsCustom) <
+        ArgumentPortKinds.MaxCustomPorts;
+
+    public string? AddArgumentPortToolTip =>
+        CanEditPorts && !CanAddArgumentPort
+            ? string.Format(TextUi.ArgumentPortLimitReached, ArgumentPortKinds.MaxCustomPorts)
+            : null;
 
     public double X
     {

@@ -141,5 +141,6 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>Hapus</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>Tetap</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>Masukkan nama yang tidak dipakai argumen lain.</value></data>
-<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>Satu efek mendukung hingga 16 argumen angka.</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>Satu efek mendukung hingga {0} argumen angka.</value></data>
+    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>Satu efek mendukung hingga {0} argumen. Tidak dapat menambah lagi.</value></data>
 </root>

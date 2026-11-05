@@ -209,7 +209,8 @@ public sealed class NodeGraph
     /// <param name="portDefinitions">新しいポート定義（並び順がそのまま表示順になる）</param>
     /// <returns>
     ///     差し替えた場合はtrue。対象が自由追加に対応した引数ノードでない場合、元からある固定ポートが
-    ///     変更・削除されている場合、ポート名が重複している場合、追加ポートの型が未対応の場合は何もせずfalse。
+    ///     変更・削除されている場合、ポート名が重複している場合、追加ポートの型が未対応の場合、
+    ///     追加によって引数ポート数が上限（ArgumentPortKinds.MaxCustomPorts）を超える場合は何もせずfalse。
     /// </returns>
     public bool ReplaceArgumentPorts(Guid nodeId, PortDefinition[] portDefinitions)
     {
@@ -224,6 +225,13 @@ public sealed class NodeGraph
             return false;
 
         if (portDefinitions.Any(d => d.IsCustom && !ArgumentPortKinds.TryGetKind(d.ValueType, out _)))
+            return false;
+
+        // 引数ポート数の上限を超える追加は拒否する。上限を超えて保存済みのグラフでも、
+        // 数を増やさない編集（名前変更・削除・並べ替え）は許可する。
+        var customCount = portDefinitions.Count(d => d.IsCustom);
+        if (customCount > ArgumentPortKinds.MaxCustomPorts &&
+            customCount > argumentsNode.GetPortDefinitions().Count(d => d.IsCustom))
             return false;
 
         var outgoing = Connections.Where(c => c.FromId == nodeId).ToList();

@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Node.Editor.Command;
 using Node.Graph;
-using Node.Graph.Snapshot;
 using YukkuriMovieMaker.Commons;
 
 namespace Node.Editor.ViewModel;
@@ -11,8 +10,6 @@ namespace Node.Editor.ViewModel;
 public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly Action<TabViewModel>? _closeAction;
-    private PropertyChangedEventHandler? _entryPropertyChangedHandler;
-    private NamedGraphSnapshot? _subscribedEntry;
     private string _title;
 
     public TabViewModel(
@@ -20,8 +17,7 @@ public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
         string title,
         NodeEditorViewModel nodeEditorViewModel,
         Action<TabViewModel>? closeAction = null,
-        IEditorInfo? editorInfo = null,
-        Guid? graphId = null)
+        IEditorInfo? editorInfo = null)
     {
         Graph = graph;
         _title = title;
@@ -29,29 +25,6 @@ public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
         _closeAction = closeAction;
 
         CloseCommand = new RelayCommand(Close, () => _closeAction != null);
-
-        SetGraphIdentity(graphId, title);
-    }
-
-    internal void SetGraphIdentity(Guid? graphId, string title)
-    {
-        if (_subscribedEntry != null && _entryPropertyChangedHandler != null)
-            _subscribedEntry.PropertyChanged -= _entryPropertyChangedHandler;
-        _subscribedEntry = null;
-        _entryPropertyChangedHandler = null;
-        Title = title;
-
-        if (graphId is { } id && GraphLibraryViewModel.Current is { } library &&
-            library.TryGetEntry(id, out var entry))
-        {
-            _subscribedEntry = entry;
-            _entryPropertyChangedHandler = (_, args) =>
-            {
-                if (args.PropertyName == nameof(NamedGraphSnapshot.Name)) Title = entry.Name;
-            };
-            entry.PropertyChanged += _entryPropertyChangedHandler;
-            Title = entry.Name;
-        }
     }
 
     public string Title
@@ -66,13 +39,15 @@ public sealed class TabViewModel : INotifyPropertyChanged, IDisposable
 
     public void Dispose()
     {
-        if (_subscribedEntry != null && _entryPropertyChangedHandler != null)
-            _subscribedEntry.PropertyChanged -= _entryPropertyChangedHandler;
-
         GraphViewModel.Dispose();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    internal void SetTitle(string title)
+    {
+        Title = title;
+    }
 
     internal void SetEditorInfo(IEditorInfo? info)
     {

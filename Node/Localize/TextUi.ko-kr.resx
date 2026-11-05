@@ -141,5 +141,6 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>삭제</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>고정</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>다른 인수와 겹치지 않는 이름을 입력하세요.</value></data>
-<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>이펙트 하나에서 숫자 인수는 최대 16개까지 지원합니다.</value></data>
+    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>이펙트 하나에서 숫자 인수는 최대 {0}개까지 지원합니다.</value></data>
+    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>이펙트 하나에서 인수는 최대 {0}개까지 지원하며 더 추가할 수 없습니다.</value></data>
 </root>
