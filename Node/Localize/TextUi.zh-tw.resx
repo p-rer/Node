@@ -141,6 +141,13 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>刪除</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>固定</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>請輸入未被其他參數使用的名稱。</value></data>
-    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>每個效果最多支援{0}個數值參數。</value></data>
-    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>每個效果最多支援{0}個參數，無法再新增。</value></data>
+<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>每個效果最多支援{0}個數值參數。</value></data>
+<data name="ArgumentPortLimitReached" xml:space="preserve"><value>每個效果最多支援{0}個參數，無法再新增。</value></data>
+<data name="PortIncompatibleTypes" xml:space="preserve"><value>類型不符，無法傳遞值（{0} → {1}）。</value></data>
+<data name="PortValueMayChange" xml:space="preserve"><value>從 {0} 轉換為 {1} 時，值可能會改變（例如小數部分被捨入或超出範圍的值遺失）。</value></data>
+<data name="PortEnumMismatch" xml:space="preserve"><value>連接了不同的列舉類型（{0} → {1}）。值會依整數對應，因此得到的選項可能不是預期的選項。</value></data>
+<data name="ConnectionRejectedBothOutputs" xml:space="preserve"><value>輸出連接埠之間無法連接。</value></data>
+<data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>輸入連接埠之間無法連接。</value></data>
+<data name="ConnectionRejectedCycle" xml:space="preserve"><value>會形成循環連接，因此無法連接。節點不能連接到自身，也不能讓資料流回上游。</value></data>
+<data name="ConnectionRejectedUnknown" xml:space="preserve"><value>無法連接到此連接埠。</value></data>
 </root>

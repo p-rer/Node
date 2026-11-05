@@ -141,6 +141,13 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>삭제</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>고정</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>다른 인수와 겹치지 않는 이름을 입력하세요.</value></data>
-    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>이펙트 하나에서 숫자 인수는 최대 {0}개까지 지원합니다.</value></data>
-    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>이펙트 하나에서 인수는 최대 {0}개까지 지원하며 더 추가할 수 없습니다.</value></data>
+<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>이펙트 하나에서 숫자 인수는 최대 {0}개까지 지원합니다.</value></data>
+<data name="ArgumentPortLimitReached" xml:space="preserve"><value>이펙트 하나에서 인수는 최대 {0}개까지 지원하며 더 추가할 수 없습니다.</value></data>
+<data name="PortIncompatibleTypes" xml:space="preserve"><value>형식이 맞지 않아 값을 전달할 수 없습니다({0} → {1}).</value></data>
+<data name="PortValueMayChange" xml:space="preserve"><value>{0}에서 {1}(으)로 변환할 때 소수 부분이 반올림되거나 범위를 벗어난 값이 손실되는 등 값이 달라질 수 있습니다.</value></data>
+<data name="PortEnumMismatch" xml:space="preserve"><value>서로 다른 열거형({0} → {1})이 연결되어 있습니다. 값이 정수로 대응되므로 의도한 항목과 다를 수 있습니다.</value></data>
+<data name="ConnectionRejectedBothOutputs" xml:space="preserve"><value>출력 포트끼리는 연결할 수 없습니다.</value></data>
+<data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>입력 포트끼리는 연결할 수 없습니다.</value></data>
+<data name="ConnectionRejectedCycle" xml:space="preserve"><value>순환 연결이 되므로 연결할 수 없습니다. 노드 자신이나 데이터 흐름을 거슬러 올라가는 방향으로는 연결할 수 없습니다.</value></data>
+<data name="ConnectionRejectedUnknown" xml:space="preserve"><value>이 포트에는 연결할 수 없습니다.</value></data>
 </root>

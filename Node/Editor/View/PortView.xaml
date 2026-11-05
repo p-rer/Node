@@ -9,6 +9,7 @@
              d:DataContext="{d:DesignInstance viewModel:PortViewModel}"
              Background="Transparent"
              MouseLeftButtonDown="OnMouseLeftButtonDown"
+             MouseMove="OnMouseMove"
              MouseLeftButtonUp="OnMouseLeftButtonUp">
     <Grid>
         <Ellipse Width="10"

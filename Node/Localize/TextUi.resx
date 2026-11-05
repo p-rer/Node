@@ -141,6 +141,13 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>削除</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>固定</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>名前を入力してください（他の引数と同じ名前は使えません）。</value></data>
-    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>数値の引数は1つのエフェクトにつき最大{0}個までです。</value></data>
-    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>引数は1つのエフェクトにつき最大{0}個までです。これ以上追加できません。</value></data>
+<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>数値の引数は1つのエフェクトにつき最大{0}個までです。</value></data>
+<data name="ArgumentPortLimitReached" xml:space="preserve"><value>引数は1つのエフェクトにつき最大{0}個までです。これ以上追加できません。</value></data>
+<data name="PortIncompatibleTypes" xml:space="preserve"><value>型が合わないため、値を受け渡せません（{0} → {1}）。</value></data>
+<data name="PortValueMayChange" xml:space="preserve"><value>{0} から {1} へ変換する際、小数部の丸めや範囲外の値の欠落などにより、値が変わる可能性があります。</value></data>
+<data name="PortEnumMismatch" xml:space="preserve"><value>異なる列挙型（{0} → {1}）が接続されています。値は整数として対応付けられるため、意図した項目と一致しない可能性があります。</value></data>
+<data name="ConnectionRejectedBothOutputs" xml:space="preserve"><value>出力端子どうしは接続できません。</value></data>
+<data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>入力端子どうしは接続できません。</value></data>
+<data name="ConnectionRejectedCycle" xml:space="preserve"><value>循環接続になるため接続できません。ノード自身や、データの流れをさかのぼる向きには接続できません。</value></data>
+<data name="ConnectionRejectedUnknown" xml:space="preserve"><value>この端子には接続できません。</value></data>
 </root>

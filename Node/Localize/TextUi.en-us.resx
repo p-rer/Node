@@ -141,6 +141,13 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>Delete</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>Fixed</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>Enter a name that is not used by another argument.</value></data>
-    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>A single effect supports up to {0} number arguments.</value></data>
-    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>A single effect supports up to {0} arguments. No more can be added.</value></data>
+<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>A single effect supports up to {0} number arguments.</value></data>
+<data name="ArgumentPortLimitReached" xml:space="preserve"><value>A single effect supports up to {0} arguments. No more can be added.</value></data>
+<data name="PortIncompatibleTypes" xml:space="preserve"><value>The value cannot be passed because the types do not match ({0} → {1}).</value></data>
+<data name="PortValueMayChange" xml:space="preserve"><value>Converting from {0} to {1} may change the value (for example, fractional parts are rounded or out-of-range values are lost).</value></data>
+<data name="PortEnumMismatch" xml:space="preserve"><value>Different enum types ({0} → {1}) are connected. Values are mapped by their integer value, so the resulting item may not be the intended one.</value></data>
+<data name="ConnectionRejectedBothOutputs" xml:space="preserve"><value>Output ports cannot be connected to each other.</value></data>
+<data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>Input ports cannot be connected to each other.</value></data>
+<data name="ConnectionRejectedCycle" xml:space="preserve"><value>This would create a circular connection, so it cannot be connected. A node cannot connect to itself or loop data back upstream.</value></data>
+<data name="ConnectionRejectedUnknown" xml:space="preserve"><value>Cannot connect to this port.</value></data>
 </root>

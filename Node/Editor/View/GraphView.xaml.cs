@@ -18,15 +18,15 @@ public partial class GraphView
             new PropertyMetadata(GraphControlMode.RectSelection, OnModeChanged));
 
     private ConnectionAdorner? _connectionAdorner;
-    private GraphViewModel? _observedGraph;
     private bool _ctrlRightPanning;
 
     private bool _isPanning;
     private bool _isSelecting;
+    private GraphViewModel? _observedGraph;
+    private MouseButton? _panButton;
     private Point _panStart;
     private SelectionAdornerBase? _selectionAdorner;
     private Point _selectionStart;
-    private MouseButton? _panButton;
     private bool _suppressNextContextMenu;
 
     public GraphView()
@@ -153,7 +153,8 @@ public partial class GraphView
     {
         // DrawingContext content is retained; clearing the VM alone does not erase it.
         if (e.PropertyName is nameof(GraphViewModel.DraggingFromPort)
-            or nameof(GraphViewModel.TemporaryEndPoint) or nameof(GraphViewModel.Zoom)
+            or nameof(GraphViewModel.TemporaryEndPoint) or nameof(GraphViewModel.ConnectionRejectionMessage)
+            or nameof(GraphViewModel.Zoom)
             or nameof(GraphViewModel.PanX) or nameof(GraphViewModel.PanY) or null or "")
             _connectionAdorner?.InvalidateVisual();
     }
@@ -172,6 +173,7 @@ public partial class GraphView
             _observedGraph.DraggingFromPort = null;
             _observedGraph.TemporaryEndPoint = null;
         }
+
         if (IsMouseCaptured) ReleaseMouseCapture();
     }
 

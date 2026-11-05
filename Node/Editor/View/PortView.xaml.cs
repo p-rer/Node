@@ -10,6 +10,7 @@ public partial class PortView
 {
     private GraphViewModel? _dragGraph;
     private bool _positionUpdatePending;
+
     public PortView()
     {
         InitializeComponent();
@@ -80,6 +81,14 @@ public partial class PortView
         e.Handled = true;
     }
 
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        // 接続のドラッグ中は、マウスが重なっている端子をグラフへ伝える（接続可否の事前表示に使う）。
+        // Handled にはしない。GraphView 側でプレビュー線の終点を更新するため。
+        if (_dragGraph == null) return;
+        _dragGraph.HoveringPort = HitTestPortView(e)?.DataContext as PortViewModel;
+    }
+
     private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         var graph = _dragGraph;
@@ -105,6 +114,7 @@ public partial class PortView
             graph.DraggingFromPort = null;
             graph.TemporaryEndPoint = null;
         }
+
         if (IsMouseCaptured) ReleaseMouseCapture();
     }
 
@@ -113,7 +123,7 @@ public partial class PortView
         if (ReferenceEquals(e.OriginalSource, this)) CancelConnection();
     }
 
-    private PortView? HitTestPortView(MouseButtonEventArgs e)
+    private PortView? HitTestPortView(MouseEventArgs e)
     {
         var graphView = FindParent<GraphView>(this);
         if (graphView?.FindName("RootGrid") is not UIElement root) return null;

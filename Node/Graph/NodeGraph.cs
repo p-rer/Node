@@ -7,13 +7,6 @@ namespace Node.Graph;
 
 public sealed class NodeGraph
 {
-    private static readonly HashSet<Type> NumericPortTypes =
-    [
-        typeof(int), typeof(uint), typeof(long), typeof(ulong),
-        typeof(short), typeof(ushort), typeof(byte), typeof(sbyte),
-        typeof(float), typeof(double), typeof(decimal)
-    ];
-
     private readonly Dictionary<Guid, NodeLogic> _nodes = new();
     public readonly List<NodeConnection> Connections = [];
     public readonly Lock GraphLock = new();
@@ -269,15 +262,10 @@ public sealed class NodeGraph
         Guid from, string outputName,
         Guid to, string inputName)
     {
-        if (WouldCreateCycle(from, to))
+        if (GetConnectionRejection(from, outputName, to, inputName) != ConnectionRejection.None)
             return false;
 
-        if (!_nodes.TryGetValue(from, out var fromNode) || !fromNode.Outputs.TryGetValue(outputName, out var output))
-            return false;
-        if (!_nodes.TryGetValue(to, out var toNode) || !toNode.Inputs.TryGetValue(inputName, out var input))
-            return false;
-
-        if (!ArePortTypesCompatible(output.ValueType, input.ValueType))
+        if (!TryGetPorts(from, outputName, to, inputName, out var output, out var input))
             return false;
 
         var existing = Connections
@@ -296,6 +284,31 @@ public sealed class NodeGraph
     }
 
     /// <summary>
+    ///     指定した出力ポートから入力ポートへの接続が拒否されるかどうかを判定し、拒否される場合はその理由を返す。
+    ///     Connect が接続を拒否する条件はこのメソッドが唯一の基準であり、エディタ上での事前表示も同じ判定を共有する。
+    /// </summary>
+    /// <param name="from">接続元の出力ポートを持つノードのID</param>
+    /// <param name="outputName">接続元の出力ポート名</param>
+    /// <param name="to">接続先の入力ポートを持つノードのID</param>
+    /// <param name="inputName">接続先の入力ポート名</param>
+    /// <returns>接続できる場合は None。拒否される場合はその理由。</returns>
+    public ConnectionRejection GetConnectionRejection(
+        Guid from, string outputName,
+        Guid to, string inputName)
+    {
+        if (WouldCreateCycle(from, to))
+            return ConnectionRejection.Cycle;
+
+        if (!TryGetPorts(from, outputName, to, inputName, out var output, out var input))
+            return ConnectionRejection.PortNotFound;
+
+        if (!ArePortTypesCompatible(output.ValueType, input.ValueType))
+            return ConnectionRejection.IncompatibleTypes;
+
+        return ConnectionRejection.None;
+    }
+
+    /// <summary>
     ///     出力ポートの型を入力ポートへ接続してよいかどうかを判定する。
     /// </summary>
     /// <param name="outputType">接続元の出力ポートの値の型</param>
@@ -303,12 +316,7 @@ public sealed class NodeGraph
     /// <returns>接続を許可できる場合はtrue</returns>
     private static bool ArePortTypesCompatible(Type outputType, Type inputType)
     {
-        if (outputType == inputType) return true;
-        if (inputType.IsAssignableFrom(outputType)) return true;
-
-        var outputIsNumericLike = NumericPortTypes.Contains(outputType) || outputType.IsEnum;
-        var inputIsNumericLike = NumericPortTypes.Contains(inputType) || inputType.IsEnum;
-        return outputIsNumericLike && inputIsNumericLike;
+        return PortTypeCompatibility.Evaluate(outputType, inputType) != PortCompatibility.Incompatible;
     }
 
     /// <summary>

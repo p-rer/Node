@@ -141,6 +141,13 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>حذف</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>ثابت</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>أدخل اسمًا غير مستخدم في معامل آخر.</value></data>
-    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى {0} معاملًا رقميًا.</value></data>
-    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى {0} معاملًا. لا يمكن إضافة المزيد.</value></data>
+<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى {0} معاملًا رقميًا.</value></data>
+<data name="ArgumentPortLimitReached" xml:space="preserve"><value>يدعم التأثير الواحد ما يصل إلى {0} معاملًا. لا يمكن إضافة المزيد.</value></data>
+<data name="PortIncompatibleTypes" xml:space="preserve"><value>لا يمكن تمرير القيمة لأن الأنواع غير متطابقة (من {0} إلى {1}).</value></data>
+<data name="PortValueMayChange" xml:space="preserve"><value>قد تتغير القيمة عند التحويل من {0} إلى {1} (مثلًا يتم تقريب الجزء العشري أو تُفقد القيم الخارجة عن النطاق).</value></data>
+<data name="PortEnumMismatch" xml:space="preserve"><value>تم توصيل أنواع تعداد مختلفة (من {0} إلى {1}). تُطابَق القيم بحسب العدد الصحيح وقد لا يكون العنصر الناتج هو المقصود.</value></data>
+<data name="ConnectionRejectedBothOutputs" xml:space="preserve"><value>لا يمكن توصيل منافذ الإخراج ببعضها.</value></data>
+<data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>لا يمكن توصيل منافذ الإدخال ببعضها.</value></data>
+<data name="ConnectionRejectedCycle" xml:space="preserve"><value>لا يمكن التوصيل لأنه سيُنشئ اتصالًا دائريًا. لا يمكن لعقدة أن تتصل بنفسها أو تعيد البيانات إلى الاتجاه السابق في التدفق.</value></data>
+<data name="ConnectionRejectedUnknown" xml:space="preserve"><value>لا يمكن التوصيل بهذا المنفذ.</value></data>
 </root>

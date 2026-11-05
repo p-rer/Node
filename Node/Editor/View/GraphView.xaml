@@ -59,6 +59,36 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <ItemsControl ItemsSource="{Binding Connections, UpdateSourceTrigger=PropertyChanged}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Path Stroke="Transparent"
+                              StrokeThickness="12">
+                            <Path.ToolTip>
+                                <TextBlock Text="{Binding ProblemMessage}"
+                                           MaxWidth="320"
+                                           TextWrapping="Wrap" />
+                            </Path.ToolTip>
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasProblem}" Value="True">
+                                            <Setter Property="Data" Value="{Binding Geometry}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <ItemsControl ItemsSource="{Binding Nodes}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

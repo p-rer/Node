@@ -141,6 +141,13 @@
 <data name="ArgumentPortDeleteLabel" xml:space="preserve"><value>Eliminar</value></data>
 <data name="ArgumentPortFixedLabel" xml:space="preserve"><value>Fijo</value></data>
 <data name="ArgumentPortNameInvalid" xml:space="preserve"><value>Introduce un nombre que no esté usado por otro argumento.</value></data>
-    <data name="ArgumentSlotsExhausted" xml:space="preserve"><value>Un efecto admite hasta {0} argumentos numéricos.</value></data>
-    <data name="ArgumentPortLimitReached" xml:space="preserve"><value>Un efecto admite hasta {0} argumentos. No se pueden añadir más.</value></data>
+<data name="ArgumentSlotsExhausted" xml:space="preserve"><value>Un efecto admite hasta {0} argumentos numéricos.</value></data>
+<data name="ArgumentPortLimitReached" xml:space="preserve"><value>Un efecto admite hasta {0} argumentos. No se pueden añadir más.</value></data>
+<data name="PortIncompatibleTypes" xml:space="preserve"><value>El valor no se puede pasar porque los tipos no coinciden ({0} → {1}).</value></data>
+<data name="PortValueMayChange" xml:space="preserve"><value>La conversión de {0} a {1} puede cambiar el valor (por ejemplo se redondean los decimales o se pierden los valores fuera de rango).</value></data>
+<data name="PortEnumMismatch" xml:space="preserve"><value>Se han conectado tipos de enumeración distintos ({0} → {1}). Los valores se asignan por su número entero y el elemento resultante puede no ser el esperado.</value></data>
+<data name="ConnectionRejectedBothOutputs" xml:space="preserve"><value>Los puertos de salida no se pueden conectar entre sí.</value></data>
+<data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>Los puertos de entrada no se pueden conectar entre sí.</value></data>
+<data name="ConnectionRejectedCycle" xml:space="preserve"><value>No se puede conectar porque se crearía una conexión circular. Un nodo no puede conectarse consigo mismo ni devolver datos hacia atrás en el flujo.</value></data>
+<data name="ConnectionRejectedUnknown" xml:space="preserve"><value>No se puede conectar a este puerto.</value></data>
 </root>

@@ -3,11 +3,31 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
 using Node.Graph;
+using Node.Graph.Port;
+using Node.Localize;
 
 namespace Node.Editor.ViewModel;
 
 public sealed class ConnectionViewModel : INotifyPropertyChanged
 {
+    private static readonly Dictionary<Type, string> TypeAliases = new()
+    {
+        [typeof(bool)] = "bool",
+        [typeof(byte)] = "byte",
+        [typeof(sbyte)] = "sbyte",
+        [typeof(short)] = "short",
+        [typeof(ushort)] = "ushort",
+        [typeof(int)] = "int",
+        [typeof(uint)] = "uint",
+        [typeof(long)] = "long",
+        [typeof(ulong)] = "ulong",
+        [typeof(float)] = "float",
+        [typeof(double)] = "double",
+        [typeof(decimal)] = "decimal",
+        [typeof(string)] = "string",
+        [typeof(object)] = "object"
+    };
+
     public ConnectionViewModel(
         NodeConnection connection,
         Dictionary<Guid, NodeViewModel> nodeViewModels)
@@ -26,6 +46,9 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
             if (ToPort != null)
                 ToPort.IsConnected = true;
         }
+
+        if (FromPort != null && ToPort != null)
+            ProblemMessage = CreateProblemMessage(FromPort.ValueType, ToPort.ValueType);
 
         if (FromPort != null)
             FromPort.PropertyChanged += (_, e) =>
@@ -56,6 +79,10 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
     public PortViewModel? FromPort { get; }
     public PortViewModel? ToPort { get; }
 
+    public string? ProblemMessage { get; }
+
+    public bool HasProblem => ProblemMessage is not null;
+
     public Geometry Geometry
     {
         get
@@ -82,6 +109,9 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
             if (FromPort is null || ToPort is null)
                 return new SolidColorBrush(Colors.SlateGray);
 
+            if (HasProblem)
+                return Brushes.Red;
+
             var reverseX = ToPort.Position.X < FromPort.Position.X;
             var reverseY = ToPort.Position.Y < FromPort.Position.Y;
             var brush = new LinearGradientBrush
@@ -101,6 +131,26 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    internal static string? CreateProblemMessage(Type outputType, Type inputType)
+    {
+        var format = PortTypeCompatibility.Evaluate(outputType, inputType) switch
+        {
+            PortCompatibility.Incompatible => TextUi.PortIncompatibleTypes,
+            PortCompatibility.ValueMayChange => TextUi.PortValueMayChange,
+            PortCompatibility.EnumMismatch => TextUi.PortEnumMismatch,
+            _ => null
+        };
+
+        return format is null
+            ? null
+            : string.Format(format, GetTypeDisplayName(outputType), GetTypeDisplayName(inputType));
+    }
+
+    private static string GetTypeDisplayName(Type type)
+    {
+        return TypeAliases.TryGetValue(type, out var alias) ? alias : type.Name;
+    }
 
     private static Color ResolveColor(string colorName)
     {

@@ -9,6 +9,7 @@ using Node.Graph;
 using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
+using Node.Localize;
 using Node.Nodes.Func;
 using Node.Utility;
 using YukkuriMovieMaker.Commons;
@@ -61,13 +62,33 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     public PortViewModel? DraggingFromPort
     {
         get;
-        set => SetField(ref field, value);
+        set
+        {
+            if (!SetField(ref field, value)) return;
+            HoveringPort = null;
+        }
     }
 
     public Point? TemporaryEndPoint
     {
         get;
         set => SetField(ref field, value);
+    }
+
+    public PortViewModel? HoveringPort
+    {
+        get;
+        set
+        {
+            if (!SetField(ref field, value)) return;
+            ConnectionRejectionMessage = CreateConnectionRejectionMessage(DraggingFromPort, value);
+        }
+    }
+
+    public string? ConnectionRejectionMessage
+    {
+        get;
+        private set => SetField(ref field, value);
     }
 
     public Point? PendingContextPoint
@@ -367,6 +388,39 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
                 _graph.EndEdit();
             }
         }
+    }
+
+    /// <summary>
+    ///     ConnectPorts / NodeGraph.Connect が接続を拒否する場合に、その理由の表示文言を返す。
+    /// </summary>
+    private string? CreateConnectionRejectionMessage(PortViewModel? source, PortViewModel? target)
+    {
+        if (source is null || target is null || ReferenceEquals(source, target))
+            return null;
+
+        if (source.Direction == target.Direction)
+            return source.Direction == PortDirection.Output
+                ? TextUi.ConnectionRejectedBothOutputs
+                : TextUi.ConnectionRejectedBothInputs;
+
+        var from = source.Direction == PortDirection.Output ? source : target;
+        var to = source.Direction == PortDirection.Input ? source : target;
+
+        ConnectionRejection rejection;
+        lock (_graph.GraphLock)
+        {
+            rejection = _graph.GetConnectionRejection(from.NodeId, from.Name, to.NodeId, to.Name);
+        }
+
+        return rejection switch
+        {
+            ConnectionRejection.Cycle => TextUi.ConnectionRejectedCycle,
+            ConnectionRejection.IncompatibleTypes =>
+                ConnectionViewModel.CreateProblemMessage(from.ValueType, to.ValueType)
+                ?? TextUi.ConnectionRejectedUnknown,
+            ConnectionRejection.PortNotFound => TextUi.ConnectionRejectedUnknown,
+            _ => null
+        };
     }
 
     private void Disconnect(ConnectionViewModel? connection)
