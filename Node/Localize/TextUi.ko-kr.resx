@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>입력 포트끼리는 연결할 수 없습니다.</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>순환 연결이 되므로 연결할 수 없습니다. 노드 자신이나 데이터 흐름을 거슬러 올라가는 방향으로는 연결할 수 없습니다.</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>이 포트에는 연결할 수 없습니다.</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ 문자열 추가</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>문자열 편집</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>문자열</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>정수</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>이미지</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>마스크</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>윤곽선</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>브러시</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>입력 편집</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>출력 편집</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>입력 포트 편집</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>입력 포트</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>출력 포트 편집</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>출력 포트</value></data>
 </root>

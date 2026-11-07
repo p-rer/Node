@@ -90,3 +90,17 @@ ConnectionRejectedBothOutputs,接続ドラッグ中に出力端子どうしを�
 ConnectionRejectedBothInputs,接続ドラッグ中に入力端子どうしを重ねた場合の拒否理由,入力端子どうしは接続できません。,Input ports cannot be connected to each other.,输入端口之间无法连接。,輸入連接埠之間無法連接。,입력 포트끼리는 연결할 수 없습니다.,Los puertos de entrada no se pueden conectar entre sí.,لا يمكن توصيل منافذ الإدخال ببعضها.,Port masukan tidak dapat saling terhubung.
 ConnectionRejectedCycle,接続ドラッグ中に循環接続になる端子へ重ねた場合の拒否理由,循環接続になるため接続できません。ノード自身や、データの流れをさかのぼる向きには接続できません。,"This would create a circular connection, so it cannot be connected. A node cannot connect to itself or loop data back upstream.",会形成循环连接，因此无法连接。节点不能连接到自身，也不能让数据流回上游。,會形成循環連接，因此無法連接。節點不能連接到自身，也不能讓資料流回上游。,순환 연결이 되므로 연결할 수 없습니다. 노드 자신이나 데이터 흐름을 거슬러 올라가는 방향으로는 연결할 수 없습니다.,No se puede conectar porque se crearía una conexión circular. Un nodo no puede conectarse consigo mismo ni devolver datos hacia atrás en el flujo.,لا يمكن التوصيل لأنه سيُنشئ اتصالًا دائريًا. لا يمكن لعقدة أن تتصل بنفسها أو تعيد البيانات إلى الاتجاه السابق في التدفق.,Tidak dapat terhubung karena akan membuat koneksi melingkar. Node tidak dapat terhubung ke dirinya sendiri atau mengembalikan data ke arah hulu.
 ConnectionRejectedUnknown,接続ドラッグ中に、理由を特定できない拒否が起きた場合の汎用メッセージ,この端子には接続できません。,Cannot connect to this port.,无法连接到此端口。,無法連接到此連接埠。,이 포트에는 연결할 수 없습니다.,No se puede conectar a este puerto.,لا يمكن التوصيل بهذا المنفذ.,Tidak dapat terhubung ke port ini.
+AddStringPortButton,文字列結合ノード上の文字列端子追加ボタン,+ 文字列を追加,+ Add String,+ 添加字符串,+ 新增字串,+ 문자열 추가,+ Añadir cadena,+ إضافة سلسلة,+ Tambah String
+EditStringPortsTitle,文字列端子編集ダイアログのタイトル,文字列の編集,Edit Strings,编辑字符串,編輯字串,문자열 편집,Editar cadenas,تحرير السلاسل,Edit String
+StringPortDialogTitle,文字列端子の追加・編集ダイアログのタイトル,文字列,String,字符串,字串,문자열,Cadena,سلسلة,String
+ArgumentTypeInteger,引数の型「整数」,整数,Integer,整数,整數,정수,Entero,عدد صحيح,Bilangan bulat
+ArgumentTypeImage,引数の型「画像」,画像,Image,图像,影像,이미지,Imagen,صورة,Gambar
+ArgumentTypeMask,引数の型「マスク」,マスク,Mask,蒙版,遮罩,마스크,Máscara,قناع,Mask
+ArgumentTypeOutline,引数の型「アウトライン」,アウトライン,Outline,轮廓,輪廓,윤곽선,Contorno,المخطط,Kontur
+ArgumentTypeBrush,引数の型「ブラシ」,ブラシ,Brush,画笔,筆刷,브러시,Pincel,فرشاة,Kuas
+EditInputPortsButton,Nodeエフェクトノードの入力端子編集ボタン,入力を編集,Edit Inputs,编辑输入,編輯輸入,입력 편집,Editar entradas,تحرير المدخلات,Edit Masukan
+EditOutputPortsButton,Nodeエフェクトノードの出力端子編集ボタン,出力を編集,Edit Outputs,编辑输出,編輯輸出,출력 편집,Editar salidas,تحرير المخرجات,Edit Keluaran
+EditInputPortsTitle,入力端子編集ダイアログのタイトル,入力ポートの編集,Edit Input Ports,编辑输入端口,編輯輸入埠,입력 포트 편집,Editar puertos de entrada,تحرير منافذ الإدخال,Edit Port Masukan
+InputPortDialogTitle,入力端子の追加・編集ダイアログのタイトル,入力ポート,Input Port,输入端口,輸入埠,입력 포트,Puerto de entrada,منفذ الإدخال,Port Masukan
+EditOutputPortsTitle,出力端子編集ダイアログのタイトル,出力ポートの編集,Edit Output Ports,编辑输出端口,編輯輸出埠,출력 포트 편집,Editar puertos de salida,تحرير منافذ الإخراج,Edit Port Keluaran
+OutputPortDialogTitle,出力端子の追加・編集ダイアログのタイトル,出力ポート,Output Port,输出端口,輸出埠,출력 포트,Puerto de salida,منفذ الإخراج,Port Keluaran

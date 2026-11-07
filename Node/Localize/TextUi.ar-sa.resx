@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>لا يمكن توصيل منافذ الإدخال ببعضها.</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>لا يمكن التوصيل لأنه سيُنشئ اتصالًا دائريًا. لا يمكن لعقدة أن تتصل بنفسها أو تعيد البيانات إلى الاتجاه السابق في التدفق.</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>لا يمكن التوصيل بهذا المنفذ.</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ إضافة سلسلة</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>تحرير السلاسل</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>سلسلة</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>عدد صحيح</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>صورة</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>قناع</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>المخطط</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>فرشاة</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>تحرير المدخلات</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>تحرير المخرجات</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>تحرير منافذ الإدخال</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>منفذ الإدخال</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>تحرير منافذ الإخراج</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>منفذ الإخراج</value></data>
 </root>

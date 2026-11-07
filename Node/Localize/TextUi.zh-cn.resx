@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>输入端口之间无法连接。</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>会形成循环连接，因此无法连接。节点不能连接到自身，也不能让数据流回上游。</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>无法连接到此端口。</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ 添加字符串</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>编辑字符串</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>字符串</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>整数</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>图像</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>蒙版</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>轮廓</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>画笔</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>编辑输入</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>编辑输出</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>编辑输入端口</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>输入端口</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>编辑输出端口</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>输出端口</value></data>
 </root>

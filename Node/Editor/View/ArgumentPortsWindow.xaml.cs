@@ -10,12 +10,16 @@ namespace Node.Editor.View;
 public partial class ArgumentPortsWindow
 {
     private readonly ObservableCollection<PortItem> _items;
+    private readonly PortEditOptions _options;
 
-    private ArgumentPortsWindow(IEnumerable<PortDefinition> definitions)
+    private ArgumentPortsWindow(IEnumerable<PortDefinition> definitions, PortEditOptions options)
     {
         InitializeComponent();
 
-        _items = new ObservableCollection<PortItem>(definitions.Select(d => new PortItem(d)));
+        _options = options;
+        Title = options.ListTitle;
+
+        _items = new ObservableCollection<PortItem>(definitions.Select(d => new PortItem(d, options)));
         PortListBox.ItemsSource = _items;
         UpdateButtons();
     }
@@ -23,6 +27,8 @@ public partial class ArgumentPortsWindow
     public PortDefinition[] Result { get; private set; } = [];
 
     private PortItem? Selected => PortListBox.SelectedItem as PortItem;
+
+    private bool HasReachedLimit => _options.HasLimit && CustomPortCount >= ArgumentPortKinds.MaxCustomPorts;
 
     private int CustomPortCount => _items.Count(item => item.Definition.IsCustom);
 
@@ -37,8 +43,8 @@ public partial class ArgumentPortsWindow
         var selected = Selected;
         var isCustom = selected is { Definition.IsCustom: true };
 
-        // 上限に達したら、それ以上の追加を受け付けない。
-        var atLimit = CustomPortCount >= ArgumentPortKinds.MaxCustomPorts;
+        // 上限に達したら、それ以上の追加を受け付けない。上限は引数ポート（NodeEffect の引数スロット）のみに適用する。
+        var atLimit = HasReachedLimit;
         AddButton.IsEnabled = !atLimit;
         AddButton.ToolTip = atLimit
             ? string.Format(TextUi.ArgumentPortLimitReached, ArgumentPortKinds.MaxCustomPorts)
@@ -57,10 +63,10 @@ public partial class ArgumentPortsWindow
 
     private void AddButton_Click(object sender, RoutedEventArgs e)
     {
-        if (CustomPortCount >= ArgumentPortKinds.MaxCustomPorts) return;
-        if (!ArgumentPortEditWindow.TryCreate(this, TakenLabels(null), out var definition)) return;
+        if (HasReachedLimit) return;
+        if (!ArgumentPortEditWindow.TryCreate(this, TakenLabels(null), out var definition, options: _options)) return;
 
-        _items.Add(new PortItem(definition));
+        _items.Add(new PortItem(definition, _options));
         PortListBox.SelectedIndex = _items.Count - 1;
         UpdateButtons();
     }
@@ -68,11 +74,12 @@ public partial class ArgumentPortsWindow
     private void EditButton_Click(object sender, RoutedEventArgs e)
     {
         if (Selected is not { Definition.IsCustom: true } selected) return;
-        if (!ArgumentPortEditWindow.TryEdit(this, selected.Definition, TakenLabels(selected), out var definition))
+        if (!ArgumentPortEditWindow.TryEdit(this, selected.Definition, TakenLabels(selected), out var definition,
+                options: _options))
             return;
 
         var index = _items.IndexOf(selected);
-        _items[index] = new PortItem(definition);
+        _items[index] = new PortItem(definition, _options);
         PortListBox.SelectedIndex = index;
     }
 
@@ -113,27 +120,28 @@ public partial class ArgumentPortsWindow
         DialogResult = true;
     }
 
-    public static bool TryEdit(Window owner, IEnumerable<PortDefinition> definitions, out PortDefinition[] result)
+    public static bool TryEdit(Window owner, IEnumerable<PortDefinition> definitions, out PortDefinition[] result,
+        bool textOnly = false, PortEditOptions? options = null)
     {
-        var dialog = new ArgumentPortsWindow(definitions) { Owner = owner };
+        var dialog = new ArgumentPortsWindow(definitions,
+            options ?? (textOnly ? PortEditOptions.Text : PortEditOptions.Arguments)) { Owner = owner };
         var accepted = dialog.ShowDialog() == true;
         result = dialog.Result;
         return accepted;
     }
 
-    private sealed class PortItem(PortDefinition definition)
+    private sealed class PortItem(PortDefinition definition, PortEditOptions options)
     {
         public PortDefinition Definition { get; } = definition;
 
-        public string Label => string.IsNullOrEmpty(Definition.Label) ? Definition.Name : Definition.Label;
+        public string Label => Definition.GetDisplayLabel();
 
         public string DisplayText
         {
             get
             {
-                var typeName = ArgumentPortKinds.TryGetKind(Definition.ValueType, out var kind)
-                    ? ArgumentPortKinds.GetDisplayName(kind)
-                    : Definition.ValueType.Name;
+                var typeName = options.Types.FirstOrDefault(type => type.ValueType == Definition.ValueType)?.Name
+                               ?? Definition.ValueType.Name;
                 var fixedSuffix = Definition.IsCustom ? "" : $" [{TextUi.ArgumentPortFixedLabel}]";
                 return $"{Label} ({typeName}){fixedSuffix}";
             }

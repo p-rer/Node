@@ -46,13 +46,6 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     public ObservableCollection<NodeViewModel> Nodes { get; } = [];
     public ObservableCollection<ConnectionViewModel> Connections { get; } = [];
 
-    /// <summary>
-    ///     このグラフを開いた OpenNodeEditorButton (IPropertyEditorControl2.SetEditorInfo) から
-    ///     渡された IEditorInfo。Node Editor パネルを直接操作しているだけの場合や、
-    ///     まだ一度もアイテム経由で開かれていない場合は null。
-    ///     値が変わっても既存の NodeViewModel/PortViewModel には遡って反映されない
-    ///     （SyncFromGraph による再構築のタイミングで新しい値が反映される）。
-    /// </summary>
     public IEditorInfo? EditorInfo
     {
         get;
@@ -351,6 +344,22 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
             try
             {
                 _graph.ReplaceArgumentPorts(nodeId, definitions);
+            }
+            finally
+            {
+                _graph.EndEdit();
+            }
+        }
+    }
+
+    internal void ApplySubGraphPorts(Guid nodeId, bool outputs, PortDefinition[] definitions)
+    {
+        lock (_graph.GraphLock)
+        {
+            _graph.BeginEdit();
+            try
+            {
+                _graph.ReplaceSubGraphPorts(nodeId, outputs, definitions);
             }
             finally
             {

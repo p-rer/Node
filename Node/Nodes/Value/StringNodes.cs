@@ -2,9 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using System.Windows.Media;
+using Newtonsoft.Json;
 using Node.Editor.Attributes;
 using Node.Graph;
 using Node.Graph.Attributes;
+using Node.Graph.Port;
+using Node.Graph.Snapshot;
 using Node.Localize;
 
 namespace Node.Nodes.Value;
@@ -386,42 +389,15 @@ public class NumberToStringNode : NodeLogic
 
 [Node(typeof(StringCategory), nameof(TextNode.StringConcatNode), nameof(TextNode.StringConcatNodeDescription),
     typeof(TextNode))]
-public class StringConcatNode : NodeLogic
+public class StringConcatNode : NodeLogic, ISerializableNode
 {
-    [InputPort(nameof(TextNode.StringConcatInput1), nameof(TextNode.TextDescription), typeof(TextNode))]
-    [TextPortControl(Default = "")]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public string Text1
-    {
-        get => GetInput<string>() ?? "";
-        set => SetInput(value);
-    }
+    private const string TextPortsKey = "TextPorts";
 
-    [InputPort(nameof(TextNode.StringConcatInput2), nameof(TextNode.TextDescription), typeof(TextNode))]
-    [TextPortControl(Default = "")]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public string Text2
-    {
-        get => GetInput<string>() ?? "";
-        set => SetInput(value);
-    }
+    private PortDefinition[] _textPorts = [];
 
-    [InputPort(nameof(TextNode.StringConcatInput3), nameof(TextNode.TextDescription), typeof(TextNode))]
-    [TextPortControl(Default = "")]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public string Text3
+    public StringConcatNode()
     {
-        get => GetInput<string>() ?? "";
-        set => SetInput(value);
-    }
-
-    [InputPort(nameof(TextNode.StringConcatInput4), nameof(TextNode.TextDescription), typeof(TextNode))]
-    [TextPortControl(Default = "")]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public string Text4
-    {
-        get => GetInput<string>() ?? "";
-        set => SetInput(value);
+        InitializeTextPorts(CreateDefaultTextPorts());
     }
 
     [InputPort(nameof(TextNode.StringConcatSeparator), nameof(TextNode.StringConcatSeparatorDescription),
@@ -442,9 +418,103 @@ public class StringConcatNode : NodeLogic
         set => SetOutput(value);
     }
 
+    public Dictionary<string, object?> SerializeCustomData()
+    {
+        var entries = _textPorts.Select(definition => new[] { definition.Name, definition.Label });
+        return new Dictionary<string, object?> { [TextPortsKey] = JsonConvert.SerializeObject(entries) };
+    }
+
+    public void DeserializeCustomData(Dictionary<string, object?> data)
+    {
+        if (!data.TryGetValue(TextPortsKey, out var raw) || raw?.ToString() is not { } json) return;
+
+        List<string[]>? entries;
+        try
+        {
+            entries = JsonConvert.DeserializeObject<List<string[]>>(json);
+        }
+        catch (JsonException)
+        {
+            return;
+        }
+
+        if (entries == null) return;
+
+        var definitions = entries
+            .Where(entry => entry is { Length: >= 2 })
+            .Select(entry => CreateTextPort(entry[0], entry[1]))
+            .ToArray();
+        if (IsValidTextPortSet(definitions)) InitializeTextPorts(definitions);
+    }
+
+    public PortDefinition[] GetPortDefinitions()
+    {
+        return _textPorts;
+    }
+
+    /// <summary>
+    ///     文字列端子として使えるポート定義の組かどうか。型が文字列で、名前が空でなく、
+    ///     名前の重複や他の端子（区切り文字・結果）との衝突、動的ポートの区切り文字（.）を含まないこと。
+    /// </summary>
+    internal static bool IsValidTextPortSet(PortDefinition[] definitions)
+    {
+        var reserved = new[] { nameof(Separator), nameof(Result) };
+        return definitions.All(definition =>
+                   definition.ValueType == typeof(string) &&
+                   !string.IsNullOrEmpty(definition.Name) &&
+                   !definition.Name.Contains('.') &&
+                   !reserved.Contains(definition.Name)) &&
+               definitions.Select(definition => definition.Name).Distinct().Count() == definitions.Length;
+    }
+
+    /// <summary>
+    ///     文字列端子を定義の並び順どおりに作り直す。名前が同じ端子は入力値と接続状態を引き継ぐ。
+    ///     既定の端子（Text1～Text4）は従来のプロパティ名と同じ名前なので、古いスナップショットもそのまま復元できる。
+    /// </summary>
+    internal void InitializeTextPorts(PortDefinition[] definitions)
+    {
+        var separatorPort = Inputs[nameof(Separator)];
+        var previous = _textPorts
+            .Where(definition => Inputs.ContainsKey(definition.Name))
+            .ToDictionary(definition => definition.Name, definition => Inputs[definition.Name]);
+
+        Inputs.Clear();
+        foreach (var definition in definitions)
+        {
+            if (!previous.TryGetValue(definition.Name, out var port))
+            {
+                port = new InputPort(this, typeof(string));
+                if (definition.DefaultValue != null) port.SetValue(definition.DefaultValue);
+            }
+
+            Inputs.Add(definition.Name, port);
+        }
+
+        Inputs.Add(nameof(Separator), separatorPort);
+        _textPorts = definitions;
+        InvalidateForce();
+    }
+
+    private static PortDefinition CreateTextPort(string name, string label)
+    {
+        return new PortDefinition(name, typeof(string), label ?? "", "", null, true);
+    }
+
+    private static PortDefinition[] CreateDefaultTextPorts()
+    {
+        return
+        [
+            CreateTextPort("Text1", ""),
+            CreateTextPort("Text2", ""),
+            CreateTextPort("Text3", ""),
+            CreateTextPort("Text4", "")
+        ];
+    }
+
     protected override Task Calculate()
     {
-        Result = string.Join(Separator, Text1, Text2, Text3, Text4);
+        var ports = _textPorts;
+        Result = string.Join(Separator, ports.Select(definition => GetInput<string>(definition.Name) ?? ""));
         return Task.CompletedTask;
     }
 }

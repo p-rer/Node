@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>Input ports cannot be connected to each other.</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>This would create a circular connection, so it cannot be connected. A node cannot connect to itself or loop data back upstream.</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>Cannot connect to this port.</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ Add String</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>Edit Strings</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>String</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>Integer</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>Image</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>Mask</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>Outline</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>Brush</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>Edit Inputs</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>Edit Outputs</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>Edit Input Ports</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>Input Port</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>Edit Output Ports</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>Output Port</value></data>
 </root>

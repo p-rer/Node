@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>入力端子どうしは接続できません。</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>循環接続になるため接続できません。ノード自身や、データの流れをさかのぼる向きには接続できません。</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>この端子には接続できません。</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ 文字列を追加</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>文字列の編集</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>文字列</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>整数</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>画像</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>マスク</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>アウトライン</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>ブラシ</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>入力を編集</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>出力を編集</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>入力ポートの編集</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>入力ポート</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>出力ポートの編集</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>出力ポート</value></data>
 </root>

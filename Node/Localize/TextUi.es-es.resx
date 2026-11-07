@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>Los puertos de entrada no se pueden conectar entre sí.</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>No se puede conectar porque se crearía una conexión circular. Un nodo no puede conectarse consigo mismo ni devolver datos hacia atrás en el flujo.</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>No se puede conectar a este puerto.</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ Añadir cadena</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>Editar cadenas</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>Cadena</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>Entero</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>Imagen</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>Máscara</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>Contorno</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>Pincel</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>Editar entradas</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>Editar salidas</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>Editar puertos de entrada</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>Puerto de entrada</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>Editar puertos de salida</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>Puerto de salida</value></data>
 </root>

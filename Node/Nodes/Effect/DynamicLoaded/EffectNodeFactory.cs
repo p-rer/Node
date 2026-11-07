@@ -45,6 +45,9 @@ public static class EffectNodeFactory
         foreach (var effectType in PluginLoader.VideoEffects)
             try
             {
+                // Node エフェクト自身はノード化しない（代わりに NodeEffectNode を同じカテゴリー・名前で置いている）。
+                if (effectType == typeof(NodeEffect)) continue;
+
                 var nodeType = GetOrCreate(effectType);
                 Registry.RegisterType(nodeType);
                 result.Add(nodeType);
@@ -69,6 +72,8 @@ public static class EffectNodeFactory
     {
         if (effectType.GetCustomAttribute<ObsoleteAttribute>() != null)
             throw new InvalidOperationException($"{effectType.Name} is obsolete");
+        if (effectType == typeof(NodeEffect))
+            throw new InvalidOperationException($"{effectType.Name} is excluded");
 
         lock (Lock)
         {
@@ -149,7 +154,7 @@ public static class EffectNodeFactory
         }
 
         var effectType = PluginLoader.VideoEffects.FirstOrDefault(t => MatchesEffectName(t, effectName)) ??
-                          PluginLoader.VideoEffects.FirstOrDefault(t => MatchesEffectNameLoosely(t, effectName));
+                         PluginLoader.VideoEffects.FirstOrDefault(t => MatchesEffectNameLoosely(t, effectName));
         if (effectType == null) return null;
 
         try

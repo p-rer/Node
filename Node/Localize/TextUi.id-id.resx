@@ -150,4 +150,18 @@
 <data name="ConnectionRejectedBothInputs" xml:space="preserve"><value>Port masukan tidak dapat saling terhubung.</value></data>
 <data name="ConnectionRejectedCycle" xml:space="preserve"><value>Tidak dapat terhubung karena akan membuat koneksi melingkar. Node tidak dapat terhubung ke dirinya sendiri atau mengembalikan data ke arah hulu.</value></data>
 <data name="ConnectionRejectedUnknown" xml:space="preserve"><value>Tidak dapat terhubung ke port ini.</value></data>
+<data name="AddStringPortButton" xml:space="preserve"><value>+ Tambah String</value></data>
+<data name="EditStringPortsTitle" xml:space="preserve"><value>Edit String</value></data>
+<data name="StringPortDialogTitle" xml:space="preserve"><value>String</value></data>
+<data name="ArgumentTypeInteger" xml:space="preserve"><value>Bilangan bulat</value></data>
+<data name="ArgumentTypeImage" xml:space="preserve"><value>Gambar</value></data>
+<data name="ArgumentTypeMask" xml:space="preserve"><value>Mask</value></data>
+<data name="ArgumentTypeOutline" xml:space="preserve"><value>Kontur</value></data>
+<data name="ArgumentTypeBrush" xml:space="preserve"><value>Kuas</value></data>
+<data name="EditInputPortsButton" xml:space="preserve"><value>Edit Masukan</value></data>
+<data name="EditOutputPortsButton" xml:space="preserve"><value>Edit Keluaran</value></data>
+<data name="EditInputPortsTitle" xml:space="preserve"><value>Edit Port Masukan</value></data>
+<data name="InputPortDialogTitle" xml:space="preserve"><value>Port Masukan</value></data>
+<data name="EditOutputPortsTitle" xml:space="preserve"><value>Edit Port Keluaran</value></data>
+<data name="OutputPortDialogTitle" xml:space="preserve"><value>Port Keluaran</value></data>
 </root>

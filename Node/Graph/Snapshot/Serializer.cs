@@ -190,6 +190,16 @@ public static class Serializer
             {
                 node.SyncDynamicInputs();
 
+                // サブグラフの引数・戻り値の定義からノードの端子が決まるノードがあるため、
+                // 入力値の復元より先にサブグラフを復元して端子を確定させる。
+                foreach (var subGraphKvp in nodeSnap.SubGraphs)
+                {
+                    var subGraph = Restore(subGraphKvp.Value, false);
+                    graph.SetSubgraph(node.Id, subGraphKvp.Key, subGraph);
+
+                    AutoBindSubGraphNodes(node, subGraphKvp.Key, subGraph);
+                }
+
                 foreach (var input in nodeSnap.InputsValues)
                 {
                     if (!node.Inputs.TryGetValue(input.Key, out var port))
@@ -200,14 +210,6 @@ public static class Serializer
 
                     var restoredValue = RestoreInputValue(port.ValueType, input.Value);
                     graph.SetInputValue(node.Id, input.Key, restoredValue);
-                }
-
-                foreach (var subGraphKvp in nodeSnap.SubGraphs)
-                {
-                    var subGraph = Restore(subGraphKvp.Value, false);
-                    graph.SetSubgraph(node.Id, subGraphKvp.Key, subGraph);
-
-                    AutoBindSubGraphNodes(node, subGraphKvp.Key, subGraph);
                 }
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))

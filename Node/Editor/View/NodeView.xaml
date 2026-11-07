@@ -145,7 +145,7 @@
 
         <!-- 引数ポート追加ボタン -->
         <Button Grid.Row="4" Grid.Column="1"
-                Content="{x:Static loc:TextUi.AddArgumentPortButton}"
+                Content="{Binding AddPortButtonLabel, Mode=OneWay}"
                 Style="{StaticResource NodeEditorButtonStyle}"
                 HorizontalAlignment="Right"
                 Margin="0,4,12,0"
@@ -154,6 +154,21 @@
                 ToolTip="{Binding AddArgumentPortToolTip, Mode=OneWay}"
                 ToolTipService.ShowOnDisabled="True"
                 Click="AddArgumentPortButton_Click" />
+
+        <!-- Node エフェクトノードの入力・出力端子の編集ボタン -->
+        <StackPanel Grid.Row="4" Grid.Column="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,4,12,0"
+                    Visibility="{Binding CanEditSubGraphPorts, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Button Content="{x:Static loc:TextUi.EditInputPortsButton}"
+                    Style="{StaticResource NodeEditorButtonStyle}"
+                    Margin="0,0,4,0"
+                    Click="EditInputPortsButton_Click" />
+            <Button Content="{x:Static loc:TextUi.EditOutputPortsButton}"
+                    Style="{StaticResource NodeEditorButtonStyle}"
+                    Click="EditOutputPortsButton_Click" />
+        </StackPanel>
 
         <!-- サブグラフボタン -->
         <ItemsControl Grid.Row="5" Grid.Column="1"

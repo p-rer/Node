@@ -35,6 +35,10 @@ namespace Node.Editor.ViewModel
         public double Height { get; set; }
         public bool IsSelected { get; set; }
         public bool CanEditPorts { get; set; }
+        public bool IsTextPortsOnly { get; set; }
+        public bool CanEditSubGraphPorts { get; set; }
+        public Node.Graph.Port.PortDefinition[] GetSubGraphPortDefinitions(bool outputs) => [];
+        public void ApplySubGraphPorts(bool outputs, Node.Graph.Port.PortDefinition[] definitions) { }
         public event EventHandler? EditArgumentPortsRequested;
         public int SubscriberCount => EditArgumentPortsRequested?.GetInvocationList().Length ?? 0;
         public Node.Graph.Port.PortDefinition[] GetArgumentPortDefinitions() => [];
@@ -71,16 +75,28 @@ namespace Node.Editor.ViewModel
         public void AddToSelection(NodeViewModel n) => SelectedNodes.Add(n);
     }
 }
-namespace Node.Graph.Port { public sealed class PortDefinition { public string Label = "", Name = ""; } }
+namespace Node.Graph.Port
+{
+    public sealed class PortDefinition
+    {
+        public string Label = "", Name = "";
+        public string GetDisplayLabel() => string.IsNullOrEmpty(Label) ? Name : Label;
+    }
+}
 namespace Node.Editor.View
 {
+    public sealed class PortEditOptions
+    {
+        public static PortEditOptions SubGraphInput { get; } = new();
+        public static PortEditOptions SubGraphOutput { get; } = new();
+    }
     public static class ArgumentPortEditWindow
     {
-        public static bool TryCreate(Window w, List<string> labels, out Node.Graph.Port.PortDefinition d) { d = new(); return false; }
+        public static bool TryCreate(Window w, List<string> labels, out Node.Graph.Port.PortDefinition d, bool textOnly = false, PortEditOptions? options = null) { d = new(); return false; }
     }
     public static class ArgumentPortsWindow
     {
-        public static bool TryEdit(Window w, Node.Graph.Port.PortDefinition[] d, out Node.Graph.Port.PortDefinition[] r) { r = []; return false; }
+        public static bool TryEdit(Window w, Node.Graph.Port.PortDefinition[] d, out Node.Graph.Port.PortDefinition[] r, bool textOnly = false, PortEditOptions? options = null) { r = []; return false; }
     }
 }
 

@@ -1,10 +1,8 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Node.Editor.ViewModel;
 using Node.Graph.Port;
-using Node.Localize;
 
 namespace Node.Editor.View;
 
@@ -12,11 +10,11 @@ public partial class NodeView
 {
     // ノードのドラッグ・クリック用
     private const double DragThreshold = 4.0;
+    private NodeViewModel? _argumentPortsVm;
+    private GraphViewModel? _dragGraph;
     private bool _isDragging;
 
     private bool _isMouseDown;
-    private GraphViewModel? _dragGraph;
-    private NodeViewModel? _argumentPortsVm;
     private Point _mouseDownPos;
 
     public NodeView()
@@ -156,7 +154,8 @@ public partial class NodeView
         if (GetDialogOwner() is not { } owner) return;
 
         var current = vm.GetArgumentPortDefinitions();
-        if (!ArgumentPortEditWindow.TryCreate(owner, current.Select(GetLabel).ToList(), out var definition))
+        if (!ArgumentPortEditWindow.TryCreate(owner, current.Select(GetLabel).ToList(), out var definition,
+                vm.IsTextPortsOnly))
             return;
 
         vm.ApplyArgumentPorts([.. current, definition]);
@@ -166,8 +165,29 @@ public partial class NodeView
     {
         if (GetDialogOwner() is not { } owner) return;
 
-        if (ArgumentPortsWindow.TryEdit(owner, vm.GetArgumentPortDefinitions(), out var result))
+        if (ArgumentPortsWindow.TryEdit(owner, vm.GetArgumentPortDefinitions(), out var result, vm.IsTextPortsOnly))
             vm.ApplyArgumentPorts(result);
+    }
+
+    private void EditInputPortsButton_Click(object sender, RoutedEventArgs e)
+    {
+        EditSubGraphPorts(false);
+    }
+
+    private void EditOutputPortsButton_Click(object sender, RoutedEventArgs e)
+    {
+        EditSubGraphPorts(true);
+    }
+
+    private void EditSubGraphPorts(bool outputs)
+    {
+        if (DataContext is not NodeViewModel { CanEditSubGraphPorts: true } vm) return;
+        if (GetDialogOwner() is not { } owner) return;
+
+        var options = outputs ? PortEditOptions.SubGraphOutput : PortEditOptions.SubGraphInput;
+        if (ArgumentPortsWindow.TryEdit(owner, vm.GetSubGraphPortDefinitions(outputs), out var result,
+                options: options))
+            vm.ApplySubGraphPorts(outputs, result);
     }
 
     private Window? GetDialogOwner()
@@ -177,7 +197,7 @@ public partial class NodeView
 
     private static string GetLabel(PortDefinition definition)
     {
-        return string.IsNullOrEmpty(definition.Label) ? definition.Name : definition.Label;
+        return definition.GetDisplayLabel();
     }
 
     private void OnLostMouseCapture(object sender, MouseEventArgs e)

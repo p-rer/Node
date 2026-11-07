@@ -1,7 +1,9 @@
 using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
+using Node.Nodes.Effect;
 using Node.Nodes.Func;
+using Node.Nodes.Value;
 
 namespace Node.Graph;
 
@@ -197,6 +199,7 @@ public sealed class NodeGraph
     ///     引数ノードのポート定義を丸ごと差し替えます（引数ポートの追加・削除・型/名前の変更・並べ替え）。
     ///     ポートは作り直されるため、いったん引数ノードからの接続をすべて外し、
     ///     同じ名前のポートが残っていて型が互換な接続だけを張り直します。
+    ///     文字列結合ノードが対象の場合は、文字列端子の定義を差し替えます（ReplaceTextPorts）。
     /// </summary>
     /// <param name="nodeId">自由追加に対応した引数ノードのID</param>
     /// <param name="portDefinitions">新しいポート定義（並び順がそのまま表示順になる）</param>
@@ -207,6 +210,9 @@ public sealed class NodeGraph
     /// </returns>
     public bool ReplaceArgumentPorts(Guid nodeId, PortDefinition[] portDefinitions)
     {
+        if (_nodes.TryGetValue(nodeId, out var target) && target is StringConcatNode concatNode)
+            return ReplaceTextPorts(concatNode, portDefinitions);
+
         if (!_nodes.TryGetValue(nodeId, out var node) ||
             node is not ArgumentsNode { AllowCustomPorts: true } argumentsNode)
             return false;
@@ -227,6 +233,13 @@ public sealed class NodeGraph
             customCount > argumentsNode.GetPortDefinitions().Count(d => d.IsCustom))
             return false;
 
+        ApplyArgumentPorts(argumentsNode, portDefinitions);
+        return true;
+    }
+
+    private void ApplyArgumentPorts(ArgumentsNode argumentsNode, PortDefinition[] portDefinitions)
+    {
+        var nodeId = argumentsNode.Id;
         var outgoing = Connections.Where(c => c.FromId == nodeId).ToList();
         foreach (var c in outgoing)
             DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
@@ -239,6 +252,91 @@ public sealed class NodeGraph
 
         argumentsNode.Invalidate();
         OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
+    }
+
+    private void ApplyReturnPorts(ReturnNode returnNode, PortDefinition[] portDefinitions)
+    {
+        var nodeId = returnNode.Id;
+        var incoming = Connections.Where(c => c.ToId == nodeId).ToList();
+        foreach (var c in incoming)
+            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        returnNode.Initialize(portDefinitions);
+
+        foreach (var c in incoming)
+            if (returnNode.Inputs.ContainsKey(c.ToPort))
+                Connect(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        returnNode.Invalidate();
+        OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
+    }
+
+    /// <summary>
+    ///     Node エフェクトノード（サブグラフを持つノード）の入力または出力の端子の定義を丸ごと差し替えます。
+    ///     サブグラフの引数ノード（入力）・戻り値ノード（出力）の定義を更新し、このノードの端子を作り直します。
+    ///     削除された端子、または型が変わった端子への接続は外し、それ以外の端子は接続と入力値を引き継ぎます。
+    /// </summary>
+    /// <param name="nodeId">対象の Node エフェクトノードのID</param>
+    /// <param name="outputs">出力端子（戻り値ノード）を差し替える場合はtrue、入力端子（引数ノード）ならfalse</param>
+    /// <param name="portDefinitions">新しいポート定義（並び順がそのまま表示順になる）</param>
+    /// <returns>差し替えた場合はtrue。対象のノードでない場合や定義が不正（型・名前の重複など）の場合は何もせずfalse。</returns>
+    public bool ReplaceSubGraphPorts(Guid nodeId, bool outputs, PortDefinition[] portDefinitions)
+    {
+        if (!_nodes.TryGetValue(nodeId, out var target) || target is not NodeEffectNode node)
+            return false;
+        if (!NodeEffectNode.IsValidPortSet(portDefinitions))
+            return false;
+
+        bool IsKept(string name, Type currentType)
+        {
+            return portDefinitions.Any(d => d.Name == name && d.ValueType == currentType);
+        }
+
+        var dropped = outputs
+            ? Connections.Where(c => c.FromId == nodeId &&
+                                     !(node.Outputs.TryGetValue(c.FromPort, out var port) &&
+                                       IsKept(c.FromPort, port.ValueType))).ToList()
+            : Connections.Where(c => c.ToId == nodeId &&
+                                     !(node.Inputs.TryGetValue(c.ToPort, out var port) &&
+                                       IsKept(c.ToPort, port.ValueType))).ToList();
+        foreach (var c in dropped)
+            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        if (outputs)
+        {
+            if (node.InnerReturn is { } returnNode)
+                node.Graph.ApplyReturnPorts(returnNode, portDefinitions);
+        }
+        else if (node.InnerArguments is { } argumentsNode)
+        {
+            node.Graph.ApplyArgumentPorts(argumentsNode, portDefinitions);
+        }
+
+        node.SyncPorts();
+        OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
+        return true;
+    }
+
+    /// <summary>
+    ///     文字列結合ノードの文字列端子の定義を丸ごと差し替えます（追加・削除・名前変更・並べ替え）。
+    ///     定義に残っている端子は入力値と接続を引き継ぎ、定義から無くなった端子への接続だけを外します。
+    /// </summary>
+    /// <returns>差し替えた場合はtrue。文字列端子として不正な定義（型・名前の重複や衝突など）の場合は何もせずfalse。</returns>
+    private bool ReplaceTextPorts(StringConcatNode node, PortDefinition[] portDefinitions)
+    {
+        if (!StringConcatNode.IsValidTextPortSet(portDefinitions))
+            return false;
+
+        var remainingNames = portDefinitions.Select(d => d.Name).ToHashSet();
+        var removed = Connections
+            .Where(c => c.ToId == node.Id && !remainingNames.Contains(c.ToPort) && c.ToPort != nameof(node.Separator))
+            .ToList();
+        foreach (var c in removed)
+            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        node.InitializeTextPorts(portDefinitions);
+
+        OnGraphChanged(new ConnectionChangedEventArgs(null, null, node.Id, null));
         return true;
     }
 

@@ -10,10 +10,13 @@ using Node.Editor.Command;
 using Node.Graph;
 using Node.Graph.Attributes;
 using Node.Graph.Events;
+using Node.Graph.Port;
 using Node.Localize;
-using Node.Nodes.Effect.DynamicLoaded;
+using Node.Nodes.Effect;
 using Node.Nodes.Func;
+using Node.Nodes.Value;
 using YukkuriMovieMaker.Commons;
+using VisualStateChangedEventArgs = Node.Graph.Events.VisualStateChangedEventArgs;
 
 namespace Node.Editor.ViewModel;
 
@@ -184,16 +187,21 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     public bool HasSubGraph { get; }
 
-    public bool CanEditPorts => NodeLogic is ArgumentsNode { AllowCustomPorts: true };
+    public bool CanEditPorts =>
+        NodeLogic is ArgumentsNode { AllowCustomPorts: true } or StringConcatNode;
 
-    /// <summary>
-    ///     引数ポートをこれ以上追加できるか。上限に達している場合は追加ボタンを無効化する。
-    ///     ポート定義の変更時はノードのビューモデルが作り直されるため、変更通知は不要。
-    /// </summary>
+    public bool IsTextPortsOnly => NodeLogic is StringConcatNode;
+
+    public bool CanEditSubGraphPorts => NodeLogic is NodeEffectNode;
+
+    public string AddPortButtonLabel =>
+        IsTextPortsOnly ? TextUi.AddStringPortButton : TextUi.AddArgumentPortButton;
+
     public bool CanAddArgumentPort =>
-        NodeLogic is ArgumentsNode { AllowCustomPorts: true } argumentsNode &&
-        argumentsNode.GetPortDefinitions().Count(definition => definition.IsCustom) <
-        ArgumentPortKinds.MaxCustomPorts;
+        IsTextPortsOnly ||
+        (NodeLogic is ArgumentsNode { AllowCustomPorts: true } argumentsNode &&
+         argumentsNode.GetPortDefinitions().Count(definition => definition.IsCustom) <
+         ArgumentPortKinds.MaxCustomPorts);
 
     public string? AddArgumentPortToolTip =>
         CanEditPorts && !CanAddArgumentPort
@@ -252,12 +260,28 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    internal Node.Graph.Port.PortDefinition[] GetArgumentPortDefinitions()
+    internal PortDefinition[] GetArgumentPortDefinitions()
     {
-        return (NodeLogic as ArgumentsNode)?.GetPortDefinitions() ?? [];
+        return NodeLogic switch
+        {
+            ArgumentsNode argumentsNode => argumentsNode.GetPortDefinitions(),
+            StringConcatNode concatNode => concatNode.GetPortDefinitions(),
+            _ => []
+        };
     }
 
-    internal void ApplyArgumentPorts(Node.Graph.Port.PortDefinition[] definitions)
+    internal PortDefinition[] GetSubGraphPortDefinitions(bool outputs)
+    {
+        if (NodeLogic is not NodeEffectNode node) return [];
+        return (outputs ? node.InnerReturn?.GetPortDefinitions() : node.InnerArguments?.GetPortDefinitions()) ?? [];
+    }
+
+    internal void ApplySubGraphPorts(bool outputs, PortDefinition[] definitions)
+    {
+        _graphViewModel.ApplySubGraphPorts(Id, outputs, definitions);
+    }
+
+    internal void ApplyArgumentPorts(PortDefinition[] definitions)
     {
         _graphViewModel.ApplyArgumentPorts(Id, definitions);
     }
@@ -271,6 +295,12 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     private IEnumerable<PortViewModel> CreateInputPorts(NodeLogic node, NodeGraph graph)
     {
+        var concatNode = node as StringConcatNode;
+        var subGraphNode = node as NodeEffectNode;
+        var definitions = concatNode?.GetPortDefinitions() ??
+                          (node as ReturnNode)?.GetPortDefinitions() ??
+                          subGraphNode?.InnerArguments?.GetPortDefinitions();
+
         var orderedKeys = node.Inputs.Keys.OrderBy(name =>
         {
             if (!name.Contains('.')) return (0, 0);
@@ -301,16 +331,25 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                 editorPropertyOwner = node;
             }
 
+            var definition = definitions?.FirstOrDefault(d => d.Name == name);
+            var isTextPort = concatNode != null && definition != null;
+
             var portAttr = prop?.GetCustomAttribute<InputPortAttribute>();
             var portColorAttr = prop?.GetCustomAttribute<PortColorSettingAttribute>();
-            var controlAttr = prop?.GetCustomAttribute<PropertyControlBaseAttribute>();
+            var controlAttr = prop?.GetCustomAttribute<PropertyControlBaseAttribute>()
+                              ?? (isTextPort ? new TextPortControlAttribute() : null)
+                              ?? (subGraphNode != null
+                                  ? NodeEffectNode.CreateControlAttribute(port.ValueType)
+                                  : null);
             var editorAttr = controlAttr == null ? ResolveEditorAttribute(prop) : null;
 
             yield return new PortViewModel(
                 name,
-                portAttr?.GetLabel() ?? name,
-                portAttr?.GetDescription() ?? "",
-                portColorAttr?.Color ?? nameof(Colors.SlateGray),
+                portAttr?.GetLabel() ?? definition?.GetDisplayLabel() ?? name,
+                portAttr?.GetDescription() ?? (isTextPort ? TextNode.TextDescription : ""),
+                portColorAttr?.Color ?? (isTextPort ? nameof(Colors.DarkOrange) :
+                    subGraphNode != null ? NodeEffectNode.GetPortColor(port.ValueType) :
+                    nameof(Colors.SlateGray)),
                 port.ValueType,
                 PortDirection.Input,
                 controlAttr,
@@ -329,7 +368,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         if (prop == null) return null;
 
         var portDefsField = prop.DeclaringType?.GetField("_portDefs", BindingFlags.NonPublic | BindingFlags.Static);
-        if (portDefsField?.GetValue(null) is PortDefinition[] portDefs)
+        if (portDefsField?.GetValue(null) is Nodes.Effect.DynamicLoaded.PortDefinition[] portDefs)
         {
             var match = portDefs.FirstOrDefault(d => d.PropName == prop.Name);
             if (match?.EditorAttributeInstance != null)
@@ -341,20 +380,24 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     private IEnumerable<PortViewModel> CreateOutputPorts(NodeLogic node, NodeGraph graph)
     {
-        var argumentDefinitions = (node as ArgumentsNode)?.GetPortDefinitions();
+        var subGraphNode = node as NodeEffectNode;
+        var argumentDefinitions = (node as ArgumentsNode)?.GetPortDefinitions() ??
+                                  subGraphNode?.InnerReturn?.GetPortDefinitions();
 
         foreach (var (name, port) in node.Outputs)
         {
             var prop = node.GetType().GetProperty(name);
             var portAttr = prop?.GetCustomAttribute<OutputPortAttribute>();
             var portColorAttr = prop?.GetCustomAttribute<PortColorSettingAttribute>();
-            var definitionLabel = argumentDefinitions?.FirstOrDefault(d => d.Name == name)?.Label;
+            var definition = argumentDefinitions?.FirstOrDefault(d => d.Name == name);
 
             yield return new PortViewModel(
                 name,
-                portAttr?.GetLabel() ?? (string.IsNullOrEmpty(definitionLabel) ? name : definitionLabel),
+                portAttr?.GetLabel() ?? definition?.GetDisplayLabel() ?? name,
                 portAttr?.GetDescription() ?? "",
-                portColorAttr?.Color ?? nameof(Colors.SlateGray),
+                portColorAttr?.Color ?? (subGraphNode != null
+                    ? NodeEffectNode.GetPortColor(port.ValueType)
+                    : nameof(Colors.SlateGray)),
                 port.ValueType,
                 PortDirection.Output,
                 null,
@@ -388,7 +431,10 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                 }),
                 OnGraphChangedCommand = new RelayCommand<GraphChangedEventArgs>(args =>
                 {
-                    if (args != null) _graph.OnGraphChanged(args);
+                    // サブグラフ内のノードに関するイベントを親グラフへ流すと、親のノード一覧に混入する。
+                    if (args is null or NodeAddedEventArgs or NodeRemovedEventArgs or ValueChangedEventArgs
+                        or VisualStateChangedEventArgs) return;
+                    _graph.OnGraphChanged(args);
                 }),
                 OnGraphCommitedCommand = new RelayCommand(() => _graph.Commit())
             };
