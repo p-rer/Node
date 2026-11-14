@@ -6,6 +6,7 @@ using Node.Editor.Attributes;
 using Node.Nodes.Generator.Outline;
 using Node.Localize;
 using YukkuriMovieMaker.Commons;
+using SkiaSharp;
 
 namespace Node.Editor.Control;
 
@@ -22,6 +23,9 @@ public sealed class TextStylePort : PortControlBase
     private readonly StackPanel _panel = new() { Orientation = Orientation.Vertical };
     private TextStyle? _working;
     private bool _rebuilding;
+    private bool _suppressValueRebuild;
+    private FontWeightPort? _weightEditor;
+    private FontWidthPort? _widthEditor;
 
     public TextStylePort()
     {
@@ -47,7 +51,8 @@ public sealed class TextStylePort : PortControlBase
         var control = (TextStylePort)d;
         if (!ReferenceEquals(e.OldValue, e.NewValue))
         {
-            control.Rebuild();
+            if (!control._suppressValueRebuild)
+                control.Rebuild();
             control.ValueChanged?.Invoke(control, EventArgs.Empty);
         }
     }
@@ -67,8 +72,11 @@ public sealed class TextStylePort : PortControlBase
 
             AddYmmEditor(nameof(TextStyle.FontFamily), TextNode.FontFamilyLabel);
             AddNumberEditor(nameof(TextStyle.Size), TextNode.FontSizeLabel, 1, 2000, 0, "px", 64);
-            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, new FontWeightPort());
-            AddCompositeEditor(nameof(TextStyle.Width), TextNode.TextFontWidthLabel, new FontWidthPort());
+            _weightEditor = new FontWeightPort();
+            _widthEditor = new FontWidthPort();
+            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, _weightEditor);
+            AddCompositeEditor(nameof(TextStyle.Width), TextNode.TextFontWidthLabel, _widthEditor);
+            UpdateFontCapabilities();
             AddEnumEditor(nameof(TextStyle.Slant), TextNode.TextSlantLabel, typeof(TextFontSlant));
             AddNumberEditor(nameof(TextStyle.Scale), TextNode.TextScaleLabel, 0.1f, 10, 2, "", 1);
             AddNumberEditor(nameof(TextStyle.SkewX), TextNode.TextSkewLabel, -2, 2, 2, "", 0);
@@ -181,7 +189,34 @@ public sealed class TextStylePort : PortControlBase
         if (_rebuilding || _working == null)
             return;
 
-        Value = _working.Clone();
+        if (e.PropertyName == nameof(TextStyle.FontFamily))
+            UpdateFontCapabilities();
+
+        _suppressValueRebuild = true;
+        try
+        {
+            Value = _working.Clone();
+        }
+        finally
+        {
+            _suppressValueRebuild = false;
+        }
+    }
+
+    private void UpdateFontCapabilities()
+    {
+        if (_working == null)
+            return;
+
+        using var typeface = SKTypeface.FromFamilyName(_working.FontFamily);
+        var axes = typeface?.VariationDesignParameters ?? [];
+        var wght = axes.Any(axis => axis.Tag == SKFourByteTag.Parse("wght"));
+        var wdth = axes.Any(axis => axis.Tag == SKFourByteTag.Parse("wdth"));
+
+        if (_weightEditor != null)
+            _weightEditor.IsVariableFont = wght;
+        if (_widthEditor != null)
+            _widthEditor.IsVariableFont = wdth;
     }
 
     private void ChildBeginEdit(object? sender, EventArgs e)
