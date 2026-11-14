@@ -538,7 +538,7 @@ public class TextOutlineNode : NodeLogic
 
         var path = WritingDirection == TextWritingDirection.Horizontal
             ? BuildHorizontalPath(font, Text, style.UnicodeMap)
-            : BuildVerticalPath(font, Text, style.UnicodeMap);
+            : BuildVerticalPath(style, Text);
         var bounds = path.Bounds;
         var horizontalRatio = Math.Clamp((HorizontalOffset + 1f) / 2f, 0f, 1f);
         var verticalRatio = Math.Clamp((VerticalOffset + 1f) / 2f, 0f, 1f);
@@ -571,28 +571,16 @@ public class TextOutlineNode : NodeLogic
         return result;
     }
 
-    private static SKPath BuildVerticalPath(SKFont fallbackFont, string text, TextStyleMap? map)
+    private static SKPath BuildVerticalPath(TextStyle baseStyle, string text)
     {
+        var map = baseStyle.UnicodeMap;
         var result = new SKPath();
         var y = 0f;
 
         foreach (var rune in text.EnumerateRunes())
         {
-            var style = map?.Resolve(rune.Value, out var offset) ?? (new TextStyle(), 0f);
-            if (map == null)
-                style = new TextStyle
-                {
-                    FontFamily = fallbackFont.Typeface.FamilyName,
-                    Size = fallbackFont.Size,
-                    Weight = (int)fallbackFont.Typeface.FontStyle.Weight,
-                    Width = (int)fallbackFont.Typeface.FontStyle.Width,
-                    Slant = fallbackFont.Typeface.FontStyle.Slant switch
-                    {
-                        SKFontStyleSlant.Italic => TextFontSlant.Italic,
-                        SKFontStyleSlant.Oblique => TextFontSlant.Oblique,
-                        _ => TextFontSlant.Upright
-                    }
-                };
+            var style = map?.Resolve(rune.Value, out var offset) ?? baseStyle;
+            offset = map == null ? 0f : offset;
 
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
@@ -609,14 +597,17 @@ public class TextOutlineNode : NodeLogic
 
             var glyphText = rune.ToString();
             using var glyph = font.GetTextPath(glyphText, new SKPoint(0, 0));
-            if (!IsVerticalUprightRune(rune.Value))
+
+            var upright = IsVerticalUprightRune(rune.Value);
+            if (!upright)
                 glyph.Transform(SKMatrix.CreateRotationDegrees(-90));
 
             glyph.Transform(SKMatrix.CreateTranslation(offset, y));
             result.AddPath(glyph);
 
-            var advance = Math.Max(1f, font.MeasureText(glyphText));
-            y += IsVerticalUprightRune(rune.Value) ? advance : Math.Max(1f, font.Size);
+            y += upright
+                ? Math.Max(1f, font.MeasureText(glyphText))
+                : Math.Max(1f, font.Size);
         }
 
         return result;
@@ -634,7 +625,6 @@ public class TextOutlineNode : NodeLogic
             0x3001 or 0x3002 or 0x3008 or 0x3009 or 0x300A or 0x300B or
             0x300C or 0x300D or 0x300E or 0x300F or 0x3010 or 0x3011;
     }
-
     public override void Dispose()
     {
         _path?.Dispose();
