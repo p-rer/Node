@@ -359,7 +359,7 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
             if (!_graph.Nodes.TryGetValue(nodeId, out var logic) || logic is not ISubGraphPortNode node)
                 return;
 
-            var childNode = outputs ? node.InnerReturn : node.InnerArguments;
+            NodeLogic? childNode = outputs ? node.InnerReturn : node.InnerArguments;
             if (childNode == null)
                 return;
 
@@ -389,8 +389,8 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
                         continue;
 
                     var portExists = outputs
-                        ? node.Outputs.ContainsKey(portName)
-                        : node.Inputs.ContainsKey(portName);
+                        ? logic.Outputs.ContainsKey(portName)
+                        : logic.Inputs.ContainsKey(portName);
 
                     if (portExists)
                         _graph.Connect(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
