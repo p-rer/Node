@@ -69,7 +69,7 @@ public sealed class FontWeightPort : PortControlBase
         if (_updating || (FontWeightPreset)_preset.Value != FontWeightPreset.Custom)
             return;
 
-        Value = Math.Clamp(MathF.Round(_number.Value), 1, 1000);
+        Value = (int)Math.Clamp(MathF.Round(_number.Value), 1, 1000);
     }
 
     private void UpdateEditor()
@@ -189,7 +189,7 @@ public sealed class FontWidthPort : PortControlBase
         if (_updating || (FontWidthPreset)_preset.Value != FontWidthPreset.Custom)
             return;
 
-        Value = Math.Clamp(MathF.Round(_number.Value), 1, 9);
+        Value = (int)Math.Clamp(MathF.Round(_number.Value), 1, 9);
     }
 
     private void UpdateEditor()
