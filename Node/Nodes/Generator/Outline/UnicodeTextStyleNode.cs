@@ -15,40 +15,33 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
     [InputPort(nameof(TextNode.TextStyleDefaultLabel), nameof(TextNode.TextStyleDefaultDescription), typeof(TextNode))]
     [TextStylePortControl]
     [PortColorSetting(nameof(Colors.DarkOrange))]
-    public TextStyle DefaultStyle
+    public TextStyle Style
     {
         get => GetInput<TextStyle>() ?? new TextStyle();
         set => SetInput(value);
     }
 
     [OutputPort(nameof(TextNode.TextStyleMapOutputLabel), nameof(TextNode.TextStyleMapOutputDescription), typeof(TextNode))]
+    [TextStylePortControl]
     [PortColorSetting(nameof(Colors.MediumPurple))]
-    public TextStyleMap? Output
+    public TextStyle? Output
     {
-        get => GetOutput<TextStyleMap>();
+        get => GetOutput<TextStyle>();
         set => SetOutput(value);
     }
 
     public PortDefinition[] GetPortDefinitions() => _rangeDefinitions;
 
-    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
-    {
-        return IsValidRangePortSet(definitions);
-    }
+    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions) =>
+        IsValidRangePortSet(definitions);
 
     bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
 
     DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.UnicodeRange;
 
-    void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
-    {
-        Initialize(definitions);
-    }
+    void IPortDefinitionNode.Initialize(PortDefinition[] definitions) => Initialize(definitions);
 
-    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
-    {
-        NotifyPortDefinitionsChanged();
-    }
+    void IPortDefinitionNode.NotifyPortDefinitionsChanged() => NotifyPortDefinitionsChanged();
 
     public static bool IsValidRangePortSet(PortDefinition[] definitions)
     {
@@ -75,38 +68,44 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 
     internal void NotifyPortDefinitionsChanged()
     {
-        RequestInputPortReinitialization(nameof(DefaultStyle),
+        RequestInputPortReinitialization(nameof(Style),
             new UnicodeTextStyleRangeContainer(_rangeDefinitions));
     }
 
     protected override Task Calculate()
     {
+        var baseStyle = Style.CloneWithoutUnicodeMap();
         var ranges = new List<UnicodeRangeStyle>();
+
         foreach (var definition in _rangeDefinitions)
         {
-            if (!Inputs.TryGetValue(definition.Name, out var input)) continue;
+            if (!Inputs.TryGetValue(definition.Name, out var input))
+                continue;
+
             var value = input.GetValue(EvaluationContext).GetAwaiter().GetResult();
             if (value is UnicodeRangeStyle range)
-                ranges.Add(range);
+                ranges.Add(new UnicodeRangeStyle
+                {
+                    StartCodePoint = range.StartCodePoint,
+                    EndCodePoint = range.EndCodePoint,
+                    Offset = range.Offset,
+                    Style = range.Style.CloneWithoutUnicodeMap()
+                });
         }
 
-        Output = new TextStyleMap
+        baseStyle.UnicodeMap = new TextStyleMap
         {
-            DefaultStyle = DefaultStyle,
+            DefaultStyle = baseStyle.CloneWithoutUnicodeMap(),
             Ranges = ranges
         };
+
+        Output = baseStyle;
         return Task.CompletedTask;
     }
 
-    public override void Dispose()
-    {
-        base.Dispose();
-    }
+    public override void Dispose() => base.Dispose();
 }
 
-/// <summary>
-/// NodeViewModel の動的端子再構築イベントに利用する、定義を保持する軽量コンテナ。
-/// </summary>
 internal sealed class UnicodeTextStyleRangeContainer : InputsContainer
 {
     private readonly PortDefinition[] _definitions;
