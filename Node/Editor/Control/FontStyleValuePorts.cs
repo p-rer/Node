@@ -1,14 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-
-namespace Node.Editor.Control;
-
-using System.ComponentModel;
-using System.Windows;
-using System.Windows.Controls;
 using SkiaSharp;
-using Node.Localize;
 
 namespace Node.Editor.Control;
 
