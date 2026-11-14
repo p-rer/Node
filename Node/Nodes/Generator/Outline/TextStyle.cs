@@ -15,8 +15,11 @@ public enum TextWritingDirection
 
 public enum TextFontSlant
 {
+    [Display(Name = nameof(TextNode.TextSlantUpright), ResourceType = typeof(TextNode))]
     Upright,
+    [Display(Name = nameof(TextNode.TextSlantItalic), ResourceType = typeof(TextNode))]
     Italic,
+    [Display(Name = nameof(TextNode.TextSlantOblique), ResourceType = typeof(TextNode))]
     Oblique
 }
 
@@ -47,16 +50,16 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _size, value);
     }
 
-    [Display(Name = nameof(TextNode.BoldLabel), Description = nameof(TextNode.BoldDescription), ResourceType = typeof(TextNode))]
-    [TextBoxSlider("F0", "", 1, 1000)]
+    [Display(Name = nameof(TextNode.TextFontWeightLabel), Description = nameof(TextNode.TextFontWeightDescription), ResourceType = typeof(TextNode))]
+    [Node.Editor.Attributes.FontWeightPortControl]
     public int Weight
     {
         get => _weight;
         set => Set(ref _weight, value);
     }
 
-    [Display(Name = "幅")]
-    [TextBoxSlider("F0", "", 1, 9)]
+    [Display(Name = nameof(TextNode.TextFontWidthLabel), Description = nameof(TextNode.TextFontWidthDescription), ResourceType = typeof(TextNode))]
+    [Node.Editor.Attributes.FontWidthPortControl]
     public int Width
     {
         get => _width;
@@ -71,15 +74,22 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _slant, value);
     }
 
-    [Display(Name = "横倍率")]
+    [Display(Name = nameof(TextNode.TextScaleLabel), Description = nameof(TextNode.TextScaleDescription), ResourceType = typeof(TextNode))]
     [TextBoxSlider("F2", "", 0.1, 10)]
-    public float ScaleX
+    public float Scale
     {
         get => _scaleX;
         set => Set(ref _scaleX, value);
     }
 
-    [Display(Name = "せん断")]
+    [Browsable(false)]
+    public float ScaleX
+    {
+        get => Scale;
+        set => Scale = value;
+    }
+
+    [Display(Name = nameof(TextNode.TextSkewLabel), Description = nameof(TextNode.TextSkewDescription), ResourceType = typeof(TextNode))]
     [TextBoxSlider("F2", "", -2, 2)]
     public float SkewX
     {
