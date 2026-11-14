@@ -155,7 +155,7 @@ public partial class NodeView
 
         var current = vm.GetArgumentPortDefinitions();
         if (!ArgumentPortEditWindow.TryCreate(owner, current.Select(GetLabel).ToList(), out var definition,
-                vm.IsTextPortsOnly))
+                vm.IsTextPortsOnly, vm.IsUnicodeStylePorts ? PortEditOptions.UnicodeRanges : null))
             return;
 
         vm.ApplyArgumentPorts([.. current, definition]);
@@ -165,7 +165,7 @@ public partial class NodeView
     {
         if (GetDialogOwner() is not { } owner) return;
 
-        if (ArgumentPortsWindow.TryEdit(owner, vm.GetArgumentPortDefinitions(), out var result, vm.IsTextPortsOnly))
+        if (ArgumentPortsWindow.TryEdit(owner, vm.GetArgumentPortDefinitions(), out var result, vm.IsTextPortsOnly, vm.IsUnicodeStylePorts ? PortEditOptions.UnicodeRanges : null))
             vm.ApplyArgumentPorts(result);
     }
 
