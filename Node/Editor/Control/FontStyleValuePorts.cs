@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using SkiaSharp;
 
 namespace Node.Editor.Control;
 
