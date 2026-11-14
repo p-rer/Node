@@ -50,6 +50,14 @@ public sealed partial class NumberPort
             typeof(NumberPort),
             new PropertyMetadata("", OnUnitChanged));
 
+    public static readonly DependencyProperty HexadecimalProperty =
+        DependencyProperty.Register(nameof(Hexadecimal), typeof(bool), typeof(NumberPort),
+            new PropertyMetadata(false, OnConfigChanged));
+
+    public static readonly DependencyProperty PrefixProperty =
+        DependencyProperty.Register(nameof(Prefix), typeof(string), typeof(NumberPort),
+            new PropertyMetadata(""));
+
     public static readonly DependencyProperty DefaultProperty =
         DependencyProperty.Register(
             nameof(Default),
@@ -124,6 +132,18 @@ public sealed partial class NumberPort
         init => SetValue(UnitProperty, value);
     }
 
+    public bool Hexadecimal
+    {
+        get => (bool)GetValue(HexadecimalProperty);
+        init => SetValue(HexadecimalProperty, value);
+    }
+
+    public string Prefix
+    {
+        get => (string)GetValue(PrefixProperty);
+        init => SetValue(PrefixProperty, value);
+    }
+
     public float Default
     {
         get => (float)GetValue(DefaultProperty);
@@ -138,13 +158,13 @@ public sealed partial class NumberPort
     {
         var control = (NumberPort)d;
         if (!control._isEditing)
-            control.Text = ((float)e.NewValue).ToString("F" + control.Digits, CultureInfo.InvariantCulture);
+            control.Text = control.FormatValue((float)e.NewValue);
     }
 
     private static void OnConfigChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (NumberPort)d;
-        control.Text = control.Value.ToString("F" + control.Digits, CultureInfo.InvariantCulture);
+        control.Text = control.FormatValue(control.Value);
     }
 
     private static void OnUnitChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -164,7 +184,7 @@ public sealed partial class NumberPort
         else
             try
             {
-                v = float.Parse(Text, CultureInfo.InvariantCulture);
+                v = ParseValue(Text);
             }
             catch (Exception)
             {
@@ -183,7 +203,7 @@ public sealed partial class NumberPort
         if (Math.Abs(Value - newValue) > 1e-8)
             Value = newValue;
         else
-            Text = newValue.ToString("F" + Digits, CultureInfo.InvariantCulture);
+            Text = FormatValue(newValue);
 
         Keyboard.ClearFocus();
         IsFocusable = false;
@@ -278,7 +298,7 @@ public sealed partial class NumberPort
 
     private new void PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
-        e.Handled = NumberRegex().IsMatch(e.Text);
+        e.Handled = (Hexadecimal ? HexRegex() : NumberRegex()).IsMatch(e.Text);
     }
 
     private void TextBoxPasting(object sender, DataObjectPastingEventArgs e)
@@ -286,7 +306,7 @@ public sealed partial class NumberPort
         if (e.DataObject.GetDataPresent(typeof(string)))
         {
             var text = (string?)e.DataObject.GetData(typeof(string)) ?? string.Empty;
-            if (NumberRegex().IsMatch(text)) e.CancelCommand();
+            if ((Hexadecimal ? HexRegex() : NumberRegex()).IsMatch(text)) e.CancelCommand();
         }
         else
         {
@@ -302,6 +322,19 @@ public sealed partial class NumberPort
         EndEditCommand?.Execute(null);
     }
 
+    private float ParseValue(string text)
+        => Hexadecimal
+            ? int.Parse(text.Trim().TrimStart('+').Replace("U+", "", StringComparison.OrdinalIgnoreCase), NumberStyles.HexNumber, CultureInfo.InvariantCulture)
+            : float.Parse(text, CultureInfo.InvariantCulture);
+
+    private string FormatValue(float value)
+        => Hexadecimal
+            ? Prefix + ((int)Math.Clamp(MathF.Round(value), 0, 0x10FFFF)).ToString("X4", CultureInfo.InvariantCulture)
+            : value.ToString("F" + Digits, CultureInfo.InvariantCulture);
+
     [GeneratedRegex("[^0-9.-]+")]
     private static partial Regex NumberRegex();
+
+    [GeneratedRegex("[^0-9A-Fa-f]+")]
+    private static partial Regex HexRegex();
 }
