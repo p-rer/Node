@@ -7,7 +7,7 @@ namespace Node.Nodes.Func;
 
 [Node(typeof(FunctionCategory), nameof(TextNode.ArgumentsNode), nameof(TextNode.ArgumentsNodeDescription),
     typeof(TextNode))]
-public class ArgumentsNode : NodeLogic
+public class ArgumentsNode : NodeLogic, IPortDefinitionNode
 {
     private PortDefinition[] _portDefinitions = Array.Empty<PortDefinition>();
 
@@ -44,6 +44,17 @@ public class ArgumentsNode : NodeLogic
     public PortDefinition[] GetPortDefinitions()
     {
         return _portDefinitions;
+    }
+
+    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
+    {
+        return definitions.Select(d => d.Name).Distinct().Count() == definitions.Length;
+    }
+
+    bool IPortDefinitionNode.DynamicPortsAreOutputs => true;
+
+    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
+    {
     }
 
     public void InjectArguments(Dictionary<string, object?> arguments)
