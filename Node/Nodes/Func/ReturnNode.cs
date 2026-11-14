@@ -48,6 +48,8 @@ public class ReturnNode : NodeLogic, IPortDefinitionNode
 
     bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
 
+    DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.Default;
+
     void IPortDefinitionNode.NotifyPortDefinitionsChanged()
     {
     }
