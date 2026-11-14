@@ -56,7 +56,7 @@ public partial class ArgumentPortEditWindow : Window
 
         if (_existing == null)
             Result = new PortDefinition(
-                $"Arg_{Guid.NewGuid():N}"[..12],
+                (_options == PortEditOptions.UnicodeRanges ? "Range_" : "Arg_") + Guid.NewGuid().ToString("N")[..8],
                 portType,
                 label,
                 "",
