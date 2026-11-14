@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -39,11 +40,16 @@ public sealed class TextStylePort : PortControlBase
         set => SetValue(ValueProperty, value);
     }
 
+    public event EventHandler? ValueChanged;
+
     private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (TextStylePort)d;
         if (!ReferenceEquals(e.OldValue, e.NewValue))
+        {
             control.Rebuild();
+            control.ValueChanged?.Invoke(control, EventArgs.Empty);
+        }
     }
 
     private void Rebuild()
