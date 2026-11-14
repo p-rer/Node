@@ -38,6 +38,8 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 
     bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
 
+    DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.UnicodeRange;
+
     void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
     {
         Initialize(definitions);
