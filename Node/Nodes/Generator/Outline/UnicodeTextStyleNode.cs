@@ -8,7 +8,7 @@ using Node.Localize;
 namespace Node.Nodes.Generator.Outline;
 
 [Node(typeof(OutlineCategory), nameof(TextNode.UnicodeTextStyleNode), nameof(TextNode.UnicodeTextStyleNodeDescription), typeof(TextNode))]
-public sealed class UnicodeTextStyleNode : NodeLogic
+public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 {
     private PortDefinition[] _rangeDefinitions = [];
 
@@ -31,6 +31,23 @@ public sealed class UnicodeTextStyleNode : NodeLogic
 
     public PortDefinition[] GetPortDefinitions() => _rangeDefinitions;
 
+    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
+    {
+        return IsValidRangePortSet(definitions);
+    }
+
+    bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
+
+    void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
+    {
+        Initialize(definitions);
+    }
+
+    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
+    {
+        NotifyPortDefinitionsChanged();
+    }
+
     public static bool IsValidRangePortSet(PortDefinition[] definitions)
     {
         return definitions.Select(d => d.Name).Distinct().Count() == definitions.Length &&
@@ -41,7 +58,7 @@ public sealed class UnicodeTextStyleNode : NodeLogic
     public void Initialize(PortDefinition[] definitions)
     {
         _rangeDefinitions = definitions;
-        foreach (var key in Inputs.Keys.Where(k => k.StartsWith("Range.", StringComparison.Ordinal)).ToList())
+        foreach (var key in Inputs.Keys.Where(k => k.StartsWith("Range_", StringComparison.Ordinal)).ToList())
             Inputs.Remove(key);
 
         foreach (var definition in definitions)
