@@ -2,9 +2,9 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using Node.Editor.Attributes;
 using Node.Nodes.Generator.Outline;
+using Node.Localize;
 using YukkuriMovieMaker.Commons;
 
 namespace Node.Editor.Control;
@@ -65,13 +65,13 @@ public sealed class TextStylePort : PortControlBase
             _working.PropertyChanged += WorkingPropertyChanged;
             _panel.Children.Clear();
 
-            AddYmmEditor(nameof(TextStyle.FontFamily), "フォント");
-            AddYmmEditor(nameof(TextStyle.Size), "サイズ");
-            AddYmmEditor(nameof(TextStyle.Weight), "太さ");
-            AddYmmEditor(nameof(TextStyle.Width), "幅");
-            AddYmmEditor(nameof(TextStyle.Slant), "傾き");
-            AddYmmEditor(nameof(TextStyle.ScaleX), "横倍率");
-            AddYmmEditor(nameof(TextStyle.SkewX), "せん断");
+            AddYmmEditor(nameof(TextStyle.FontFamily), TextNode.FontFamilyLabel);
+            AddNumberEditor(nameof(TextStyle.Size), TextNode.FontSizeLabel, 1, 2000, 0, "px", 64);
+            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, new FontWeightPort());
+            AddCompositeEditor(nameof(TextStyle.Width), TextNode.TextFontWidthLabel, new FontWidthPort());
+            AddEnumEditor(nameof(TextStyle.Slant), TextNode.TextSlantLabel, typeof(TextFontSlant));
+            AddNumberEditor(nameof(TextStyle.Scale), TextNode.TextScaleLabel, 0.1f, 10, 2, "", 1);
+            AddNumberEditor(nameof(TextStyle.SkewX), TextNode.TextSkewLabel, -2, 2, 2, "", 0);
         }
         finally
         {
@@ -79,6 +79,72 @@ public sealed class TextStylePort : PortControlBase
         }
     }
 
+    private void AddNumberEditor(string propertyName, string label, float min, float max, int digits, string unit, float defaultValue)
+    {
+        if (_working == null) return;
+        var property = typeof(TextStyle).GetProperty(propertyName)!;
+        var editor = new NumberPort { Min = min, Max = max, Digits = digits, Unit = unit, Default = defaultValue };
+        editor.Value = Convert.ToSingle(property.GetValue(_working));
+        editor.BeginEditCommand = BeginEditCommand;
+        editor.EndEditCommand = EndEditCommand;
+        DependencyPropertyDescriptor.FromProperty(NumberPort.ValueProperty, typeof(NumberPort))!.AddValueChanged(editor, (_, _) =>
+        {
+            if (!_rebuilding && _working != null) property.SetValue(_working, editor.Value);
+        });
+        AddRow(label, editor);
+    }
+
+    private void AddEnumEditor(string propertyName, string label, Type enumType)
+    {
+        if (_working == null) return;
+        var property = typeof(TextStyle).GetProperty(propertyName)!;
+        var editor = new EnumPort { Items = enumType, Default = Convert.ToInt32(property.GetValue(_working)) };
+        editor.BeginEditCommand = BeginEditCommand;
+        editor.EndEditCommand = EndEditCommand;
+        DependencyPropertyDescriptor.FromProperty(EnumPort.ValueProperty, typeof(EnumPort))!.AddValueChanged(editor, (_, _) =>
+        {
+            if (!_rebuilding && _working != null) property.SetValue(_working, Enum.ToObject(enumType, editor.Value));
+        });
+        AddRow(label, editor);
+    }
+
+    private void AddCompositeEditor(string propertyName, string label, PortControlBase editor)
+    {
+        if (_working == null) return;
+        var property = typeof(TextStyle).GetProperty(propertyName)!;
+        if (editor is FontWeightPort weight)
+        {
+            weight.Value = Convert.ToInt32(property.GetValue(_working));
+            DependencyPropertyDescriptor.FromProperty(FontWeightPort.ValueProperty, typeof(FontWeightPort))!.AddValueChanged(weight, (_, _) =>
+            {
+                if (!_rebuilding && _working != null) property.SetValue(_working, weight.Value);
+            });
+        }
+        else if (editor is FontWidthPort width)
+        {
+            width.Value = Convert.ToInt32(property.GetValue(_working));
+            DependencyPropertyDescriptor.FromProperty(FontWidthPort.ValueProperty, typeof(FontWidthPort))!.AddValueChanged(width, (_, _) =>
+            {
+                if (!_rebuilding && _working != null) property.SetValue(_working, width.Value);
+            });
+        }
+        editor.BeginEditCommand = BeginEditCommand;
+        editor.EndEditCommand = EndEditCommand;
+        AddRow(label, editor);
+    }
+
+    private void AddRow(string label, FrameworkElement editor)
+    {
+        var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
+        Grid.SetColumn(text, 0);
+        Grid.SetColumn(editor, 1);
+        row.Children.Add(text);
+        row.Children.Add(editor);
+        _panel.Children.Add(row);
+    }
     private void AddYmmEditor(string propertyName, string label)
     {
         if (_working == null)
@@ -107,21 +173,7 @@ public sealed class TextStylePort : PortControlBase
             control.EndEdit += ChildEndEdit;
         }
 
-        var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        var text = new TextBlock
-        {
-            Text = label,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 5, 0)
-        };
-        Grid.SetColumn(text, 0);
-        Grid.SetColumn(editor, 1);
-        row.Children.Add(text);
-        row.Children.Add(editor);
-        _panel.Children.Add(row);
+        AddRow(label, editor);
     }
 
     private void WorkingPropertyChanged(object? sender, PropertyChangedEventArgs e)
