@@ -1,7 +1,6 @@
 using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
-using Node.Nodes.Effect;
 using Node.Nodes.Func;
 using Node.Nodes.Value;
 
