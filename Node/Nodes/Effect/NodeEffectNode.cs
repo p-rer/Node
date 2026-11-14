@@ -99,6 +99,8 @@ public class NodeEffectNode : NodeLogic, ISubGraphPortNode
     ///     サブグラフの引数ノード・戻り値ノードの定義に合わせて、このノードの入力・出力端子を作り直す。
     ///     名前と型が同じ端子は、入力値と接続を引き継ぐ。
     /// </summary>
+    void ISubGraphPortNode.SyncPorts() => SyncPorts();
+
     internal void SyncPorts()
     {
         _ = Graph;
