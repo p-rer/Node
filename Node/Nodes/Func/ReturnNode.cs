@@ -10,7 +10,7 @@ namespace Node.Nodes.Func;
 ///     ノードエディタ上では出力端子として機能し、グラフの評価結果をまとめて返す。
 /// </summary>
 [Node(typeof(FunctionCategory), nameof(TextNode.ReturnNode), nameof(TextNode.ReturnNodeDescription), typeof(TextNode))]
-public class ReturnNode : NodeLogic
+public class ReturnNode : NodeLogic, IPortDefinitionNode
 {
     private PortDefinition[] _portDefinitions = Array.Empty<PortDefinition>();
 
@@ -39,6 +39,17 @@ public class ReturnNode : NodeLogic
     public PortDefinition[] GetPortDefinitions()
     {
         return _portDefinitions;
+    }
+
+    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
+    {
+        return definitions.Select(d => d.Name).Distinct().Count() == definitions.Length;
+    }
+
+    bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
+
+    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
+    {
     }
 
     public async Task<Dictionary<string, object?>> ExtractReturns(EvaluationContext? context = null)
