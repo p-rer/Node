@@ -145,7 +145,9 @@ public sealed class TextStylePort : PortControlBase
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
-        Grid.SetColumn(text, 0);
+        text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        row.MinWidth = text.DesiredSize.Width + 85;
+                Grid.SetColumn(text, 0);
         Grid.SetColumn(editor, 1);
         row.Children.Add(text);
         row.Children.Add(editor);
@@ -228,8 +230,8 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                 OnValueChanged));
 
-    private readonly TextBox _start = new() { MinWidth = 78 };
-    private readonly TextBox _end = new() { MinWidth = 78 };
+    private readonly NumberPort _start = new() { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0, Hexadecimal = true, Prefix = "U+" };
+    private readonly NumberPort _end = new() { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0x10FFFF, Hexadecimal = true, Prefix = "U+" };
     private readonly TextBox _offset = new() { MinWidth = 78 };
     private readonly TextStylePort _style = new();
     private bool _updating;
@@ -271,8 +273,8 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         try
         {
             var value = Value ?? new UnicodeRangeStyle();
-            _start.Text = $"U+{value.StartCodePoint:X4}";
-            _end.Text = $"U+{value.EndCodePoint:X4}";
+            _start.Value = value.StartCodePoint;
+            _end.Value = value.EndCodePoint;
             _offset.Text = value.Offset.ToString(System.Globalization.CultureInfo.CurrentCulture);
             _style.Value = value.Style ?? new TextStyle();
         }
@@ -292,9 +294,9 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         if (_updating)
             return;
 
-        var start = ParseCodePoint(_start.Text);
-        var end = ParseCodePoint(_end.Text);
-        if (start == null || end == null || start > end)
+        var start = (int)Math.Clamp(MathF.Round(_start.Value), 0, 0x10FFFF);
+        var end = (int)Math.Clamp(MathF.Round(_end.Value), 0, 0x10FFFF);
+        if (start > end)
             return;
 
         if (!float.TryParse(_offset.Text,
@@ -308,8 +310,8 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         {
             Value = new UnicodeRangeStyle
             {
-                StartCodePoint = start.Value,
-                EndCodePoint = end.Value,
+                StartCodePoint = start,
+                EndCodePoint = end,
                 Offset = offset,
                 Style = _style.Value?.CloneWithoutUnicodeMap() ?? new TextStyle()
             };
@@ -364,20 +366,4 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         return row;
     }
 
-    private static int? ParseCodePoint(string text)
-    {
-        var value = text.Trim();
-        if (value.StartsWith("U+", StringComparison.OrdinalIgnoreCase))
-            value = value[2..];
-        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-            value = value[2..];
-
-        return int.TryParse(value,
-                   System.Globalization.NumberStyles.HexNumber,
-                   System.Globalization.CultureInfo.InvariantCulture,
-                   out var result) &&
-               result is >= 0 and <= 0x10FFFF
-            ? result
-            : null;
-    }
 }
