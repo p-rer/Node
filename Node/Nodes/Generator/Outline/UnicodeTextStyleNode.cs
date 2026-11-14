@@ -31,6 +31,13 @@ public sealed class UnicodeTextStyleNode : NodeLogic
 
     public PortDefinition[] GetPortDefinitions() => _rangeDefinitions;
 
+    public static bool IsValidRangePortSet(PortDefinition[] definitions)
+    {
+        return definitions.Select(d => d.Name).Distinct().Count() == definitions.Length &&
+               definitions.All(d => d.Name.StartsWith("Range.", StringComparison.Ordinal) &&
+                                    d.ValueType == typeof(UnicodeRangeStyle) && d.IsCustom);
+    }
+
     public void Initialize(PortDefinition[] definitions)
     {
         _rangeDefinitions = definitions;
