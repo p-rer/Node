@@ -459,7 +459,6 @@ public class TextOutlineNode : NodeLogic
                 FontFamily = FontFamily,
                 Size = Math.Max(1f, Size),
                 Weight = Bold ? 700 : 400,
-                Width = 5,
                 Slant = Italic ? TextFontSlant.Italic : TextFontSlant.Upright
             };
         }
@@ -531,9 +530,8 @@ public class TextOutlineNode : NodeLogic
             TextFontSlant.Oblique => SKFontStyleSlant.Oblique,
             _ => SKFontStyleSlant.Upright
         };
-        var width = (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9);
         using var typeface = SKTypeface.FromFamilyName(string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
-            weight, width, slant);
+            weight, slant);
         using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
 
         var path = WritingDirection == TextWritingDirection.Horizontal
@@ -551,50 +549,6 @@ public class TextOutlineNode : NodeLogic
         return Task.CompletedTask;
     }
 
-    private static SKTypeface CreateTypeface(TextStyle style)
-    {
-        var family = string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily;
-        var slant = style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
-            style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique :
-            SKFontStyleSlant.Upright;
-
-        var typeface = SKTypeface.FromFamilyName(
-            family,
-            (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
-            (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9),
-            slant);
-
-        var axes = typeface.VariationDesignParameters;
-        if (axes.Length == 0)
-            return typeface;
-
-        var coordinates = axes.Select(axis => new SKFontVariationPositionCoordinate
-        {
-            Axis = axis.Tag,
-            Value = axis.Tag == SKFourByteTag.Parse("wght")
-                ? Math.Clamp(style.Weight, axis.Min, axis.Max)
-                : axis.Tag == SKFourByteTag.Parse("wdth")
-                    ? MapWidth(style.Width, axis)
-                    : axis.Default
-        }).ToArray();
-
-        var clone = typeface.Clone(coordinates);
-        typeface.Dispose();
-        return clone;
-    }
-
-    private static float MapWidth(int width, SKFontVariationAxis axis)
-    {
-        var normalized = (Math.Clamp(width, 1, 9) - 1f) / 8f;
-        if (axis.Default <= axis.Min || axis.Default >= axis.Max)
-            return axis.Min + (axis.Max - axis.Min) * normalized;
-
-        if (normalized <= 0.5f)
-            return axis.Min + (axis.Default - axis.Min) * (normalized * 2f);
-
-        return axis.Default + (axis.Max - axis.Default) * ((normalized - 0.5f) * 2f);
-    }
-
     private static SKPath BuildHorizontalPath(SKFont fallbackFont, string text, TextStyleMap? map)
     {
         if (map == null || map.Ranges.Count == 0) return fallbackFont.GetTextPath(text, new SKPoint(0, 0));
@@ -603,7 +557,11 @@ public class TextOutlineNode : NodeLogic
         foreach (var rune in text.EnumerateRunes())
         {
             var style = map.Resolve(rune.Value, out var offset);
-            using var tf = CreateTypeface(style);
+            using var tf = SKTypeface.FromFamilyName(
+                string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
+                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
+                style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
+                    style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
             using var font = new SKFont(tf, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
             using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(x, offset));
             result.AddPath(glyph);
@@ -624,7 +582,11 @@ public class TextOutlineNode : NodeLogic
             var style = map?.Resolve(rune.Value, out offset) ?? baseStyle;
             offset = map == null ? 0f : offset;
 
-            using var tf = CreateTypeface(style);
+            using var tf = SKTypeface.FromFamilyName(
+                string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
+                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
+                style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
+                    style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
             using var font = new SKFont(tf, Math.Max(1f, style.Size))
             {
                 ScaleX = 1f,
