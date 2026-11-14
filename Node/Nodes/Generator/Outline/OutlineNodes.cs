@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using Node.Editor.Attributes;
@@ -465,7 +464,8 @@ public class TextOutlineNode : NodeLogic
         set => SetInput(value);
     }
 
-    [InputPort(nameof(TextNode.TextWritingDirectionLabel), nameof(TextNode.TextWritingDirectionDescription), typeof(TextNode))]
+    [InputPort(nameof(TextNode.TextWritingDirectionLabel), nameof(TextNode.TextWritingDirectionDescription),
+        typeof(TextNode))]
     [EnumPortControl(Default = 0, IsEditable = false, Items = typeof(TextWritingDirection))]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public TextWritingDirection WritingDirection
@@ -530,9 +530,11 @@ public class TextOutlineNode : NodeLogic
             TextFontSlant.Oblique => SKFontStyleSlant.Oblique,
             _ => SKFontStyleSlant.Upright
         };
-        using var typeface = SKTypeface.FromFamilyName(string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
-            weight, slant);
-        using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
+        using var typeface = SKTypeface.FromFamilyName(
+            string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
+            weight, SKFontStyleWidth.Normal, slant);
+        using var font = new SKFont(typeface, Math.Max(1f, style.Size))
+            { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
 
         var path = WritingDirection == TextWritingDirection.Horizontal
             ? BuildHorizontalPath(font, Text, style.UnicodeMap)
@@ -559,14 +561,16 @@ public class TextOutlineNode : NodeLogic
             var style = map.Resolve(rune.Value, out var offset);
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
-                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
+                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000), SKFontStyleWidth.Normal,
                 style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
-                    style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
-            using var font = new SKFont(tf, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
+                style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
+            using var font = new SKFont(tf, Math.Max(1f, style.Size))
+                { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
             using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(x, offset));
             result.AddPath(glyph);
             x += font.MeasureText(rune.ToString());
         }
+
         return result;
     }
 
@@ -584,9 +588,9 @@ public class TextOutlineNode : NodeLogic
 
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
-                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
+                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000), SKFontStyleWidth.Normal,
                 style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
-                    style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
+                style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
             using var font = new SKFont(tf, Math.Max(1f, style.Size))
             {
                 ScaleX = 1f,
@@ -623,6 +627,7 @@ public class TextOutlineNode : NodeLogic
             0x3001 or 0x3002 or 0x3008 or 0x3009 or 0x300A or 0x300B or
             0x300C or 0x300D or 0x300E or 0x300F or 0x3010 or 0x3011;
     }
+
     public override void Dispose()
     {
         _path?.Dispose();

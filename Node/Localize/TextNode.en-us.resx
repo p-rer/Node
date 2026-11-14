@@ -635,4 +635,31 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>Whether to display the leading zero when displaying a fractional value less than 1.</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>Include Zero</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>Omit Zero</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>Font family</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
+<data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
+<data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="TextFontWeightLabel" xml:space="preserve"><value>Weight</value></data>
+<data name="TextFontWeightDescription" xml:space="preserve"><value>Specifies the font weight.</value></data>
+<data name="TextScaleLabel" xml:space="preserve"><value>Writing Direction Scale</value></data>
+<data name="TextScaleDescription" xml:space="preserve"><value>Scale applied along the text writing direction.</value></data>
+<data name="TextSkewLabel" xml:space="preserve"><value>Skew</value></data>
+<data name="TextSkewDescription" xml:space="preserve"><value>Skews the text horizontally.</value></data>
+<data name="TextSlantLabel" xml:space="preserve"><value>Slant</value></data>
+<data name="TextSlantUpright" xml:space="preserve"><value>Upright</value></data>
+<data name="TextSlantItalic" xml:space="preserve"><value>Italic</value></data>
+<data name="TextSlantOblique" xml:space="preserve"><value>Oblique</value></data>
 </root>

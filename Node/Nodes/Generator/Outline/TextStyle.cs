@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
+using Node.Editor.Attributes;
 using Node.Localize;
 using YukkuriMovieMaker.Controls;
 
@@ -9,6 +11,7 @@ public enum TextWritingDirection
 {
     [Display(Name = nameof(TextNode.TextDirectionHorizontal), ResourceType = typeof(TextNode))]
     Horizontal,
+
     [Display(Name = nameof(TextNode.TextDirectionVertical), ResourceType = typeof(TextNode))]
     Vertical
 }
@@ -17,8 +20,10 @@ public enum TextFontSlant
 {
     [Display(Name = nameof(TextNode.TextSlantUpright), ResourceType = typeof(TextNode))]
     Upright,
+
     [Display(Name = nameof(TextNode.TextSlantItalic), ResourceType = typeof(TextNode))]
     Italic,
+
     [Display(Name = nameof(TextNode.TextSlantOblique), ResourceType = typeof(TextNode))]
     Oblique
 }
@@ -26,14 +31,15 @@ public enum TextFontSlant
 public sealed class TextStyle : INotifyPropertyChanged
 {
     private string _fontFamily = "メイリオ";
-    private float _size = 64f;
-    private int _weight = 400;
-    private TextFontSlant _slant = TextFontSlant.Upright;
     private float _scaleX = 1f;
+    private float _size = 64f;
     private float _skewX;
+    private TextFontSlant _slant = TextFontSlant.Upright;
     private TextStyleMap? _unicodeMap;
+    private int _weight = 400;
 
-    [Display(Name = nameof(TextNode.FontFamilyLabel), Description = nameof(TextNode.FontFamilyDescription), ResourceType = typeof(TextNode))]
+    [Display(Name = nameof(TextNode.FontFamilyLabel), Description = nameof(TextNode.FontFamilyDescription),
+        ResourceType = typeof(TextNode))]
     [FontComboBox]
     public string FontFamily
     {
@@ -41,7 +47,8 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _fontFamily, value);
     }
 
-    [Display(Name = nameof(TextNode.FontSizeLabel), Description = nameof(TextNode.FontSizeDescription), ResourceType = typeof(TextNode))]
+    [Display(Name = nameof(TextNode.FontSizeLabel), Description = nameof(TextNode.FontSizeDescription),
+        ResourceType = typeof(TextNode))]
     [TextBoxSlider("F0", "px", 1, 2000)]
     public float Size
     {
@@ -49,15 +56,17 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _size, value);
     }
 
-    [Display(Name = nameof(TextNode.TextFontWeightLabel), Description = nameof(TextNode.TextFontWeightDescription), ResourceType = typeof(TextNode))]
-    [Node.Editor.Attributes.FontWeightPortControl]
+    [Display(Name = nameof(TextNode.TextFontWeightLabel), Description = nameof(TextNode.TextFontWeightDescription),
+        ResourceType = typeof(TextNode))]
+    [FontWeightPortControl]
     public int Weight
     {
         get => _weight;
         set => Set(ref _weight, value);
     }
 
-    [Display(Name = nameof(TextNode.ItalicLabel), Description = nameof(TextNode.ItalicDescription), ResourceType = typeof(TextNode))]
+    [Display(Name = nameof(TextNode.ItalicLabel), Description = nameof(TextNode.ItalicDescription),
+        ResourceType = typeof(TextNode))]
     [EnumComboBox]
     public TextFontSlant Slant
     {
@@ -65,7 +74,8 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _slant, value);
     }
 
-    [Display(Name = nameof(TextNode.TextScaleLabel), Description = nameof(TextNode.TextScaleDescription), ResourceType = typeof(TextNode))]
+    [Display(Name = nameof(TextNode.TextScaleLabel), Description = nameof(TextNode.TextScaleDescription),
+        ResourceType = typeof(TextNode))]
     [TextBoxSlider("F2", "", 0.1, 10)]
     public float Scale
     {
@@ -80,7 +90,8 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Scale = value;
     }
 
-    [Display(Name = nameof(TextNode.TextSkewLabel), Description = nameof(TextNode.TextSkewDescription), ResourceType = typeof(TextNode))]
+    [Display(Name = nameof(TextNode.TextSkewLabel), Description = nameof(TextNode.TextSkewDescription),
+        ResourceType = typeof(TextNode))]
     [TextBoxSlider("F2", "", -2, 2)]
     public float SkewX
     {
@@ -115,14 +126,14 @@ public sealed class TextStyle : INotifyPropertyChanged
         FontFamily = FontFamily,
         Size = Size,
         Weight = Weight,
-        Width = Width,
         Slant = Slant,
         ScaleX = ScaleX,
         SkewX = SkewX,
         UnicodeMap = UnicodeMap
     };
 
-    private void Set<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    private void Set<T>(ref T field, T value,
+        [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
             return;

@@ -1,10 +1,10 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using Node.Editor.Attributes;
-using Node.Nodes.Generator.Outline;
 using Node.Localize;
+using Node.Nodes.Generator.Outline;
 using YukkuriMovieMaker.Commons;
 
 namespace Node.Editor.Control;
@@ -20,9 +20,9 @@ public sealed class TextStylePort : PortControlBase
                 OnValueChanged));
 
     private readonly StackPanel _panel = new() { Orientation = Orientation.Vertical };
-    private TextStyle? _working;
     private bool _rebuilding;
     private bool _suppressValueRebuild;
+    private TextStyle? _working;
 
     public TextStylePort()
     {
@@ -80,7 +80,8 @@ public sealed class TextStylePort : PortControlBase
         }
     }
 
-    private void AddNumberEditor(string propertyName, string label, float min, float max, int digits, string unit, float defaultValue)
+    private void AddNumberEditor(string propertyName, string label, float min, float max, int digits, string unit,
+        float defaultValue)
     {
         if (_working == null) return;
         var property = typeof(TextStyle).GetProperty(propertyName)!;
@@ -88,10 +89,11 @@ public sealed class TextStylePort : PortControlBase
         editor.Value = Convert.ToSingle(property.GetValue(_working));
         editor.BeginEditCommand = BeginEditCommand;
         editor.EndEditCommand = EndEditCommand;
-        DependencyPropertyDescriptor.FromProperty(NumberPort.ValueProperty, typeof(NumberPort))!.AddValueChanged(editor, (_, _) =>
-        {
-            if (!_rebuilding && _working != null) property.SetValue(_working, editor.Value);
-        });
+        DependencyPropertyDescriptor.FromProperty(NumberPort.ValueProperty, typeof(NumberPort))!.AddValueChanged(editor,
+            (_, _) =>
+            {
+                if (!_rebuilding && _working != null) property.SetValue(_working, editor.Value);
+            });
         AddRow(label, editor);
     }
 
@@ -102,10 +104,12 @@ public sealed class TextStylePort : PortControlBase
         var editor = new EnumPort { Items = enumType, Default = Convert.ToInt32(property.GetValue(_working)) };
         editor.BeginEditCommand = BeginEditCommand;
         editor.EndEditCommand = EndEditCommand;
-        DependencyPropertyDescriptor.FromProperty(EnumPort.ValueProperty, typeof(EnumPort))!.AddValueChanged(editor, (_, _) =>
-        {
-            if (!_rebuilding && _working != null) property.SetValue(_working, Enum.ToObject(enumType, editor.Value));
-        });
+        DependencyPropertyDescriptor.FromProperty(EnumPort.ValueProperty, typeof(EnumPort))!.AddValueChanged(editor,
+            (_, _) =>
+            {
+                if (!_rebuilding && _working != null)
+                    property.SetValue(_working, Enum.ToObject(enumType, editor.Value));
+            });
         AddRow(label, editor);
     }
 
@@ -116,11 +120,13 @@ public sealed class TextStylePort : PortControlBase
         if (editor is FontWeightPort weight)
         {
             weight.Value = Convert.ToInt32(property.GetValue(_working));
-            DependencyPropertyDescriptor.FromProperty(FontWeightPort.ValueProperty, typeof(FontWeightPort))!.AddValueChanged(weight, (_, _) =>
-            {
-                if (!_rebuilding && _working != null) property.SetValue(_working, weight.Value);
-            });
+            DependencyPropertyDescriptor.FromProperty(FontWeightPort.ValueProperty, typeof(FontWeightPort))!
+                .AddValueChanged(weight, (_, _) =>
+                {
+                    if (!_rebuilding && _working != null) property.SetValue(_working, weight.Value);
+                });
         }
+
         editor.BeginEditCommand = BeginEditCommand;
         editor.EndEditCommand = EndEditCommand;
         AddRow(label, editor);
@@ -131,7 +137,8 @@ public sealed class TextStylePort : PortControlBase
         var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
+        var text = new TextBlock
+            { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
         text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         row.MinWidth = text.DesiredSize.Width + 85;
         text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -142,6 +149,7 @@ public sealed class TextStylePort : PortControlBase
         row.Children.Add(editor);
         _panel.Children.Add(row);
     }
+
     private void AddYmmEditor(string propertyName, string label)
     {
         if (_working == null)
@@ -219,9 +227,14 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                 OnValueChanged));
 
-    private readonly NumberPort _start = new() { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0, Hexadecimal = true, Prefix = "U+" };
-    private readonly NumberPort _end = new() { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0x10FFFF, Hexadecimal = true, Prefix = "U+" };
+    private readonly NumberPort _end = new()
+        { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0x10FFFF, Hexadecimal = true, Prefix = "U+" };
+
     private readonly TextBox _offset = new() { MinWidth = 78 };
+
+    private readonly NumberPort _start = new()
+        { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0, Hexadecimal = true, Prefix = "U+" };
+
     private readonly TextStylePort _style = new();
     private bool _updating;
 
@@ -264,7 +277,7 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             var value = Value ?? new UnicodeRangeStyle();
             _start.Value = value.StartCodePoint;
             _end.Value = value.EndCodePoint;
-            _offset.Text = value.Offset.ToString(System.Globalization.CultureInfo.CurrentCulture);
+            _offset.Text = value.Offset.ToString(CultureInfo.CurrentCulture);
             _style.Value = value.Style ?? new TextStyle();
         }
         finally
@@ -289,8 +302,8 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             return;
 
         if (!float.TryParse(_offset.Text,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.CurrentCulture,
+                NumberStyles.Float,
+                CultureInfo.CurrentCulture,
                 out var offset))
             return;
 
@@ -322,15 +335,15 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             return;
 
         if (!float.TryParse(_offset.Text,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.CurrentCulture,
+                NumberStyles.Float,
+                CultureInfo.CurrentCulture,
                 out var offset))
             return;
 
         Value = new UnicodeRangeStyle
         {
-            StartCodePoint = start.Value,
-            EndCodePoint = end.Value,
+            StartCodePoint = start,
+            EndCodePoint = end,
             Offset = offset,
             Style = _style.Value?.CloneWithoutUnicodeMap() ?? new TextStyle()
         };
@@ -354,5 +367,4 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         row.Children.Add(editor);
         return row;
     }
-
 }

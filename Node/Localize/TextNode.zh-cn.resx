@@ -635,4 +635,31 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>显示小于1的小数时是否显示整数部分的0。</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>显示0</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>省略0</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>size</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
+<data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
+<data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="TextFontWeightLabel" xml:space="preserve"><value>字重</value></data>
+<data name="TextFontWeightDescription" xml:space="preserve"><value>指定字体粗细。</value></data>
+<data name="TextScaleLabel" xml:space="preserve"><value>文字方向缩放</value></data>
+<data name="TextScaleDescription" xml:space="preserve"><value>沿文字书写方向应用的缩放倍率。</value></data>
+<data name="TextSkewLabel" xml:space="preserve"><value>倾斜</value></data>
+<data name="TextSkewDescription" xml:space="preserve"><value>沿水平方向倾斜文字。</value></data>
+<data name="TextSlantLabel" xml:space="preserve"><value>倾斜</value></data>
+<data name="TextSlantUpright" xml:space="preserve"><value>正体</value></data>
+<data name="TextSlantItalic" xml:space="preserve"><value>斜体</value></data>
+<data name="TextSlantOblique" xml:space="preserve"><value>伪斜体</value></data>
 </root>

@@ -164,4 +164,7 @@
 <data name="InputPortDialogTitle" xml:space="preserve"><value>입력 포트</value></data>
 <data name="EditOutputPortsTitle" xml:space="preserve"><value>출력 포트 편집</value></data>
 <data name="OutputPortDialogTitle" xml:space="preserve"><value>출력 포트</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
 </root>
