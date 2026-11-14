@@ -10,6 +10,7 @@ using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
 using Node.Localize;
+using Node.Nodes.Effect;
 using Node.Nodes.Func;
 using Node.Utility;
 using YukkuriMovieMaker.Commons;
@@ -356,10 +357,47 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     {
         lock (_graph.GraphLock)
         {
+            if (!_graph.Nodes.TryGetValue(nodeId, out var logic) || logic is not NodeEffectNode node)
+                return;
+
+            var childNode = outputs ? node.InnerReturn : node.InnerArguments;
+            if (childNode == null)
+                return;
+
             _graph.BeginEdit();
             try
             {
-                _graph.ReplaceSubGraphPorts(nodeId, outputs, definitions);
+                var affectedConnections = outputs
+                    ? _graph.Connections.Where(c => c.FromId == nodeId).ToList()
+                    : _graph.Connections.Where(c => c.ToId == nodeId).ToList();
+
+                foreach (var connection in affectedConnections)
+                    _graph.DisconnectSilently(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
+
+                if (!node.Graph.ReplaceArgumentPorts(childNode.Id, definitions))
+                {
+                    foreach (var connection in affectedConnections)
+                        _graph.Connect(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
+                    return;
+                }
+
+                node.SyncPorts();
+
+                foreach (var connection in affectedConnections)
+                {
+                    var portName = outputs ? connection.FromPort : connection.ToPort;
+                    if (portName == null)
+                        continue;
+
+                    var portExists = outputs
+                        ? node.Outputs.ContainsKey(portName)
+                        : node.Inputs.ContainsKey(portName);
+
+                    if (portExists)
+                        _graph.Connect(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
+                }
+
+                _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
             }
             finally
             {
