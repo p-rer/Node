@@ -147,7 +147,9 @@ public sealed class TextStylePort : PortControlBase
         var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
         text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         row.MinWidth = text.DesiredSize.Width + 85;
-                Grid.SetColumn(text, 0);
+                text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        row.MinWidth = text.DesiredSize.Width + 85;
+        Grid.SetColumn(text, 0);
         Grid.SetColumn(editor, 1);
         row.Children.Add(text);
         row.Children.Add(editor);
@@ -327,9 +329,9 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         if (_updating)
             return;
 
-        var start = ParseCodePoint(_start.Text);
-        var end = ParseCodePoint(_end.Text);
-        if (start == null || end == null || start > end)
+        var start = (int)Math.Clamp(MathF.Round(_start.Value), 0, 0x10FFFF);
+        var end = (int)Math.Clamp(MathF.Round(_end.Value), 0, 0x10FFFF);
+        if (start > end)
             return;
 
         if (!float.TryParse(_offset.Text,
