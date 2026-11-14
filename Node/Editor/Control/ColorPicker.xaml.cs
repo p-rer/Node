@@ -398,7 +398,7 @@ public partial class ColorPicker
     }
 
     // Update the triangle gradient
-    private void UpdateTriangleGradient()
+    private async void UpdateTriangleGradient()
     {
         // Compute the bounding box of the triangle
         var minX = Math.Min(_a.X, Math.Min(_b.X, _c.X));
@@ -414,40 +414,39 @@ public partial class ColorPicker
             return;
         }
 
-        // Create a bitmap and fill it with the gradient
-        var bmp = new WriteableBitmap(bmpWidth, bmpHeight, 96, 96, PixelFormats.Bgra32, null);
-        var stride = bmpWidth * 4;
-        var pixels = new byte[bmpHeight * stride];
-        var pureHue = ColorFromHsv(_currentHue, 1, 1);
+        var a = _a;
+        var b = _b;
+        var c = _c;
+        var hue = _currentHue;
 
-        // Fill the bitmap with the gradient
-        for (var y = 0; y < bmpHeight; y++)
-        for (var x = 0; x < bmpWidth; x++)
+        var bmp = await Task.Run(() =>
         {
-            var p = new Point(minX + x, minY + y);
-            ComputeBarycentricCoordinates(p, _a, _b, _c, out var wA, out var wB, out var wC);
-            var index = y * stride + x * 4;
-            if (wA >= 0 && wB >= 0 && wC >= 0)
-            {
-                var r = (byte)Math.Clamp(wA * 255 + wB * pureHue.R, 0, 255);
-                var g = (byte)Math.Clamp(wA * 255 + wB * pureHue.G, 0, 255);
-                var b = (byte)Math.Clamp(wA * 255 + wB * pureHue.B, 0, 255);
-                pixels[index + 0] = b;
-                pixels[index + 1] = g;
-                pixels[index + 2] = r;
-                pixels[index + 3] = 255;
-            }
-            else
-            {
-                pixels[index + 0] = 0;
-                pixels[index + 1] = 0;
-                pixels[index + 2] = 0;
-                pixels[index + 3] = 0;
-            }
-        }
+            var result = new WriteableBitmap(bmpWidth, bmpHeight, 96, 96, PixelFormats.Bgra32, null);
+            var stride = bmpWidth * 4;
+            var pixels = new byte[bmpHeight * stride];
+            var pureHue = ColorFromHsv(hue, 1, 1);
 
-        bmp.WritePixels(new Int32Rect(0, 0, bmpWidth, bmpHeight), pixels, stride, 0);
+            for (var y = 0; y < bmpHeight; y++)
+            for (var x = 0; x < bmpWidth; x++)
+            {
+                var p = new Point(minX + x, minY + y);
+                ComputeBarycentricCoordinates(p, a, b, c, out var wA, out var wB, out var wC);
+                var index = y * stride + x * 4;
+                if (wA >= 0 && wB >= 0 && wC >= 0)
+                {
+                    pixels[index + 0] = (byte)Math.Clamp(wA * 255 + wB * pureHue.B, 0, 255);
+                    pixels[index + 1] = (byte)Math.Clamp(wA * 255 + wB * pureHue.G, 0, 255);
+                    pixels[index + 2] = (byte)Math.Clamp(wA * 255 + wB * pureHue.R, 0, 255);
+                    pixels[index + 3] = 255;
+                }
+            }
 
+            result.WritePixels(new Int32Rect(0, 0, bmpWidth, bmpHeight), pixels, stride, 0);
+            if (result.CanFreeze) result.Freeze();
+            return result;
+        });
+
+        if (!IsLoaded) return;
         var brush = new ImageBrush(bmp)
         {
             Viewbox = new Rect(0, 0, bmpWidth, bmpHeight),
@@ -530,9 +529,9 @@ public partial class ColorPicker
         return bmp;
     }
 
-    private void UpdateHueRingBrush()
+    private async void UpdateHueRingBrush()
     {
-        var bmp = GenerateHueRingBitmap();
+        var bmp = await Task.Run(GenerateHueRingBitmap);
         var brush = new ImageBrush(bmp)
         {
             Stretch = Stretch.None,
