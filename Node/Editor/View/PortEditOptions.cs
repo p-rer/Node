@@ -38,6 +38,13 @@ public sealed class PortEditOptions(
     public static PortEditOptions Text =>
         new([FromKind(ArgumentPortKind.Text)], TextUi.EditStringPortsTitle, TextUi.StringPortDialogTitle, false);
 
+    /// <summary>Unicode 範囲スタイルノードの追加端子。</summary>
+    public static PortEditOptions UnicodeRanges =>
+        new([new PortTypeOption(typeof(Node.Nodes.Generator.Outline.UnicodeRangeStyle),
+                TextUi.UnicodeRangeStylePortName,
+                () => new Node.Nodes.Generator.Outline.UnicodeRangeStyle())],
+            TextUi.EditUnicodeRangePortsTitle, TextUi.UnicodeRangePortDialogTitle, false);
+
     /// <summary>Node エフェクトノードの入力端子。</summary>
     public static PortEditOptions SubGraphInput =>
         new(SubGraphTypes(), TextUi.EditInputPortsTitle, TextUi.InputPortDialogTitle, false);
