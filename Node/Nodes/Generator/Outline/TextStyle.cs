@@ -28,7 +28,6 @@ public sealed class TextStyle : INotifyPropertyChanged
     private string _fontFamily = "メイリオ";
     private float _size = 64f;
     private int _weight = 400;
-    private int _width = 5;
     private TextFontSlant _slant = TextFontSlant.Upright;
     private float _scaleX = 1f;
     private float _skewX;
@@ -56,14 +55,6 @@ public sealed class TextStyle : INotifyPropertyChanged
     {
         get => _weight;
         set => Set(ref _weight, value);
-    }
-
-    [Display(Name = nameof(TextNode.TextFontWidthLabel), Description = nameof(TextNode.TextFontWidthDescription), ResourceType = typeof(TextNode))]
-    [Node.Editor.Attributes.FontWidthPortControl]
-    public int Width
-    {
-        get => _width;
-        set => Set(ref _width, value);
     }
 
     [Display(Name = nameof(TextNode.ItalicLabel), Description = nameof(TextNode.ItalicDescription), ResourceType = typeof(TextNode))]
@@ -114,7 +105,6 @@ public sealed class TextStyle : INotifyPropertyChanged
         FontFamily = FontFamily,
         Size = Size,
         Weight = Weight,
-        Width = Width,
         Slant = Slant,
         ScaleX = ScaleX,
         SkewX = SkewX
