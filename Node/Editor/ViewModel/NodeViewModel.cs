@@ -126,8 +126,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     public bool CanEditPorts =>
         NodeLogic is ArgumentsNode { AllowCustomPorts: true } ||
-        NodeLogic is IPortDefinitionNode { DynamicPortKind: not DynamicPortKind.Default } ||
-        NodeLogic is ReturnNode;
+        NodeLogic is IPortDefinitionNode { DynamicPortKind: not DynamicPortKind.Default };
 
     public bool IsTextPortsOnly =>
         NodeLogic is IPortDefinitionNode { DynamicPortKind: DynamicPortKind.Text };
