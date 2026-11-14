@@ -87,7 +87,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             var dispatcher = Application.Current?.Dispatcher;
             if (dispatcher != null && !dispatcher.CheckAccess())
             {
-                dispatcher.Invoke(() => HandleNeedToReinitializeInputPorts(sender, @event));
+                dispatcher.Invoke(new Action(() => HandleNeedToReinitializeInputPorts(sender, @event)));
                 return;
             }
 
