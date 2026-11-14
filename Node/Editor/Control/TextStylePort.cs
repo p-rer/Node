@@ -23,8 +23,6 @@ public sealed class TextStylePort : PortControlBase
     private TextStyle? _working;
     private bool _rebuilding;
     private bool _suppressValueRebuild;
-    private FontWeightPort? _weightEditor;
-    private FontWidthPort? _widthEditor;
 
     public TextStylePort()
     {
@@ -71,10 +69,7 @@ public sealed class TextStylePort : PortControlBase
 
             AddYmmEditor(nameof(TextStyle.FontFamily), TextNode.FontFamilyLabel);
             AddNumberEditor(nameof(TextStyle.Size), TextNode.FontSizeLabel, 1, 2000, 0, "px", 64);
-            _weightEditor = new FontWeightPort();
-            _widthEditor = new FontWidthPort();
-            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, _weightEditor);
-            AddCompositeEditor(nameof(TextStyle.Width), TextNode.TextFontWidthLabel, _widthEditor);
+            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, new FontWeightPort());
             AddEnumEditor(nameof(TextStyle.Slant), TextNode.TextSlantLabel, typeof(TextFontSlant));
             AddNumberEditor(nameof(TextStyle.Scale), TextNode.TextScaleLabel, 0.1f, 10, 2, "", 1);
             AddNumberEditor(nameof(TextStyle.SkewX), TextNode.TextSkewLabel, -2, 2, 2, "", 0);
@@ -124,14 +119,6 @@ public sealed class TextStylePort : PortControlBase
             DependencyPropertyDescriptor.FromProperty(FontWeightPort.ValueProperty, typeof(FontWeightPort))!.AddValueChanged(weight, (_, _) =>
             {
                 if (!_rebuilding && _working != null) property.SetValue(_working, weight.Value);
-            });
-        }
-        else if (editor is FontWidthPort width)
-        {
-            width.Value = Convert.ToInt32(property.GetValue(_working));
-            DependencyPropertyDescriptor.FromProperty(FontWidthPort.ValueProperty, typeof(FontWidthPort))!.AddValueChanged(width, (_, _) =>
-            {
-                if (!_rebuilding && _working != null) property.SetValue(_working, width.Value);
             });
         }
         editor.BeginEditCommand = BeginEditCommand;
