@@ -6,7 +6,6 @@ using Node.Editor.Attributes;
 using Node.Nodes.Generator.Outline;
 using Node.Localize;
 using YukkuriMovieMaker.Commons;
-using SkiaSharp;
 
 namespace Node.Editor.Control;
 
@@ -76,7 +75,6 @@ public sealed class TextStylePort : PortControlBase
             _widthEditor = new FontWidthPort();
             AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, _weightEditor);
             AddCompositeEditor(nameof(TextStyle.Width), TextNode.TextFontWidthLabel, _widthEditor);
-            UpdateFontCapabilities();
             AddEnumEditor(nameof(TextStyle.Slant), TextNode.TextSlantLabel, typeof(TextFontSlant));
             AddNumberEditor(nameof(TextStyle.Scale), TextNode.TextScaleLabel, 0.1f, 10, 2, "", 1);
             AddNumberEditor(nameof(TextStyle.SkewX), TextNode.TextSkewLabel, -2, 2, 2, "", 0);
@@ -144,7 +142,7 @@ public sealed class TextStylePort : PortControlBase
     private void AddRow(string label, FrameworkElement editor)
     {
         var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
         Grid.SetColumn(text, 0);
@@ -189,9 +187,6 @@ public sealed class TextStylePort : PortControlBase
         if (_rebuilding || _working == null)
             return;
 
-        if (e.PropertyName == nameof(TextStyle.FontFamily))
-            UpdateFontCapabilities();
-
         _suppressValueRebuild = true;
         try
         {
@@ -201,22 +196,6 @@ public sealed class TextStylePort : PortControlBase
         {
             _suppressValueRebuild = false;
         }
-    }
-
-    private void UpdateFontCapabilities()
-    {
-        if (_working == null)
-            return;
-
-        using var typeface = SKTypeface.FromFamilyName(_working.FontFamily);
-        var axes = typeface?.VariationDesignParameters ?? [];
-        var wght = axes.Any(axis => axis.Tag == SKFourByteTag.Parse("wght"));
-        var wdth = axes.Any(axis => axis.Tag == SKFourByteTag.Parse("wdth"));
-
-        if (_weightEditor != null)
-            _weightEditor.IsVariableFont = wght;
-        if (_widthEditor != null)
-            _widthEditor.IsVariableFont = wdth;
     }
 
     private void ChildBeginEdit(object? sender, EventArgs e)
@@ -262,11 +241,6 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         panel.Children.Add(CreateRow("開始", _start));
         panel.Children.Add(CreateRow("終了", _end));
         panel.Children.Add(CreateRow("直交", _offset));
-        panel.Children.Add(new TextBlock
-        {
-            Text = "文字スタイル",
-            Margin = new Thickness(0, 4, 0, 1)
-        });
         panel.Children.Add(_style);
 
         Content = panel;
@@ -374,13 +348,14 @@ public sealed class UnicodeRangeStylePort : PortControlBase
     private static Grid CreateRow(string label, FrameworkElement editor)
     {
         var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
-        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         var text = new TextBlock
         {
             Text = label,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 5, 0)
+            Margin = new Thickness(0, 0, 5, 0),
+            TextWrapping = TextWrapping.NoWrap
         };
         Grid.SetColumn(text, 0);
         Grid.SetColumn(editor, 1);
