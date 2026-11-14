@@ -168,10 +168,10 @@ public static class Serializer
                         retNode.Initialize(portDefs);
                         break;
                     }
-                    case UnicodeTextStyleNode unicodeStyleNode when nodeSnap.PortDefinitions.Count != 0:
+                    case IPortDefinitionNode dynamicPortNode when nodeSnap.PortDefinitions.Count != 0:
                     {
                         var portDefs = RestorePortDefinitions(nodeSnap.PortDefinitions);
-                        unicodeStyleNode.Initialize(portDefs);
+                        dynamicPortNode.Initialize(portDefs);
                         break;
                     }
                 }
