@@ -605,24 +605,3 @@ TextSlantLabel,文字傾きラベル,傾き,Slant,倾斜,傾斜,기울기,Inclin
 TextSlantUpright,正立,正立,Upright,正体,正體,정자,Normal,مستقيم,Tegak
 TextSlantItalic,斜体,斜体,Italic,斜体,斜體,이탤릭,Cursiva,مائل,Miring
 TextSlantOblique,斜傾,斜傾,Oblique,伪斜体,偽斜體,기울임,Oblicua,مائل,Miring 비스듬히
-FontWeightCustom,太さを数値指定,数値指定,Custom,自定义,自訂,사용자 지정,Personalizado,مخصص,Kustom
-FontWeightThin,極細,極細,Thin,极细,極細,가는 글꼴,Fina,رفيع,Tipis
-FontWeightExtraLight,特細,特細,Extra Light,特细,特細,매우 가는 글꼴,Extra fina,رفيع جدًا,Sangat tipis
-FontWeightLight,細,細,Light,细,細,가는 글꼴,Ligera,خفيف,Tipis
-FontWeightNormal,標準,標準,Normal,常规,標準,보통,Normal,عادي,Normal
-FontWeightMedium,中太,中太,Medium,中等,中等,중간,Mediana,متوسط,Sedang
-FontWeightSemiBold,やや太,やや太,Semi Bold,半粗,半粗,반굵게,Seminegrita,شبه عريض,Semi tebal
-FontWeightBold,太字,太字,Bold,粗体,粗體,굵게,Negrita,عريض,Tebal
-FontWeightExtraBold,特太,特太,Extra Bold,特粗,特粗,매우 굵게,Extra negrita,عريض جدًا,Sangat tebal
-FontWeightBlack,極太,極太,Black,黑体,黑體,검정,Negra,أسود,Hitam
-FontWeightExtraBlack,超極太,超極太,Extra Black,超黑,超黑,매우 검정,Extra negra,أسود شديد,Sangat hitam
-FontWidthCustom,幅を数値指定,数値指定,Custom,自定义,自訂,사용자 지정,Personalizado,مخصص,Kustom
-FontWidthUltraCondensed,超狭,超狭,Ultra Condensed,超紧缩,超緊縮,초압축,Ultra condensada,مضغوط جدًا,Sangat padat
-FontWidthExtraCondensed,極狭,極狭,Extra Condensed,特紧缩,特緊縮,매우 압축,Extra condensada,مضغوط جدًا,Sangat padat
-FontWidthCondensed,狭,狭,Condensed,紧缩,緊縮,압축,Condensada,مضغوط,Padat
-FontWidthSemiCondensed,やや狭,やや狭,Semi Condensed,半紧缩,半緊縮,약간 압축,Semicondensada,شبه مضغوط,Semi-padat
-FontWidthNormal,標準,標準,Normal,正常,正常,보통,Normal,عادي,Normal
-FontWidthSemiExpanded,やや広,やや広,Semi Expanded,半扩展,半擴展,약간 확장,Semiexpandida,شبه موسع,Semi-lebar
-FontWidthExpanded,広,広,Expanded,扩展,擴展,확장,Expandida,موسع,Lebar
-FontWidthExtraExpanded,極広,極広,Extra Expanded,特扩展,特擴展,매우 확장,Extra expandida,موسع جدًا,Sangat lebar
-FontWidthUltraExpanded,超広,超広,Ultra Expanded,超扩展,超擴展,초확장,Ultra expandida,موسع للغاية,Sangat lebar
