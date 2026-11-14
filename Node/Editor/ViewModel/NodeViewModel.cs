@@ -257,6 +257,85 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
     }
 
+    private void HandleNeedToReinitializeInputPorts(object? sender, NeedToReinitializeInputPortsEvent @event)
+    {
+        var logic = (NodeLogic)sender!;
+
+        if (logic is IPortDefinitionNode { DynamicPortKind: not DynamicPortKind.Default })
+        {
+            InputPorts.Clear();
+            foreach (var portVm in CreateInputPorts(logic, _graph))
+                InputPorts.Add(portVm);
+            foreach (var portVm in InputPorts)
+                portVm.ApplyDefaultToGraph();
+            _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
+            return;
+        }
+
+        var savedConnections = InputPorts
+            .Select(portVm => new
+            {
+                portVm.Name,
+                ControlAttributeType = portVm.ControlAttribute?.ControlType,
+                EditorAttributeType = portVm.EditorAttribute?.GetType(),
+                Connections = _graph.Connections
+                    .Where(c => c.ToId == Id && c.ToPort == portVm.Name)
+                    .Select(c => new { c.FromId, c.FromPort })
+                    .ToList(),
+                LocalValue = logic.Inputs.TryGetValue(portVm.Name, out var oldPort)
+                    ? oldPort.LocalValue
+                    : null
+            }).ToList();
+
+        var prefix = @event.PropName + ".";
+        var newSubPortNames = @event.NewContainer.GetType()
+            .GetProperties()
+            .Where(p => Attribute.IsDefined(p, typeof(InputPortAttribute)))
+            .Select(p => prefix + p.Name)
+            .ToHashSet();
+
+        foreach (var port in savedConnections)
+        {
+            if (!port.Name.StartsWith(prefix)) continue;
+            if (newSubPortNames.Contains(port.Name)) continue;
+            foreach (var conn in port.Connections)
+                _graph.DisconnectSilently(conn.FromId, conn.FromPort, Id, port.Name);
+        }
+
+        logic.SwapDynamicContainer(@event.PropName, @event.NewContainer);
+
+        InputPorts.Clear();
+        foreach (var portVm in CreateInputPorts(logic, _graph))
+            InputPorts.Add(portVm);
+
+        var newPortsByName = InputPorts.ToDictionary(p => p.Name);
+        foreach (var saved in savedConnections)
+        {
+            if (!newPortsByName.TryGetValue(saved.Name, out var newPortVm)) continue;
+            if (newPortVm.ControlAttribute?.ControlType != saved.ControlAttributeType) continue;
+            if (newPortVm.EditorAttribute?.GetType() != saved.EditorAttributeType) continue;
+
+            if (saved.Connections.Count > 0)
+            {
+                foreach (var conn in saved.Connections)
+                    _graph.Connect(conn.FromId, conn.FromPort, Id, saved.Name);
+            }
+            else if (saved.Name.StartsWith(prefix))
+            {
+                var subName = saved.Name[prefix.Length..];
+                var restoreValue = saved.LocalValue
+                                   ?? @event.NewContainer.GetType().GetProperty(subName)
+                                       ?.GetValue(@event.NewContainer);
+                _graph.SetInputValue(Id, saved.Name, restoreValue);
+            }
+        }
+
+        foreach (var portVm in InputPorts)
+            portVm.ApplyDefaultToGraph();
+
+        _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
+    }
+
     public void Dispose()
     {
         if (_isDisposed) return;
