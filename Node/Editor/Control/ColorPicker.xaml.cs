@@ -526,6 +526,7 @@ public partial class ColorPicker
         }
 
         bmp.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+        if (bmp.CanFreeze) bmp.Freeze();
         return bmp;
     }
 
