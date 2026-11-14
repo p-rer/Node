@@ -428,7 +428,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     private IEnumerable<PortViewModel> CreateOutputPorts(NodeLogic node, NodeGraph graph)
     {
-        var subGraphNode = node as NodeEffectNode;
+        var subGraphNode = node as ISubGraphPortNode;
         var argumentDefinitions = (node as ArgumentsNode)?.GetPortDefinitions() ??
                                   subGraphNode?.InnerReturn?.GetPortDefinitions();
 
@@ -444,7 +444,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                 portAttr?.GetLabel() ?? definition?.GetDisplayLabel() ?? name,
                 portAttr?.GetDescription() ?? "",
                 portColorAttr?.Color ?? (subGraphNode != null
-                    ? NodeEffectNode.GetPortColor(port.ValueType)
+                    ? GetSubGraphPortColor(port.ValueType)
                     : nameof(Colors.SlateGray)),
                 port.ValueType,
                 PortDirection.Output,
