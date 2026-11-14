@@ -210,8 +210,13 @@ public sealed class NodeGraph
     /// </returns>
     public bool ReplaceArgumentPorts(Guid nodeId, PortDefinition[] portDefinitions)
     {
-        if (_nodes.TryGetValue(nodeId, out var target) && target is StringConcatNode concatNode)
-            return ReplaceTextPorts(concatNode, portDefinitions);
+        if (_nodes.TryGetValue(nodeId, out var target))
+        {
+            if (target is StringConcatNode concatNode)
+                return ReplaceTextPorts(concatNode, portDefinitions);
+            if (target is UnicodeTextStyleNode unicodeStyleNode)
+                return ReplaceUnicodeStylePorts(unicodeStyleNode, portDefinitions);
+        }
 
         if (!_nodes.TryGetValue(nodeId, out var node) ||
             node is not ArgumentsNode { AllowCustomPorts: true } argumentsNode)
@@ -322,6 +327,35 @@ public sealed class NodeGraph
     ///     定義に残っている端子は入力値と接続を引き継ぎ、定義から無くなった端子への接続だけを外します。
     /// </summary>
     /// <returns>差し替えた場合はtrue。文字列端子として不正な定義（型・名前の重複や衝突など）の場合は何もせずfalse。</returns>
+    private bool ReplaceUnicodeStylePorts(UnicodeTextStyleNode node, PortDefinition[] portDefinitions)
+    {
+        if (!UnicodeTextStyleNode.IsValidRangePortSet(portDefinitions))
+            return false;
+
+        var remainingNames = portDefinitions.Select(d => d.Name).ToHashSet();
+        var removed = Connections
+            .Where(c => c.ToId == node.Id && c.ToPort.StartsWith("Range.", StringComparison.Ordinal) &&
+                        !remainingNames.Contains(c.ToPort))
+            .ToList();
+        foreach (var c in removed)
+            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
+
+        var oldValues = node.GetPortDefinitions()
+            .ToDictionary(d => d.Name, d => node.Inputs.TryGetValue(d.Name, out var p) ? p.LocalValue : null);
+
+        node.Initialize(portDefinitions);
+
+        foreach (var definition in portDefinitions)
+        {
+            if (oldValues.TryGetValue(definition.Name, out var value) && value != null)
+                node.Inputs[definition.Name].SetValue(value);
+        }
+
+        node.NotifyPortDefinitionsChanged();
+        OnGraphChanged(new ConnectionChangedEventArgs(null, null, node.Id, null));
+        return true;
+    }
+
     private bool ReplaceTextPorts(StringConcatNode node, PortDefinition[] portDefinitions)
     {
         if (!StringConcatNode.IsValidTextPortSet(portDefinitions))
