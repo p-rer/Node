@@ -21,7 +21,7 @@ namespace Node.Nodes.Effect;
 /// </summary>
 [Node("NodeEffectKey_EffectCategoryName/NodeEffectKey_VideoEffectCategoryName/" + VideoEffectCategories.Filtering,
     nameof(TextUi.Node), nameof(TextUi.Node), typeof(TextUi))]
-public class NodeEffectNode : NodeLogic
+public class NodeEffectNode : NodeLogic, ISubGraphPortNode
 {
     /// <summary>
     ///     入力・出力の端子として選べる型。
