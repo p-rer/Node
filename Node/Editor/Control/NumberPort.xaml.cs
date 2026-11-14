@@ -329,7 +329,7 @@ public sealed partial class NumberPort
 
     private string FormatValue(float value)
         => Hexadecimal
-            ? Prefix + ((int)Math.Clamp(MathF.Round(value), 0, 0x10FFFF)).ToString("X4", CultureInfo.InvariantCulture)
+            ? ((int)Math.Clamp(MathF.Round(value), 0, 0x10FFFF)).ToString("X4", CultureInfo.InvariantCulture)
             : value.ToString("F" + Digits, CultureInfo.InvariantCulture);
 
     [GeneratedRegex("[^0-9.-]+")]
