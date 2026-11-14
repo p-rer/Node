@@ -104,3 +104,7 @@ EditInputPortsTitle,入力端子編集ダイアログのタイトル,入力ポ�
 InputPortDialogTitle,入力端子の追加・編集ダイアログのタイトル,入力ポート,Input Port,输入端口,輸入埠,입력 포트,Puerto de entrada,منفذ الإدخال,Port Masukan
 EditOutputPortsTitle,出力端子編集ダイアログのタイトル,出力ポートの編集,Edit Output Ports,编辑输出端口,編輯輸出埠,출력 포트 편집,Editar puertos de salida,تحرير منافذ الإخراج,Edit Port Keluaran
 OutputPortDialogTitle,出力端子の追加・編集ダイアログのタイトル,出力ポート,Output Port,输出端口,輸出埠,출력 포트,Puerto de salida,منفذ الإخراج,Port Keluaran
+
+UnicodeRangeStylePortName,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style
+EditUnicodeRangePortsTitle,Unicode範囲スタイルの編集,Unicode範囲スタイル,Unicode Range Styles
+UnicodeRangePortDialogTitle,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style
