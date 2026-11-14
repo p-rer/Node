@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using Node.Editor.Attributes;
@@ -400,6 +401,7 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.FontFamilyLabel), nameof(TextNode.FontFamilyDescription), typeof(TextNode))]
+    [LegacyInputPort]
     [FontComboBox]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public string FontFamily
@@ -415,6 +417,7 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.FontSizeLabel), nameof(TextNode.FontSizeDescription), typeof(TextNode))]
+    [LegacyInputPort]
     [NumberPortControl(Min = 1, Max = 2000, Default = 64)]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public float Size
@@ -424,6 +427,7 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.BoldLabel), nameof(TextNode.BoldDescription), typeof(TextNode))]
+    [LegacyInputPort]
     [BoolPortControl(Default = false)]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public bool Bold
@@ -433,11 +437,41 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.ItalicLabel), nameof(TextNode.ItalicDescription), typeof(TextNode))]
+    [LegacyInputPort]
     [BoolPortControl(Default = false)]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public bool Italic
     {
         get => GetInput<bool>();
+        set => SetInput(value);
+    }
+
+    [InputPort(nameof(TextNode.TextStyleLabel), nameof(TextNode.TextStyleDescription), typeof(TextNode))]
+    [TextStylePortControl]
+    [PortColorSetting(nameof(Colors.DarkOrange))]
+    public TextStyle Style
+    {
+        get
+        {
+            var value = GetInput<TextStyle>();
+            return value ?? new TextStyle
+            {
+                FontFamily = FontFamily,
+                Size = Math.Max(1f, Size),
+                Weight = Bold ? 700 : 400,
+                Width = 5,
+                Slant = Italic ? TextFontSlant.Italic : TextFontSlant.Upright
+            };
+        }
+        set => SetInput(value);
+    }
+
+    [InputPort(nameof(TextNode.TextWritingDirectionLabel), nameof(TextNode.TextWritingDirectionDescription), typeof(TextNode))]
+    [EnumPortControl(Default = 0, IsEditable = false, Items = typeof(TextWritingDirection))]
+    [PortColorSetting(nameof(Colors.DarkOrange))]
+    public TextWritingDirection WritingDirection
+    {
+        get => GetInput<TextWritingDirection>();
         set => SetInput(value);
     }
 
@@ -489,29 +523,79 @@ public class TextOutlineNode : NodeLogic
 
     protected override Task Calculate()
     {
-        var weight = Bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal;
-        var slant = Italic ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright;
+        var style = Style;
+        var weight = (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000);
+        var slant = style.Slant switch
+        {
+            TextFontSlant.Italic => SKFontStyleSlant.Italic,
+            TextFontSlant.Oblique => SKFontStyleSlant.Oblique,
+            _ => SKFontStyleSlant.Upright
+        };
+        var width = (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9);
+        using var typeface = SKTypeface.FromFamilyName(string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
+            weight, width, slant);
+        using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.ScaleX), SkewX = style.SkewX };
 
-        using var typeface = SKTypeface.FromFamilyName(
-            string.IsNullOrWhiteSpace(FontFamily) ? null : FontFamily,
-            weight, SKFontStyleWidth.Normal, slant);
-        using var font = new SKFont(typeface, Math.Max(1f, Size));
-
-        var path = font.GetTextPath(Text, new SKPoint(0f, 0f));
+        var path = WritingDirection == TextWritingDirection.Horizontal
+            ? BuildHorizontalPath(font, Text, GetInput<TextStyleMap>())
+            : BuildVerticalPath(font, Text, GetInput<TextStyleMap>());
         var bounds = path.Bounds;
-
         var horizontalRatio = Math.Clamp((HorizontalOffset + 1f) / 2f, 0f, 1f);
         var verticalRatio = Math.Clamp((VerticalOffset + 1f) / 2f, 0f, 1f);
         var anchorX = bounds.Left + (bounds.Right - bounds.Left) * horizontalRatio;
         var anchorY = bounds.Top + (bounds.Bottom - bounds.Top) * verticalRatio;
-
         path.Transform(SKMatrix.CreateTranslation(OriginX - anchorX, OriginY - anchorY));
-
         _path?.Dispose();
         _path = path;
         Output = new OutlineWrapper { Path = _path };
-
         return Task.CompletedTask;
+    }
+
+    private static SKPath BuildHorizontalPath(SKFont fallbackFont, string text, TextStyleMap? map)
+    {
+        if (map == null || map.Ranges.Count == 0) return fallbackFont.GetTextPath(text, new SKPoint(0, 0));
+        var result = new SKPath();
+        var x = 0f;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            var style = map.Resolve(rune.Value, out var offset);
+            using var tf = SKTypeface.FromFamilyName(style.FontFamily,
+                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
+                (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9),
+                style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic : style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
+            using var font = new SKFont(tf, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.ScaleX), SkewX = style.SkewX };
+            using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(x, offset));
+            result.AddPath(glyph);
+            x += font.MeasureText(rune.ToString());
+        }
+        return result;
+    }
+
+    private static SKPath BuildVerticalPath(SKFont fallbackFont, string text, TextStyleMap? map)
+    {
+        if (map == null || map.Ranges.Count == 0)
+        {
+            var fallback = fallbackFont.GetTextPath(text, new SKPoint(0, 0));
+            fallback.Transform(SKMatrix.CreateRotationDegrees(-90));
+            return fallback;
+        }
+        var result = new SKPath();
+        var y = 0f;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            var style = map.Resolve(rune.Value, out var offset);
+            using var tf = SKTypeface.FromFamilyName(style.FontFamily,
+                (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
+                (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9),
+                style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic : style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
+            using var font = new SKFont(tf, Math.Max(1f, style.Size));
+            using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(0, 0));
+            glyph.Transform(SKMatrix.CreateRotationDegrees(-90));
+            glyph.Transform(SKMatrix.CreateTranslation(offset, y));
+            result.AddPath(glyph);
+            y += font.Size;
+        }
+        return result;
     }
 
     public override void Dispose()
