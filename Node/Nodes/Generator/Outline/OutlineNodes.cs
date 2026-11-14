@@ -466,15 +466,6 @@ public class TextOutlineNode : NodeLogic
         set => SetInput(value);
     }
 
-    [InputPort(nameof(TextNode.TextStyleMapLabel), nameof(TextNode.TextStyleMapDescription), typeof(TextNode))]
-    [TextStyleMapPortControl]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public TextStyleMap? StyleMap
-    {
-        get => GetInput<TextStyleMap>();
-        set => SetInput(value);
-    }
-
     [InputPort(nameof(TextNode.TextWritingDirectionLabel), nameof(TextNode.TextWritingDirectionDescription), typeof(TextNode))]
     [EnumPortControl(Default = 0, IsEditable = false, Items = typeof(TextWritingDirection))]
     [PortColorSetting(nameof(Colors.DarkOrange))]
@@ -546,8 +537,8 @@ public class TextOutlineNode : NodeLogic
         using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.ScaleX), SkewX = style.SkewX };
 
         var path = WritingDirection == TextWritingDirection.Horizontal
-            ? BuildHorizontalPath(font, Text, StyleMap)
-            : BuildVerticalPath(font, Text, StyleMap);
+            ? BuildHorizontalPath(font, Text, style.UnicodeMap)
+            : BuildVerticalPath(font, Text, style.UnicodeMap);
         var bounds = path.Bounds;
         var horizontalRatio = Math.Clamp((HorizontalOffset + 1f) / 2f, 0f, 1f);
         var verticalRatio = Math.Clamp((VerticalOffset + 1f) / 2f, 0f, 1f);
@@ -582,29 +573,66 @@ public class TextOutlineNode : NodeLogic
 
     private static SKPath BuildVerticalPath(SKFont fallbackFont, string text, TextStyleMap? map)
     {
-        if (map == null || map.Ranges.Count == 0)
-        {
-            var fallback = fallbackFont.GetTextPath(text, new SKPoint(0, 0));
-            fallback.Transform(SKMatrix.CreateRotationDegrees(-90));
-            return fallback;
-        }
         var result = new SKPath();
         var y = 0f;
+
         foreach (var rune in text.EnumerateRunes())
         {
-            var style = map.Resolve(rune.Value, out var offset);
-            using var tf = SKTypeface.FromFamilyName(style.FontFamily,
+            var style = map?.Resolve(rune.Value, out var offset) ?? (new TextStyle(), 0f);
+            if (map == null)
+                style = new TextStyle
+                {
+                    FontFamily = fallbackFont.Typeface.FamilyName,
+                    Size = fallbackFont.Size,
+                    Weight = (int)fallbackFont.Typeface.FontStyle.Weight,
+                    Width = (int)fallbackFont.Typeface.FontStyle.Width,
+                    Slant = fallbackFont.Typeface.FontStyle.Slant switch
+                    {
+                        SKFontStyleSlant.Italic => TextFontSlant.Italic,
+                        SKFontStyleSlant.Oblique => TextFontSlant.Oblique,
+                        _ => TextFontSlant.Upright
+                    }
+                };
+
+            using var tf = SKTypeface.FromFamilyName(
+                string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
                 (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
                 (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9),
-                style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic : style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
-            using var font = new SKFont(tf, Math.Max(1f, style.Size));
-            using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(0, 0));
-            glyph.Transform(SKMatrix.CreateRotationDegrees(-90));
+                style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
+                style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique :
+                SKFontStyleSlant.Upright);
+            using var font = new SKFont(tf, Math.Max(1f, style.Size))
+            {
+                ScaleX = Math.Max(0.01f, style.ScaleX),
+                SkewX = style.SkewX
+            };
+
+            var glyphText = rune.ToString();
+            using var glyph = font.GetTextPath(glyphText, new SKPoint(0, 0));
+            if (!IsVerticalUprightRune(rune.Value))
+                glyph.Transform(SKMatrix.CreateRotationDegrees(-90));
+
             glyph.Transform(SKMatrix.CreateTranslation(offset, y));
             result.AddPath(glyph);
-            y += font.Size;
+
+            var advance = Math.Max(1f, font.MeasureText(glyphText));
+            y += IsVerticalUprightRune(rune.Value) ? advance : Math.Max(1f, font.Size);
         }
+
         return result;
+    }
+
+    private static bool IsVerticalUprightRune(int codePoint)
+    {
+        return codePoint is
+            >= 0x2E80 and <= 0x9FFF or
+            >= 0xF900 and <= 0xFAFF or
+            >= 0xAC00 and <= 0xD7AF or
+            >= 0x3040 and <= 0x30FF or
+            >= 0x31F0 and <= 0x31FF or
+            >= 0xFF00 and <= 0xFFEF or
+            0x3001 or 0x3002 or 0x3008 or 0x3009 or 0x300A or 0x300B or
+            0x300C or 0x300D or 0x300E or 0x300F or 0x3010 or 0x3011;
     }
 
     public override void Dispose()
