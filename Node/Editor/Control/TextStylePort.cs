@@ -310,7 +310,40 @@ public sealed class UnicodeRangeStylePort : PortControlBase
 
     private void StyleChanged(object? sender, EventArgs e)
     {
-        Commit();
+        CommitPreservingEditor();
+    }
+
+    private void CommitPreservingEditor()
+    {
+        if (_updating)
+            return;
+
+        var start = ParseCodePoint(_start.Text);
+        var end = ParseCodePoint(_end.Text);
+        if (start == null || end == null || start > end)
+            return;
+
+        if (!float.TryParse(_offset.Text,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.CurrentCulture,
+                out var offset))
+            return;
+
+        _updating = true;
+        try
+        {
+            Value = new UnicodeRangeStyle
+            {
+                StartCodePoint = start.Value,
+                EndCodePoint = end.Value,
+                Offset = offset,
+                Style = _style.Value?.CloneWithoutUnicodeMap() ?? new TextStyle()
+            };
+        }
+        finally
+        {
+            _updating = false;
+        }
     }
 
     private void Commit()
