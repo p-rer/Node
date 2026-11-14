@@ -10,13 +10,6 @@ public sealed class TextStylePortControlAttribute : PropertyControlBaseAttribute
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class TextStyleMapPortControlAttribute : PropertyControlBaseAttribute
-{
-    public override Type ControlType => typeof(TextStyleMapPort);
-    public override object? GetDefaultValue() => null;
-}
-
-[AttributeUsage(AttributeTargets.Property)]
 public sealed class UnicodeRangeStylePortControlAttribute : PropertyControlBaseAttribute
 {
     public override Type ControlType => typeof(UnicodeRangeStylePort);
