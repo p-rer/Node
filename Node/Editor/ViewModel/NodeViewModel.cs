@@ -212,6 +212,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         IsTextPortsOnly ? TextUi.AddStringPortButton : TextUi.AddArgumentPortButton;
 
     public bool CanAddArgumentPort =>
+        IsUnicodeStylePorts ||
         IsTextPortsOnly ||
         (NodeLogic is ArgumentsNode { AllowCustomPorts: true } argumentsNode &&
          argumentsNode.GetPortDefinitions().Count(definition => definition.IsCustom) <
@@ -280,6 +281,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         {
             ArgumentsNode argumentsNode => argumentsNode.GetPortDefinitions(),
             StringConcatNode concatNode => concatNode.GetPortDefinitions(),
+            UnicodeTextStyleNode unicodeStyleNode => unicodeStyleNode.GetPortDefinitions(),
             _ => []
         };
     }
