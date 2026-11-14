@@ -575,20 +575,20 @@ ZeroFormat,0表示入力ラベル,0の表示,Zero Display,0的显示,0的顯示,
 ZeroFormatDescription,0表示入力説明,0未満の小数を表示する際に整数部の0を表示するかどうか。,Whether to display the leading zero when displaying a fractional value less than 1.,显示小于1的小数时是否显示整数部分的0。,顯示小於1的小數時是否顯示整數部分的0。,1 미만의 소수를 표시할 때 정수 부분의 0을 표시할지 여부입니다.,Indica si se muestra el cero inicial al mostrar un valor decimal menor que 1.,ما إذا كان سيتم عرض الصفر البادئ عند عرض قيمة عشرية أقل من 1.,Apakah nol di depan ditampilkan saat menampilkan nilai pecahan kurang dari 1.
 ZeroFormatInclude,0を表示,0を表示,Include Zero,显示0,顯示0,0 표시,Mostrar cero,إظهار الصفر,Tampilkan nol
 ZeroFormatOmit,0を省略,0を省略,Omit Zero,省略0,省略0,0 생략,Omitir cero,حذف الصفر,Abaikan nol
-TextStyleLabel,文字スタイル入力ラベル,文字スタイル,Text Style
-TextStyleDescription,文字スタイル入力説明,フォント、サイズ、太さ、幅、傾きなどの文字スタイルです。,Font family, size, weight, width, slant and other text style settings.
-TextStyleMapLabel,Unicode文字スタイル入力ラベル,Unicode文字スタイル,Unicode Text Style Map
-TextStyleMapDescription,Unicode文字スタイル入力説明,Unicode範囲ごとの文字スタイルを指定します。,Text styles selected by Unicode code-point range.
-TextWritingDirectionLabel,文字列方向ラベル,文字列方向,Text Direction
-TextWritingDirectionDescription,文字列方向説明,文字列を横書きまたは縦書きで配置します。,Places the text horizontally or vertically.
-TextDirectionHorizontal,横書き,横書き,Horizontal
-TextDirectionVertical,縦書き,縦書き,Vertical
-TextStyleDefaultLabel,既定文字スタイルラベル,既定文字スタイル,Default Text Style
-TextStyleDefaultDescription,既定文字スタイル説明,どのUnicode範囲にも該当しない文字に適用するスタイルです。,Style applied to characters outside all Unicode ranges.
-TextStyleMapOutputLabel,Unicode文字スタイル出力ラベル,Unicode文字スタイル,Unicode Text Style Map
-TextStyleMapOutputDescription,Unicode文字スタイル出力説明,Unicode範囲ごとの文字スタイルをまとめた値です。,Text styles grouped by Unicode code-point range.
-UnicodeTextStyleNode,Unicode文字スタイル指定,Unicode文字スタイル指定,Unicode Text Style
-UnicodeTextStyleNodeDescription,UnicodeTextStyleNode説明,Unicode範囲ごとに文字スタイルと文字列方向に直交するオフセットを指定します。,Specifies text style and orthogonal offset for each Unicode code-point range.
-UnicodeRangeStylePortName,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style
-EditUnicodeRangePortsTitle,Unicode範囲スタイルの編集,Unicode範囲スタイル,Unicode Range Styles
-UnicodeRangePortDialogTitle,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style
+TextStyleLabel,文字スタイル入力ラベル,文字スタイル,Text Style,Text Style,Text Style,Text Style,Text Style,Text Style,Text Style
+TextStyleDescription,文字スタイル入力説明,フォント、サイズ、太さ、幅、傾きなどの文字スタイルです。,Font family, size, weight, width, slant and other text style settings.,Font family, size, weight, width, slant and other text style settings.,Font family, size, weight, width, slant and other text style settings.,Font family, size, weight, width, slant and other text style settings.,Font family, size, weight, width, slant and other text style settings.,Font family, size, weight, width, slant and other text style settings.,Font family, size, weight, width, slant and other text style settings.
+TextStyleMapLabel,Unicode文字スタイル入力ラベル,Unicode文字スタイル,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map
+TextStyleMapDescription,Unicode文字スタイル入力説明,Unicode範囲ごとの文字スタイルを指定します。,Text styles selected by Unicode code-point range.,Text styles selected by Unicode code-point range.,Text styles selected by Unicode code-point range.,Text styles selected by Unicode code-point range.,Text styles selected by Unicode code-point range.,Text styles selected by Unicode code-point range.,Text styles selected by Unicode code-point range.
+TextWritingDirectionLabel,文字列方向ラベル,文字列方向,Text Direction,Text Direction,Text Direction,Text Direction,Text Direction,Text Direction,Text Direction
+TextWritingDirectionDescription,文字列方向説明,文字列を横書きまたは縦書きで配置します。,Places the text horizontally or vertically.,Places the text horizontally or vertically.,Places the text horizontally or vertically.,Places the text horizontally or vertically.,Places the text horizontally or vertically.,Places the text horizontally or vertically.,Places the text horizontally or vertically.
+TextDirectionHorizontal,横書き,横書き,Horizontal,Horizontal,Horizontal,Horizontal,Horizontal,Horizontal,Horizontal
+TextDirectionVertical,縦書き,縦書き,Vertical,Vertical,Vertical,Vertical,Vertical,Vertical,Vertical
+TextStyleDefaultLabel,既定文字スタイルラベル,既定文字スタイル,Default Text Style,Default Text Style,Default Text Style,Default Text Style,Default Text Style,Default Text Style,Default Text Style
+TextStyleDefaultDescription,既定文字スタイル説明,どのUnicode範囲にも該当しない文字に適用するスタイルです。,Style applied to characters outside all Unicode ranges.,Style applied to characters outside all Unicode ranges.,Style applied to characters outside all Unicode ranges.,Style applied to characters outside all Unicode ranges.,Style applied to characters outside all Unicode ranges.,Style applied to characters outside all Unicode ranges.,Style applied to characters outside all Unicode ranges.
+TextStyleMapOutputLabel,Unicode文字スタイル出力ラベル,Unicode文字スタイル,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map,Unicode Text Style Map
+TextStyleMapOutputDescription,Unicode文字スタイル出力説明,Unicode範囲ごとの文字スタイルをまとめた値です。,Text styles grouped by Unicode code-point range.,Text styles grouped by Unicode code-point range.,Text styles grouped by Unicode code-point range.,Text styles grouped by Unicode code-point range.,Text styles grouped by Unicode code-point range.,Text styles grouped by Unicode code-point range.,Text styles grouped by Unicode code-point range.
+UnicodeTextStyleNode,Unicode文字スタイル指定,Unicode文字スタイル指定,Unicode Text Style,Unicode Text Style,Unicode Text Style,Unicode Text Style,Unicode Text Style,Unicode Text Style,Unicode Text Style
+UnicodeTextStyleNodeDescription,UnicodeTextStyleNode説明,Unicode範囲ごとに文字スタイルと文字列方向に直交するオフセットを指定します。,Specifies text style and orthogonal offset for each Unicode code-point range.,Specifies text style and orthogonal offset for each Unicode code-point range.,Specifies text style and orthogonal offset for each Unicode code-point range.,Specifies text style and orthogonal offset for each Unicode code-point range.,Specifies text style and orthogonal offset for each Unicode code-point range.,Specifies text style and orthogonal offset for each Unicode code-point range.,Specifies text style and orthogonal offset for each Unicode code-point range.
+UnicodeRangeStylePortName,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style
+EditUnicodeRangePortsTitle,Unicode範囲スタイルの編集,Unicode範囲スタイル,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles
+UnicodeRangePortDialogTitle,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style
