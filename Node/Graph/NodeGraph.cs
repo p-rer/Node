@@ -334,7 +334,7 @@ public sealed class NodeGraph
 
         var remainingNames = portDefinitions.Select(d => d.Name).ToHashSet();
         var connections = Connections
-            .Where(c => c.ToId == node.Id && c.ToPort.StartsWith("Range.", StringComparison.Ordinal))
+            .Where(c => c.ToId == node.Id && c.ToPort.StartsWith("Range_", StringComparison.Ordinal))
             .ToList();
         foreach (var connection in connections)
             DisconnectSilently(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
