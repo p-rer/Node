@@ -15,7 +15,6 @@ using Node.Localize;
 using Node.Nodes.Effect;
 using Node.Nodes.Func;
 using Node.Nodes.Value;
-using Node.Nodes.Generator.Outline;
 using YukkuriMovieMaker.Commons;
 using VisualStateChangedEventArgs = Node.Graph.Events.VisualStateChangedEventArgs;
 
@@ -87,85 +86,11 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             var dispatcher = Application.Current?.Dispatcher;
             if (dispatcher != null && !dispatcher.CheckAccess())
             {
-                dispatcher.Invoke(() => nodeLogic.InvokeNeedToReinitializeInputPorts(sender, @event));
+                dispatcher.Invoke(() => HandleNeedToReinitializeInputPorts(sender, @event));
                 return;
             }
 
-            var logic = (NodeLogic)sender!;
-
-            if (logic is UnicodeTextStyleNode)
-            {
-                InputPorts.Clear();
-                foreach (var portVm in CreateInputPorts(logic, graph))
-                    InputPorts.Add(portVm);
-                foreach (var portVm in InputPorts)
-                    portVm.ApplyDefaultToGraph();
-                graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
-                return;
-            }
-
-            var savedConnections = InputPorts
-                .Select(portVm => new
-                {
-                    portVm.Name,
-                    ControlAttributeType = portVm.ControlAttribute?.ControlType,
-                    EditorAttributeType = portVm.EditorAttribute?.GetType(),
-                    Connections = graph.Connections
-                        .Where(c => c.ToId == Id && c.ToPort == portVm.Name)
-                        .Select(c => new { c.FromId, c.FromPort })
-                        .ToList(),
-                    LocalValue = logic.Inputs.TryGetValue(portVm.Name, out var oldPort)
-                        ? oldPort.LocalValue
-                        : null
-                }).ToList();
-
-            var prefix = @event.PropName + ".";
-            var newSubPortNames = @event.NewContainer.GetType()
-                .GetProperties()
-                .Where(p => Attribute.IsDefined(p, typeof(InputPortAttribute)))
-                .Select(p => prefix + p.Name)
-                .ToHashSet();
-
-            foreach (var port in savedConnections)
-            {
-                if (!port.Name.StartsWith(prefix)) continue;
-                if (newSubPortNames.Contains(port.Name)) continue;
-                foreach (var conn in port.Connections)
-                    graph.DisconnectSilently(conn.FromId, conn.FromPort, Id, port.Name);
-            }
-
-            logic.SwapDynamicContainer(@event.PropName, @event.NewContainer);
-
-            InputPorts.Clear();
-            foreach (var portVm in CreateInputPorts(logic, graph))
-                InputPorts.Add(portVm);
-
-            var newPortsByName = InputPorts.ToDictionary(p => p.Name);
-            foreach (var saved in savedConnections)
-            {
-                if (!newPortsByName.TryGetValue(saved.Name, out var newPortVm)) continue;
-                if (newPortVm.ControlAttribute?.ControlType != saved.ControlAttributeType) continue;
-                if (newPortVm.EditorAttribute?.GetType() != saved.EditorAttributeType) continue;
-
-                if (saved.Connections.Count > 0)
-                {
-                    foreach (var conn in saved.Connections)
-                        graph.Connect(conn.FromId, conn.FromPort, Id, saved.Name);
-                }
-                else if (saved.Name.StartsWith(prefix))
-                {
-                    var subName = saved.Name[prefix.Length..];
-                    var restoreValue = saved.LocalValue
-                                       ?? @event.NewContainer.GetType().GetProperty(subName)
-                                           ?.GetValue(@event.NewContainer);
-                    graph.SetInputValue(Id, saved.Name, restoreValue);
-                }
-            }
-
-            foreach (var portVm in InputPorts)
-                portVm.ApplyDefaultToGraph();
-
-            graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
+            HandleNeedToReinitializeInputPorts(sender, @event);
         };
         nodeLogic.NeedToReinitializeInputPorts += _needToReinitializeInputPortsHandler;
     }
@@ -200,11 +125,15 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     public bool HasSubGraph { get; }
 
     public bool CanEditPorts =>
-        NodeLogic is ArgumentsNode { AllowCustomPorts: true } or StringConcatNode or UnicodeTextStyleNode;
+        NodeLogic is ArgumentsNode { AllowCustomPorts: true } ||
+        NodeLogic is IPortDefinitionNode { DynamicPortKind: not DynamicPortKind.Default } ||
+        NodeLogic is ReturnNode;
 
-    public bool IsTextPortsOnly => NodeLogic is StringConcatNode;
+    public bool IsTextPortsOnly =>
+        NodeLogic is IPortDefinitionNode { DynamicPortKind: DynamicPortKind.Text };
 
-    public bool IsUnicodeStylePorts => NodeLogic is UnicodeTextStyleNode;
+    public bool IsUnicodeStylePorts =>
+        NodeLogic is IPortDefinitionNode { DynamicPortKind: DynamicPortKind.UnicodeRange };
 
     public bool CanEditSubGraphPorts => NodeLogic is NodeEffectNode;
 
@@ -261,6 +190,74 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         internal set => SetField(ref field, value);
     }
 
+    private void HandleNeedToReinitializeInputPorts(object? sender, NeedToReinitializeInputPortsEvent @event)
+    {
+        var logic = (NodeLogic)sender!;
+
+        var savedConnections = InputPorts
+            .Select(portVm => new
+            {
+                portVm.Name,
+                ControlAttributeType = portVm.ControlAttribute?.ControlType,
+                EditorAttributeType = portVm.EditorAttribute?.GetType(),
+                Connections = _graph.Connections
+                    .Where(c => c.ToId == Id && c.ToPort == portVm.Name)
+                    .Select(c => new { c.FromId, c.FromPort })
+                    .ToList(),
+                LocalValue = logic.Inputs.TryGetValue(portVm.Name, out var oldPort)
+                    ? oldPort.LocalValue
+                    : null
+            }).ToList();
+
+        var prefix = @event.PropName + ".";
+        var newSubPortNames = @event.NewContainer.GetType()
+            .GetProperties()
+            .Where(p => Attribute.IsDefined(p, typeof(InputPortAttribute)))
+            .Select(p => prefix + p.Name)
+            .ToHashSet();
+
+        foreach (var port in savedConnections)
+        {
+            if (!port.Name.StartsWith(prefix)) continue;
+            if (newSubPortNames.Contains(port.Name)) continue;
+            foreach (var conn in port.Connections)
+                _graph.DisconnectSilently(conn.FromId, conn.FromPort, Id, port.Name);
+        }
+
+        logic.SwapDynamicContainer(@event.PropName, @event.NewContainer);
+
+        InputPorts.Clear();
+        foreach (var portVm in CreateInputPorts(logic, _graph))
+            InputPorts.Add(portVm);
+
+        var newPortsByName = InputPorts.ToDictionary(p => p.Name);
+        foreach (var saved in savedConnections)
+        {
+            if (!newPortsByName.TryGetValue(saved.Name, out var newPortVm)) continue;
+            if (newPortVm.ControlAttribute?.ControlType != saved.ControlAttributeType) continue;
+            if (newPortVm.EditorAttribute?.GetType() != saved.EditorAttributeType) continue;
+
+            if (saved.Connections.Count > 0)
+            {
+                foreach (var conn in saved.Connections)
+                    _graph.Connect(conn.FromId, conn.FromPort, Id, saved.Name);
+            }
+            else if (saved.Name.StartsWith(prefix))
+            {
+                var subName = saved.Name[prefix.Length..];
+                var restoreValue = saved.LocalValue
+                                   ?? @event.NewContainer.GetType().GetProperty(subName)
+                                       ?.GetValue(@event.NewContainer);
+                _graph.SetInputValue(Id, saved.Name, restoreValue);
+            }
+        }
+
+        foreach (var portVm in InputPorts)
+            portVm.ApplyDefaultToGraph();
+
+        _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
+    }
+
     public void Dispose()
     {
         if (_isDisposed) return;
@@ -280,8 +277,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         return NodeLogic switch
         {
             ArgumentsNode argumentsNode => argumentsNode.GetPortDefinitions(),
-            StringConcatNode concatNode => concatNode.GetPortDefinitions(),
-            UnicodeTextStyleNode unicodeStyleNode => unicodeStyleNode.GetPortDefinitions(),
+            IPortDefinitionNode dynamicNode when NodeLogic is not ReturnNode => dynamicNode.GetPortDefinitions(),
             _ => []
         };
     }
@@ -311,11 +307,9 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     private IEnumerable<PortViewModel> CreateInputPorts(NodeLogic node, NodeGraph graph)
     {
-        var concatNode = node as StringConcatNode;
+        var dynamicNode = node as IPortDefinitionNode;
         var subGraphNode = node as NodeEffectNode;
-        var definitions = concatNode?.GetPortDefinitions() ??
-                          (node as ReturnNode)?.GetPortDefinitions() ??
-                          (node as UnicodeTextStyleNode)?.GetPortDefinitions() ??
+        var definitions = dynamicNode?.GetPortDefinitions() ??
                           subGraphNode?.InnerArguments?.GetPortDefinitions();
 
         var orderedKeys = node.Inputs.Keys.OrderBy(name =>
@@ -349,7 +343,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             }
 
             var definition = definitions?.FirstOrDefault(d => d.Name == name);
-            var isTextPort = concatNode != null && definition != null;
+            var isTextPort = dynamicNode?.DynamicPortKind == DynamicPortKind.Text && definition != null;
 
             if (prop?.GetCustomAttribute<LegacyInputPortAttribute>() != null)
                 continue;
@@ -357,7 +351,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             var portAttr = prop?.GetCustomAttribute<InputPortAttribute>();
             var portColorAttr = prop?.GetCustomAttribute<PortColorSettingAttribute>();
             var controlAttr = prop?.GetCustomAttribute<PropertyControlBaseAttribute>()
-                              ?? (definition?.ValueType == typeof(UnicodeRangeStyle) && node is UnicodeTextStyleNode
+                              ?? (dynamicNode?.DynamicPortKind == DynamicPortKind.UnicodeRange
                                   ? new UnicodeRangeStylePortControlAttribute()
                                   : null)
                               ?? (isTextPort ? new TextPortControlAttribute() : null)
