@@ -10,7 +10,6 @@ using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
 using Node.Localize;
-using Node.Nodes.Effect;
 using Node.Nodes.Func;
 using Node.Utility;
 using YukkuriMovieMaker.Commons;
@@ -357,7 +356,7 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     {
         lock (_graph.GraphLock)
         {
-            if (!_graph.Nodes.TryGetValue(nodeId, out var logic) || logic is not NodeEffectNode node)
+            if (!_graph.Nodes.TryGetValue(nodeId, out var logic) || logic is not ISubGraphPortNode node)
                 return;
 
             var childNode = outputs ? node.InnerReturn : node.InnerArguments;
