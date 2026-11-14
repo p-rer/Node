@@ -53,38 +53,3 @@ public sealed class FontWeightPort : PortControlBase
         }
     }
 }
-
-public sealed class FontWidthPort : PortControlBase
-{
-    public static readonly DependencyProperty ValueProperty =
-        DependencyProperty.Register(nameof(Value), typeof(int), typeof(FontWidthPort),
-            new FrameworkPropertyMetadata(5, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
-
-    private readonly NumberPort _number = new() { Min = 1, Max = 9, Digits = 0, Default = 5 };
-
-    public FontWidthPort()
-    {
-        _number.BeginEditCommand = BeginEditCommand;
-        _number.EndEditCommand = EndEditCommand;
-        Content = _number;
-
-        DependencyPropertyDescriptor.FromProperty(NumberPort.ValueProperty, typeof(NumberPort))!
-            .AddValueChanged(_number, (_, _) => Value = (int)Math.Clamp(MathF.Round(_number.Value), 1, 9));
-
-        UpdateEditor();
-    }
-
-    public int Value
-    {
-        get => (int)GetValue(ValueProperty);
-        set => SetValue(ValueProperty, value);
-    }
-
-    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        => ((FontWidthPort)d).UpdateEditor();
-
-    private void UpdateEditor()
-    {
-        _number.Value = Math.Clamp(Value, 1, 9);
-    }
-}
