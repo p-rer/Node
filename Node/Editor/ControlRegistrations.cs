@@ -39,17 +39,6 @@ public static class ControlRegistrations
             template.VisualTree = factory;
             return template;
         });
-        ControlRegistry.Register<TextStyleMapPort>(attr =>
-        {
-            var template = new DataTemplate();
-            var factory = new FrameworkElementFactory(typeof(TextStyleMapPort));
-            factory.SetBinding(TextStyleMapPort.ValueProperty, new Binding(nameof(PortViewModel.CurrentValue))
-            {
-                Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-            });
-            template.VisualTree = factory;
-            return template;
-        });
         ControlRegistry.Register<UnicodeRangeStylePort>(attr =>
         {
             var template = new DataTemplate();
