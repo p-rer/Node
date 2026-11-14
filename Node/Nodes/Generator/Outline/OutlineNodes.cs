@@ -534,7 +534,7 @@ public class TextOutlineNode : NodeLogic
         var width = (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9);
         using var typeface = SKTypeface.FromFamilyName(string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
             weight, width, slant);
-        using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.ScaleX), SkewX = style.SkewX };
+        using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
 
         var path = WritingDirection == TextWritingDirection.Horizontal
             ? BuildHorizontalPath(font, Text, style.UnicodeMap)
@@ -563,7 +563,7 @@ public class TextOutlineNode : NodeLogic
                 (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000),
                 (SKFontStyleWidth)Math.Clamp(style.Width, 1, 9),
                 style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic : style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
-            using var font = new SKFont(tf, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.ScaleX), SkewX = style.SkewX };
+            using var font = new SKFont(tf, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.Scale), SkewX = style.SkewX };
             using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(x, offset));
             result.AddPath(glyph);
             x += font.MeasureText(rune.ToString());
@@ -579,7 +579,8 @@ public class TextOutlineNode : NodeLogic
 
         foreach (var rune in text.EnumerateRunes())
         {
-            var style = map?.Resolve(rune.Value, out var offset) ?? baseStyle;
+            var offset = 0f;
+            var style = map?.Resolve(rune.Value, out offset) ?? baseStyle;
             offset = map == null ? 0f : offset;
 
             using var tf = SKTypeface.FromFamilyName(
@@ -591,23 +592,23 @@ public class TextOutlineNode : NodeLogic
                 SKFontStyleSlant.Upright);
             using var font = new SKFont(tf, Math.Max(1f, style.Size))
             {
-                ScaleX = Math.Max(0.01f, style.ScaleX),
+                ScaleX = 1f,
                 SkewX = style.SkewX
             };
 
             var glyphText = rune.ToString();
             using var glyph = font.GetTextPath(glyphText, new SKPoint(0, 0));
 
-            var upright = IsVerticalUprightRune(rune.Value);
-            if (!upright)
+            if (!IsVerticalUprightRune(rune.Value))
                 glyph.Transform(SKMatrix.CreateRotationDegrees(-90));
 
+            var scale = Math.Max(0.01f, style.Scale);
+            glyph.Transform(SKMatrix.CreateScale(1f, scale));
             glyph.Transform(SKMatrix.CreateTranslation(offset, y));
             result.AddPath(glyph);
 
-            y += upright
-                ? Math.Max(1f, font.MeasureText(glyphText))
-                : Math.Max(1f, font.Size);
+            var advance = Math.Max(1f, font.MeasureText(glyphText));
+            y += advance * scale;
         }
 
         return result;
