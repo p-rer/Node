@@ -466,6 +466,15 @@ public class TextOutlineNode : NodeLogic
         set => SetInput(value);
     }
 
+    [InputPort(nameof(TextNode.TextStyleMapLabel), nameof(TextNode.TextStyleMapDescription), typeof(TextNode))]
+    [TextStyleMapPortControl]
+    [PortColorSetting(nameof(Colors.DarkOrange))]
+    public TextStyleMap? StyleMap
+    {
+        get => GetInput<TextStyleMap>();
+        set => SetInput(value);
+    }
+
     [InputPort(nameof(TextNode.TextWritingDirectionLabel), nameof(TextNode.TextWritingDirectionDescription), typeof(TextNode))]
     [EnumPortControl(Default = 0, IsEditable = false, Items = typeof(TextWritingDirection))]
     [PortColorSetting(nameof(Colors.DarkOrange))]
@@ -537,8 +546,8 @@ public class TextOutlineNode : NodeLogic
         using var font = new SKFont(typeface, Math.Max(1f, style.Size)) { ScaleX = Math.Max(0.01f, style.ScaleX), SkewX = style.SkewX };
 
         var path = WritingDirection == TextWritingDirection.Horizontal
-            ? BuildHorizontalPath(font, Text, GetInput<TextStyleMap>())
-            : BuildVerticalPath(font, Text, GetInput<TextStyleMap>());
+            ? BuildHorizontalPath(font, Text, StyleMap)
+            : BuildVerticalPath(font, Text, StyleMap);
         var bounds = path.Bounds;
         var horizontalRatio = Math.Clamp((HorizontalOffset + 1f) / 2f, 0f, 1f);
         var verticalRatio = Math.Clamp((VerticalOffset + 1f) / 2f, 0f, 1f);
