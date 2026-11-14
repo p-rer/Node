@@ -53,6 +53,8 @@ public class ArgumentsNode : NodeLogic, IPortDefinitionNode
 
     bool IPortDefinitionNode.DynamicPortsAreOutputs => true;
 
+    DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.Default;
+
     void IPortDefinitionNode.NotifyPortDefinitionsChanged()
     {
     }
