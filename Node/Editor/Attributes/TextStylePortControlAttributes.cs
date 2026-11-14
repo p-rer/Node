@@ -23,10 +23,3 @@ public sealed class FontWeightPortControlAttribute : PropertyControlBaseAttribut
     public override Type ControlType => typeof(FontWeightPort);
     public override object GetDefaultValue() => 400;
 }
-
-[AttributeUsage(AttributeTargets.Property)]
-public sealed class FontWidthPortControlAttribute : PropertyControlBaseAttribute
-{
-    public override Type ControlType => typeof(FontWidthPort);
-    public override object GetDefaultValue() => 5;
-}
