@@ -11,6 +11,11 @@
     </UserControl.Resources>
     <Grid>
         <StackPanel Orientation="Horizontal">
+            <Label
+                Content="{Binding Prefix, RelativeSource={RelativeSource AncestorType=local:NumberPort}, Mode=OneWay}"
+                VerticalAlignment="Center" VerticalContentAlignment="Center"
+                Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
+                FontSize="10" />
             <TextBox
                 Text="{Binding Text, RelativeSource={RelativeSource AncestorType=local:NumberPort}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Focusable="{Binding IsFocusable, RelativeSource={RelativeSource AncestorType=local:NumberPort}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
