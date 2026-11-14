@@ -46,6 +46,9 @@ public static class Serializer
                 case ReturnNode retNode:
                     SerializePortDefinitions(snap, retNode.GetPortDefinitions());
                     break;
+                case UnicodeTextStyleNode unicodeStyleNode:
+                    SerializePortDefinitions(snap, unicodeStyleNode.GetPortDefinitions());
+                    break;
             }
 
             snapshot.Nodes.Add(snap);
@@ -163,6 +166,12 @@ public static class Serializer
                     {
                         var portDefs = RestorePortDefinitions(nodeSnap.PortDefinitions);
                         retNode.Initialize(portDefs);
+                        break;
+                    }
+                    case UnicodeTextStyleNode unicodeStyleNode when nodeSnap.PortDefinitions.Count != 0:
+                    {
+                        var portDefs = RestorePortDefinitions(nodeSnap.PortDefinitions);
+                        unicodeStyleNode.Initialize(portDefs);
                         break;
                     }
                 }
