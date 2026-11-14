@@ -46,8 +46,8 @@ public static class Serializer
                 case ReturnNode retNode:
                     SerializePortDefinitions(snap, retNode.GetPortDefinitions());
                     break;
-                case UnicodeTextStyleNode unicodeStyleNode:
-                    SerializePortDefinitions(snap, unicodeStyleNode.GetPortDefinitions());
+                case IPortDefinitionNode dynamicPortNode:
+                    SerializePortDefinitions(snap, dynamicPortNode.GetPortDefinitions());
                     break;
             }
 
