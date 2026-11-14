@@ -15,6 +15,7 @@ using Node.Localize;
 using Node.Nodes.Effect;
 using Node.Nodes.Func;
 using Node.Nodes.Value;
+using Node.Nodes.Generator.Outline;
 using YukkuriMovieMaker.Commons;
 using VisualStateChangedEventArgs = Node.Graph.Events.VisualStateChangedEventArgs;
 
@@ -91,6 +92,17 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             }
 
             var logic = (NodeLogic)sender!;
+
+            if (logic is UnicodeTextStyleNode)
+            {
+                InputPorts.Clear();
+                foreach (var portVm in CreateInputPorts(logic, graph))
+                    InputPorts.Add(portVm);
+                foreach (var portVm in InputPorts)
+                    portVm.ApplyDefaultToGraph();
+                graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
+                return;
+            }
 
             var savedConnections = InputPorts
                 .Select(portVm => new
@@ -188,9 +200,11 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     public bool HasSubGraph { get; }
 
     public bool CanEditPorts =>
-        NodeLogic is ArgumentsNode { AllowCustomPorts: true } or StringConcatNode;
+        NodeLogic is ArgumentsNode { AllowCustomPorts: true } or StringConcatNode or UnicodeTextStyleNode;
 
     public bool IsTextPortsOnly => NodeLogic is StringConcatNode;
+
+    public bool IsUnicodeStylePorts => NodeLogic is UnicodeTextStyleNode;
 
     public bool CanEditSubGraphPorts => NodeLogic is NodeEffectNode;
 
@@ -299,6 +313,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         var subGraphNode = node as NodeEffectNode;
         var definitions = concatNode?.GetPortDefinitions() ??
                           (node as ReturnNode)?.GetPortDefinitions() ??
+                          (node as UnicodeTextStyleNode)?.GetPortDefinitions() ??
                           subGraphNode?.InnerArguments?.GetPortDefinitions();
 
         var orderedKeys = node.Inputs.Keys.OrderBy(name =>
@@ -334,9 +349,15 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             var definition = definitions?.FirstOrDefault(d => d.Name == name);
             var isTextPort = concatNode != null && definition != null;
 
+            if (prop?.GetCustomAttribute<LegacyInputPortAttribute>() != null)
+                continue;
+
             var portAttr = prop?.GetCustomAttribute<InputPortAttribute>();
             var portColorAttr = prop?.GetCustomAttribute<PortColorSettingAttribute>();
             var controlAttr = prop?.GetCustomAttribute<PropertyControlBaseAttribute>()
+                              ?? (definition?.ValueType == typeof(UnicodeRangeStyle) && node is UnicodeTextStyleNode
+                                  ? new UnicodeRangeStylePortControlAttribute()
+                                  : null)
                               ?? (isTextPort ? new TextPortControlAttribute() : null)
                               ?? (subGraphNode != null
                                   ? NodeEffectNode.CreateControlAttribute(port.ValueType)
