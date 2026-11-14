@@ -210,36 +210,35 @@ public sealed class NodeGraph
     /// </returns>
     public bool ReplaceArgumentPorts(Guid nodeId, PortDefinition[] portDefinitions)
     {
-        if (_nodes.TryGetValue(nodeId, out var target))
+        if (!_nodes.TryGetValue(nodeId, out var target))
+            return false;
+
+        if (target is ArgumentsNode { AllowCustomPorts: true } argumentsNode)
         {
-            if (target is StringConcatNode concatNode)
-                return ReplaceTextPorts(concatNode, portDefinitions);
-            if (target is UnicodeTextStyleNode unicodeStyleNode)
-                return ReplaceUnicodeStylePorts(unicodeStyleNode, portDefinitions);
+            if (portDefinitions.Select(d => d.Name).Distinct().Count() != portDefinitions.Length)
+                return false;
+
+            if (argumentsNode.GetPortDefinitions().Any(d => !d.IsCustom && !portDefinitions.Contains(d)))
+                return false;
+
+            if (portDefinitions.Any(d => d.IsCustom && !ArgumentPortKinds.TryGetKind(d.ValueType, out _)))
+                return false;
+
+            // 引数ポート数の上限を超える追加は拒否する。上限を超えて保存済みのグラフでも、
+            // 数を増やさない編集（名前変更・削除・並べ替え）は許可する。
+            var customCount = portDefinitions.Count(d => d.IsCustom);
+            if (customCount > ArgumentPortKinds.MaxCustomPorts &&
+                customCount > argumentsNode.GetPortDefinitions().Count(d => d.IsCustom))
+                return false;
+
+            ApplyArgumentPorts(argumentsNode, portDefinitions);
+            return true;
         }
 
-        if (!_nodes.TryGetValue(nodeId, out var node) ||
-            node is not ArgumentsNode { AllowCustomPorts: true } argumentsNode)
-            return false;
+        if (target is IPortDefinitionNode dynamicNode)
+            return ReplaceDynamicPorts(dynamicNode, portDefinitions);
 
-        if (portDefinitions.Select(d => d.Name).Distinct().Count() != portDefinitions.Length)
-            return false;
-
-        if (argumentsNode.GetPortDefinitions().Any(d => !d.IsCustom && !portDefinitions.Contains(d)))
-            return false;
-
-        if (portDefinitions.Any(d => d.IsCustom && !ArgumentPortKinds.TryGetKind(d.ValueType, out _)))
-            return false;
-
-        // 引数ポート数の上限を超える追加は拒否する。上限を超えて保存済みのグラフでも、
-        // 数を増やさない編集（名前変更・削除・並べ替え）は許可する。
-        var customCount = portDefinitions.Count(d => d.IsCustom);
-        if (customCount > ArgumentPortKinds.MaxCustomPorts &&
-            customCount > argumentsNode.GetPortDefinitions().Count(d => d.IsCustom))
-            return false;
-
-        ApplyArgumentPorts(argumentsNode, portDefinitions);
-        return true;
+        return false;
     }
 
     private void ApplyArgumentPorts(ArgumentsNode argumentsNode, PortDefinition[] portDefinitions)
@@ -276,104 +275,55 @@ public sealed class NodeGraph
         OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
     }
 
-    /// <summary>
-    ///     Node エフェクトノード（サブグラフを持つノード）の入力または出力の端子の定義を丸ごと差し替えます。
-    ///     サブグラフの引数ノード（入力）・戻り値ノード（出力）の定義を更新し、このノードの端子を作り直します。
-    ///     削除された端子、または型が変わった端子への接続は外し、それ以外の端子は接続と入力値を引き継ぎます。
-    /// </summary>
-    /// <param name="nodeId">対象の Node エフェクトノードのID</param>
-    /// <param name="outputs">出力端子（戻り値ノード）を差し替える場合はtrue、入力端子（引数ノード）ならfalse</param>
-    /// <param name="portDefinitions">新しいポート定義（並び順がそのまま表示順になる）</param>
-    /// <returns>差し替えた場合はtrue。対象のノードでない場合や定義が不正（型・名前の重複など）の場合は何もせずfalse。</returns>
-    public bool ReplaceSubGraphPorts(Guid nodeId, bool outputs, PortDefinition[] portDefinitions)
+    private bool ReplaceDynamicPorts(IPortDefinitionNode node, PortDefinition[] portDefinitions)
     {
-        if (!_nodes.TryGetValue(nodeId, out var target) || target is not NodeEffectNode node)
-            return false;
-        if (!NodeEffectNode.IsValidPortSet(portDefinitions))
+        if (!node.IsValidPortSet(portDefinitions))
             return false;
 
-        bool IsKept(string name, Type currentType)
-        {
-            return portDefinitions.Any(d => d.Name == name && d.ValueType == currentType);
-        }
-
-        var dropped = outputs
-            ? Connections.Where(c => c.FromId == nodeId &&
-                                     !(node.Outputs.TryGetValue(c.FromPort, out var port) &&
-                                       IsKept(c.FromPort, port.ValueType))).ToList()
-            : Connections.Where(c => c.ToId == nodeId &&
-                                     !(node.Inputs.TryGetValue(c.ToPort, out var port) &&
-                                       IsKept(c.ToPort, port.ValueType))).ToList();
-        foreach (var c in dropped)
-            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
-
-        if (outputs)
-        {
-            if (node.InnerReturn is { } returnNode)
-                node.Graph.ApplyReturnPorts(returnNode, portDefinitions);
-        }
-        else if (node.InnerArguments is { } argumentsNode)
-        {
-            node.Graph.ApplyArgumentPorts(argumentsNode, portDefinitions);
-        }
-
-        node.SyncPorts();
-        OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeId, null));
-        return true;
-    }
-
-    /// <summary>
-    ///     文字列結合ノードの文字列端子の定義を丸ごと差し替えます（追加・削除・名前変更・並べ替え）。
-    ///     定義に残っている端子は入力値と接続を引き継ぎ、定義から無くなった端子への接続だけを外します。
-    /// </summary>
-    /// <returns>差し替えた場合はtrue。文字列端子として不正な定義（型・名前の重複や衝突など）の場合は何もせずfalse。</returns>
-    private bool ReplaceUnicodeStylePorts(UnicodeTextStyleNode node, PortDefinition[] portDefinitions)
-    {
-        if (!UnicodeTextStyleNode.IsValidRangePortSet(portDefinitions))
-            return false;
-
+        var nodeLogic = (NodeLogic)node;
         var remainingNames = portDefinitions.Select(d => d.Name).ToHashSet();
-        var connections = Connections
-            .Where(c => c.ToId == node.Id && c.ToPort.StartsWith("Range_", StringComparison.Ordinal))
-            .ToList();
+
+        var connections = node.DynamicPortsAreOutputs
+            ? Connections.Where(c => c.FromId == nodeLogic.Id &&
+                                     c.FromPort is not null &&
+                                     node.GetPortDefinitions().Any(d => d.Name == c.FromPort))
+                .ToList()
+            : Connections.Where(c => c.ToId == nodeLogic.Id &&
+                                     c.ToPort is not null &&
+                                     node.GetPortDefinitions().Any(d => d.Name == c.ToPort))
+                .ToList();
+
+        var oldValues = node.DynamicPortsAreOutputs
+            ? new Dictionary<string, object?>()
+            : node.GetPortDefinitions()
+                .Where(d => nodeLogic.Inputs.ContainsKey(d.Name))
+                .ToDictionary(d => d.Name, d => nodeLogic.Inputs[d.Name].LocalValue);
+
         foreach (var connection in connections)
             DisconnectSilently(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
 
-        var oldValues = node.GetPortDefinitions()
-            .ToDictionary(d => d.Name, d => node.Inputs.TryGetValue(d.Name, out var p) ? p.LocalValue : null);
-
         node.Initialize(portDefinitions);
 
-        foreach (var definition in portDefinitions)
+        if (!node.DynamicPortsAreOutputs)
         {
-            if (oldValues.TryGetValue(definition.Name, out var value) && value != null)
-                node.Inputs[definition.Name].SetValue(value);
+            foreach (var definition in portDefinitions)
+            {
+                if (oldValues.TryGetValue(definition.Name, out var value) && value != null &&
+                    nodeLogic.Inputs.TryGetValue(definition.Name, out var input))
+                    input.SetValue(value);
+            }
         }
 
         foreach (var connection in connections)
-            if (remainingNames.Contains(connection.ToPort))
+        {
+            var portName = node.DynamicPortsAreOutputs ? connection.FromPort : connection.ToPort;
+            if (remainingNames.Contains(portName))
                 Connect(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
+        }
 
         node.NotifyPortDefinitionsChanged();
-        OnGraphChanged(new ConnectionChangedEventArgs(null, null, node.Id, null));
-        return true;
-    }
-
-    private bool ReplaceTextPorts(StringConcatNode node, PortDefinition[] portDefinitions)
-    {
-        if (!StringConcatNode.IsValidTextPortSet(portDefinitions))
-            return false;
-
-        var remainingNames = portDefinitions.Select(d => d.Name).ToHashSet();
-        var removed = Connections
-            .Where(c => c.ToId == node.Id && !remainingNames.Contains(c.ToPort) && c.ToPort != nameof(node.Separator))
-            .ToList();
-        foreach (var c in removed)
-            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
-
-        node.InitializeTextPorts(portDefinitions);
-
-        OnGraphChanged(new ConnectionChangedEventArgs(null, null, node.Id, null));
+        nodeLogic.Invalidate();
+        OnGraphChanged(new ConnectionChangedEventArgs(null, null, nodeLogic.Id, null));
         return true;
     }
 
