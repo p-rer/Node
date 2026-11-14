@@ -75,8 +75,8 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 
     internal void NotifyPortDefinitionsChanged()
     {
-        NeedToReinitializeInputPorts?.Invoke(this,
-            new NeedToReinitializeInputPortsEvent(nameof(DefaultStyle), new UnicodeTextStyleRangeContainer(_rangeDefinitions)));
+        RequestInputPortReinitialization(nameof(DefaultStyle),
+            new UnicodeTextStyleRangeContainer(_rangeDefinitions));
     }
 
     protected override Task Calculate()
