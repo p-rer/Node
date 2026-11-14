@@ -15,6 +15,7 @@ using Node.Localize;
 using Node.Nodes.Effect;
 using Node.Nodes.Func;
 using Node.Nodes.Value;
+using Node.ValueTypes;
 using YukkuriMovieMaker.Commons;
 using VisualStateChangedEventArgs = Node.Graph.Events.VisualStateChangedEventArgs;
 
@@ -134,7 +135,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     public bool IsUnicodeStylePorts =>
         NodeLogic is IPortDefinitionNode { DynamicPortKind: DynamicPortKind.UnicodeRange };
 
-    public bool CanEditSubGraphPorts => NodeLogic is NodeEffectNode;
+    public bool CanEditSubGraphPorts => NodeLogic is ISubGraphPortNode;
 
     public string AddPortButtonLabel =>
         IsTextPortsOnly ? TextUi.AddStringPortButton : TextUi.AddArgumentPortButton;
@@ -294,7 +295,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
     internal PortDefinition[] GetSubGraphPortDefinitions(bool outputs)
     {
-        if (NodeLogic is not NodeEffectNode node) return [];
+        if (NodeLogic is not ISubGraphPortNode node) return [];
         return (outputs ? node.InnerReturn?.GetPortDefinitions() : node.InnerArguments?.GetPortDefinitions()) ?? [];
     }
 
@@ -318,7 +319,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     private IEnumerable<PortViewModel> CreateInputPorts(NodeLogic node, NodeGraph graph)
     {
         var dynamicNode = node as IPortDefinitionNode;
-        var subGraphNode = node as NodeEffectNode;
+        var subGraphNode = node as ISubGraphPortNode;
         var definitions = dynamicNode?.GetPortDefinitions() ??
                           subGraphNode?.InnerArguments?.GetPortDefinitions();
 
@@ -366,7 +367,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                                   : null)
                               ?? (isTextPort ? new TextPortControlAttribute() : null)
                               ?? (subGraphNode != null
-                                  ? NodeEffectNode.CreateControlAttribute(port.ValueType)
+                                  ? CreateSubGraphControlAttribute(port.ValueType)
                                   : null);
             var editorAttr = controlAttr == null ? ResolveEditorAttribute(prop) : null;
 
@@ -375,7 +376,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                 portAttr?.GetLabel() ?? definition?.GetDisplayLabel() ?? name,
                 portAttr?.GetDescription() ?? (isTextPort ? TextNode.TextDescription : ""),
                 portColorAttr?.Color ?? (isTextPort ? nameof(Colors.DarkOrange) :
-                    subGraphNode != null ? NodeEffectNode.GetPortColor(port.ValueType) :
+                    subGraphNode != null ? GetSubGraphPortColor(port.ValueType) :
                     nameof(Colors.SlateGray)),
                 port.ValueType,
                 PortDirection.Input,
@@ -388,6 +389,26 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                 node.Id
             );
         }
+    }
+
+    private static PropertyControlBaseAttribute? CreateSubGraphControlAttribute(Type type)
+    {
+        if (type == typeof(float)) return new NumberPortControlAttribute();
+        if (type == typeof(int)) return new NumberPortControlAttribute { Digits = 0 };
+        if (type == typeof(bool)) return new BoolPortControlAttribute();
+        if (type == typeof(Color)) return new ColorPortControlAttribute();
+        if (type == typeof(string)) return new TextPortControlAttribute();
+        return null;
+    }
+
+    private static string GetSubGraphPortColor(Type type)
+    {
+        if (type == typeof(ImageWrapper)) return nameof(Colors.CornflowerBlue);
+        if (type == typeof(MaskWrapper) || type == typeof(OutlineWrapper)) return nameof(Colors.MediumPurple);
+        if (type == typeof(BrushWrapper)) return nameof(Colors.LawnGreen);
+        if (type == typeof(Color)) return nameof(Colors.Gold);
+        if (type == typeof(bool)) return nameof(Colors.Green);
+        return nameof(Colors.DarkOrange);
     }
 
     private static PropertyEditorAttribute2? ResolveEditorAttribute(PropertyInfo? prop)
