@@ -389,7 +389,7 @@ public class NumberToStringNode : NodeLogic
 
 [Node(typeof(StringCategory), nameof(TextNode.StringConcatNode), nameof(TextNode.StringConcatNodeDescription),
     typeof(TextNode))]
-public class StringConcatNode : NodeLogic, ISerializableNode
+public class StringConcatNode : NodeLogic, ISerializableNode, IPortDefinitionNode
 {
     private const string TextPortsKey = "TextPorts";
 
@@ -450,6 +450,22 @@ public class StringConcatNode : NodeLogic, ISerializableNode
     public PortDefinition[] GetPortDefinitions()
     {
         return _textPorts;
+    }
+
+    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
+    {
+        return IsValidTextPortSet(definitions);
+    }
+
+    bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
+
+    void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
+    {
+        InitializeTextPorts(definitions);
+    }
+
+    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
+    {
     }
 
     /// <summary>
