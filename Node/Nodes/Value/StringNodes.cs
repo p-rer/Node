@@ -459,6 +459,8 @@ public class StringConcatNode : NodeLogic, ISerializableNode, IPortDefinitionNod
 
     bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
 
+    DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.Text;
+
     void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
     {
         InitializeTextPorts(definitions);
