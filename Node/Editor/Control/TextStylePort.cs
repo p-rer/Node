@@ -1,83 +1,282 @@
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Node.Editor.Attributes;
 using Node.Nodes.Generator.Outline;
+using YukkuriMovieMaker.Commons;
 
 namespace Node.Editor.Control;
 
 public sealed class TextStylePort : PortControlBase
 {
-    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(TextStyle), typeof(TextStylePort),
-        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
-    private readonly Button _button = new();
+    public static readonly DependencyProperty ValueProperty =
+        DependencyProperty.Register(
+            nameof(Value),
+            typeof(TextStyle),
+            typeof(TextStylePort),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                OnValueChanged));
+
+    private readonly StackPanel _panel = new() { Orientation = Orientation.Vertical };
+    private TextStyle? _working;
+    private bool _rebuilding;
+
     public TextStylePort()
     {
-        _button.Padding = new Thickness(6, 2, 6, 2);
-        _button.MinWidth = 110;
-        _button.HorizontalContentAlignment = HorizontalAlignment.Left;
-        _button.Click += OnClick;
-        Content = _button;
-        UpdateLabel();
+        Content = new ScrollViewer
+        {
+            Content = _panel,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        };
+        Loaded += (_, _) => Rebuild();
     }
-    public TextStyle? Value { get => (TextStyle?)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
-    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((TextStylePort)d).UpdateLabel();
-    private void UpdateLabel() => _button.Content = $"{Value?.FontFamily ?? "メイリオ"} / {Value?.Size ?? 64:0.##}";
-    private void OnClick(object sender, RoutedEventArgs e)
+
+    public TextStyle? Value
     {
-        BeginEditCommand?.Execute(null);
+        get => (TextStyle?)GetValue(ValueProperty);
+        set => SetValue(ValueProperty, value);
+    }
+
+    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (TextStylePort)d;
+        if (!ReferenceEquals(e.OldValue, e.NewValue))
+            control.Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        if (_rebuilding)
+            return;
+
+        _rebuilding = true;
         try
         {
-            var dialog = new TextStyleEditorWindow(Value ?? new TextStyle()) { Owner = Window.GetWindow(this) ?? Application.Current?.MainWindow };
-            if (dialog.ShowDialog() == true) Value = dialog.Result;
-        }
-        finally { EndEditCommand?.Execute(null); }
-    }
-}
+            DetachWorking();
+            _working = (Value ?? new TextStyle()).Clone();
+            _working.PropertyChanged += WorkingPropertyChanged;
+            _panel.Children.Clear();
 
-public sealed class TextStyleMapPort : PortControlBase
-{
-    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(TextStyleMap), typeof(TextStyleMapPort),
-        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
-    private readonly Button _button = new();
-    public TextStyleMapPort()
-    {
-        _button.Padding = new Thickness(6, 2, 6, 2);
-        _button.MinWidth = 110;
-        _button.HorizontalContentAlignment = HorizontalAlignment.Left;
-        _button.Click += (_, _) => { };
-        Content = _button;
-        UpdateLabel();
+            AddYmmEditor(nameof(TextStyle.FontFamily), "フォント");
+            AddYmmEditor(nameof(TextStyle.Size), "サイズ");
+            AddYmmEditor(nameof(TextStyle.Weight), "太さ");
+            AddYmmEditor(nameof(TextStyle.Width), "幅");
+            AddYmmEditor(nameof(TextStyle.Slant), "傾き");
+            AddYmmEditor(nameof(TextStyle.ScaleX), "横倍率");
+            AddYmmEditor(nameof(TextStyle.SkewX), "せん断");
+        }
+        finally
+        {
+            _rebuilding = false;
+        }
     }
-    public TextStyleMap? Value { get => (TextStyleMap?)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
-    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((TextStyleMapPort)d).UpdateLabel();
-    private void UpdateLabel() => _button.Content = Value == null ? "Unicode Style Map" : $"Unicode Style Map ({Value.Ranges.Count})";
+
+    private void AddYmmEditor(string propertyName, string label)
+    {
+        if (_working == null)
+            return;
+
+        var property = typeof(TextStyle).GetProperty(propertyName,
+            BindingFlags.Public | BindingFlags.Instance);
+        var attribute = property?.GetCustomAttribute<PropertyEditorAttribute2>();
+        if (property == null || attribute == null)
+            return;
+
+        FrameworkElement editor;
+        try
+        {
+            editor = attribute.Create();
+            attribute.SetBindings(editor, _working, _working, property);
+        }
+        catch
+        {
+            return;
+        }
+
+        if (editor is IPropertyEditorControl control)
+        {
+            control.BeginEdit += ChildBeginEdit;
+            control.EndEdit += ChildEndEdit;
+        }
+
+        var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        var text = new TextBlock
+        {
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 5, 0)
+        };
+        Grid.SetColumn(text, 0);
+        Grid.SetColumn(editor, 1);
+        row.Children.Add(text);
+        row.Children.Add(editor);
+        _panel.Children.Add(row);
+    }
+
+    private void WorkingPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (_rebuilding || _working == null)
+            return;
+
+        Value = _working.Clone();
+    }
+
+    private void ChildBeginEdit(object? sender, EventArgs e)
+    {
+        BeginEditCommand?.Execute(null);
+    }
+
+    private void ChildEndEdit(object? sender, EventArgs e)
+    {
+        EndEditCommand?.Execute(null);
+    }
+
+    private void DetachWorking()
+    {
+        if (_working == null)
+            return;
+
+        _working.PropertyChanged -= WorkingPropertyChanged;
+        _working = null;
+    }
 }
 
 public sealed class UnicodeRangeStylePort : PortControlBase
 {
-    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(UnicodeRangeStyle), typeof(UnicodeRangeStylePort),
-        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
-    private readonly Button _button = new();
+    public static readonly DependencyProperty ValueProperty =
+        DependencyProperty.Register(
+            nameof(Value),
+            typeof(UnicodeRangeStyle),
+            typeof(UnicodeRangeStylePort),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                OnValueChanged));
+
+    private readonly TextBox _start = new() { MinWidth = 78 };
+    private readonly TextBox _end = new() { MinWidth = 78 };
+    private readonly TextBox _offset = new() { MinWidth = 78 };
+    private readonly TextStylePort _style = new();
+    private bool _updating;
+
     public UnicodeRangeStylePort()
     {
-        _button.Padding = new Thickness(6, 2, 6, 2);
-        _button.MinWidth = 130;
-        _button.HorizontalContentAlignment = HorizontalAlignment.Left;
-        _button.Click += OnClick;
-        Content = _button;
-        UpdateLabel();
+        var panel = new StackPanel { Orientation = Orientation.Vertical };
+
+        panel.Children.Add(CreateRow("開始", _start));
+        panel.Children.Add(CreateRow("終了", _end));
+        panel.Children.Add(CreateRow("直交", _offset));
+        panel.Children.Add(new TextBlock
+        {
+            Text = "文字スタイル",
+            Margin = new Thickness(0, 4, 0, 1)
+        });
+        panel.Children.Add(_style);
+
+        Content = panel;
+
+        _start.LostFocus += (_, _) => Commit();
+        _end.LostFocus += (_, _) => Commit();
+        _offset.LostFocus += (_, _) => Commit();
+        _style.ValueChanged += StyleChanged;
     }
-    public UnicodeRangeStyle? Value { get => (UnicodeRangeStyle?)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
-    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((UnicodeRangeStylePort)d).UpdateLabel();
-    private void UpdateLabel() => _button.Content = Value == null ? "Unicode Range" : $"U+{Value.StartCodePoint:X4}–U+{Value.EndCodePoint:X4}";
-    private void OnClick(object sender, RoutedEventArgs e)
+
+    public UnicodeRangeStyle? Value
     {
-        BeginEditCommand?.Execute(null);
+        get => (UnicodeRangeStyle?)GetValue(ValueProperty);
+        set => SetValue(ValueProperty, value);
+    }
+
+    private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((UnicodeRangeStylePort)d).Refresh();
+    }
+
+    private void Refresh()
+    {
+        if (_updating)
+            return;
+
+        _updating = true;
         try
         {
-            var dialog = new UnicodeRangeStyleEditorWindow(Value ?? new UnicodeRangeStyle()) { Owner = Window.GetWindow(this) ?? Application.Current?.MainWindow };
-            if (dialog.ShowDialog() == true) Value = dialog.Result;
+            var value = Value ?? new UnicodeRangeStyle();
+            _start.Text = $"U+{value.StartCodePoint:X4}";
+            _end.Text = $"U+{value.EndCodePoint:X4}";
+            _offset.Text = value.Offset.ToString(System.Globalization.CultureInfo.CurrentCulture);
+            _style.Value = value.Style ?? new TextStyle();
         }
-        finally { EndEditCommand?.Execute(null); }
+        finally
+        {
+            _updating = false;
+        }
+    }
+
+    private void StyleChanged(object? sender, EventArgs e)
+    {
+        Commit();
+    }
+
+    private void Commit()
+    {
+        if (_updating)
+            return;
+
+        var start = ParseCodePoint(_start.Text);
+        var end = ParseCodePoint(_end.Text);
+        if (start == null || end == null || start > end)
+            return;
+
+        if (!float.TryParse(_offset.Text,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.CurrentCulture,
+                out var offset))
+            return;
+
+        Value = new UnicodeRangeStyle
+        {
+            StartCodePoint = start.Value,
+            EndCodePoint = end.Value,
+            Offset = offset,
+            Style = _style.Value?.CloneWithoutUnicodeMap() ?? new TextStyle()
+        };
+    }
+
+    private static Grid CreateRow(string label, FrameworkElement editor)
+    {
+        var row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var text = new TextBlock
+        {
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 5, 0)
+        };
+        Grid.SetColumn(text, 0);
+        Grid.SetColumn(editor, 1);
+        row.Children.Add(text);
+        row.Children.Add(editor);
+        return row;
+    }
+
+    private static int? ParseCodePoint(string text)
+    {
+        var value = text.Trim();
+        if (value.StartsWith("U+", StringComparison.OrdinalIgnoreCase))
+            value = value[2..];
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            value = value[2..];
+
+        return int.TryParse(value,
+                   System.Globalization.NumberStyles.HexNumber,
+                   System.Globalization.CultureInfo.InvariantCulture,
+                   out var result) &&
+               result is >= 0 and <= 0x10FFFF
+            ? result
+            : null;
     }
 }
