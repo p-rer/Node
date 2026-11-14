@@ -5,7 +5,7 @@ namespace Node.Graph;
 /// <summary>
 /// サブグラフの ArgumentsNode / ReturnNode を外部へ公開するノードの共通契約。
 /// </summary>
-public interface ISubGraphPortNode
+internal interface ISubGraphPortNode
 {
     NodeGraph Graph { get; }
 
