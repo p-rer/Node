@@ -147,7 +147,7 @@ public sealed class TextStylePort : PortControlBase
         var text = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 5, 0) };
         text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         row.MinWidth = text.DesiredSize.Width + 85;
-                text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        text.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         row.MinWidth = text.DesiredSize.Width + 85;
         Grid.SetColumn(text, 0);
         Grid.SetColumn(editor, 1);
