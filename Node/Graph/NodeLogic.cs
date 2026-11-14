@@ -284,6 +284,12 @@ public abstract class NodeLogic : IDisposable
 
     public event EventHandler<NeedToReinitializeInputPortsEvent>? NeedToReinitializeInputPorts;
 
+    protected void RequestInputPortReinitialization(string propName, InputsContainer newContainer)
+    {
+        NeedToReinitializeInputPorts?.Invoke(this,
+            new NeedToReinitializeInputPortsEvent(propName, newContainer));
+    }
+
 
     protected void SetOutput(object? value, [CallerMemberName] string name = null!)
     {
