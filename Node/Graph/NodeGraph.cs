@@ -333,12 +333,11 @@ public sealed class NodeGraph
             return false;
 
         var remainingNames = portDefinitions.Select(d => d.Name).ToHashSet();
-        var removed = Connections
-            .Where(c => c.ToId == node.Id && c.ToPort.StartsWith("Range.", StringComparison.Ordinal) &&
-                        !remainingNames.Contains(c.ToPort))
+        var connections = Connections
+            .Where(c => c.ToId == node.Id && c.ToPort.StartsWith("Range.", StringComparison.Ordinal))
             .ToList();
-        foreach (var c in removed)
-            DisconnectSilently(c.FromId, c.FromPort, c.ToId, c.ToPort);
+        foreach (var connection in connections)
+            DisconnectSilently(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
 
         var oldValues = node.GetPortDefinitions()
             .ToDictionary(d => d.Name, d => node.Inputs.TryGetValue(d.Name, out var p) ? p.LocalValue : null);
@@ -350,6 +349,10 @@ public sealed class NodeGraph
             if (oldValues.TryGetValue(definition.Name, out var value) && value != null)
                 node.Inputs[definition.Name].SetValue(value);
         }
+
+        foreach (var connection in connections)
+            if (remainingNames.Contains(connection.ToPort))
+                Connect(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
 
         node.NotifyPortDefinitionsChanged();
         OnGraphChanged(new ConnectionChangedEventArgs(null, null, node.Id, null));
