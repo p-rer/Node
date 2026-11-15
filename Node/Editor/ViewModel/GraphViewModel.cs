@@ -23,13 +23,14 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     private readonly NodeGraph _graph;
     private readonly EventHandler _graphUpdatedHandler;
     private bool _isDisposed;
+    private int _syncQueued;
 
     public GraphViewModel(NodeGraph graph, NodeEditorViewModel nodeEditorViewModel, IEditorInfo? editorInfo = null)
     {
         _graph = graph;
         ParentEditor = nodeEditorViewModel;
         EditorInfo = editorInfo;
-        _graphUpdatedHandler = (_, _) => SyncFromGraph();
+        _graphUpdatedHandler = (_, _) => RequestSync();
 
         _graph.GraphChanged += OnGraphChanged;
         ParentEditor.GraphUpdated += _graphUpdatedHandler;
@@ -134,6 +135,10 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
         foreach (var node in Nodes)
             node.Dispose();
         Nodes.Clear();
+
+        foreach (var connection in Connections)
+            connection.Dispose();
+        Connections.Clear();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -148,7 +153,41 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     /// </summary>
     public void Refresh()
     {
-        SyncFromGraph();
+        RequestSync();
+    }
+
+    /// <summary>
+    ///     SyncFromGraph を後続のディスパッチャー処理へ回し、短時間の複数要求は 1 回にまとめる。
+    ///     要求はレイアウトやバインディング更新の最中にも届くため、その場で Nodes/Connections を
+    ///     書き換えると、測定中のパネルの子要素が消えて例外になる。
+    /// </summary>
+    private void RequestSync()
+    {
+        if (_isDisposed) return;
+
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            SyncFromGraph();
+            return;
+        }
+
+        if (Interlocked.Exchange(ref _syncQueued, 1) != 0) return;
+
+        dispatcher.BeginInvoke(new Action(() =>
+        {
+            Interlocked.Exchange(ref _syncQueued, 0);
+            if (_isDisposed) return;
+
+            try
+            {
+                SyncFromGraph();
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+                Debug.WriteLine($"[GraphViewModel] SyncFromGraph failed: {ex}");
+            }
+        }));
     }
 
     private void UpdatePortValue(ValueChangedEventArgs e)
@@ -164,53 +203,95 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
     private void SyncFromGraph()
     {
         var selectedIds = SelectedNodes.Select(node => node.Id).ToHashSet();
-        var nodeViewModels = new Dictionary<Guid, NodeViewModel>();
-        ClearSelection();
-
-        // 破棄前に古い VM のイベント購読を解除する。NodeLogic はここで再生成されず
-        // 使い回されるため、解除しないと同じ NodeLogic に購読が積み重なっていく。
-        foreach (var oldVm in Nodes)
-            oldVm.Dispose();
-
-        Nodes.Clear();
 
         lock (_graph.GraphLock)
         {
+            // NodeLogic が同一で端子構成も変わっていない VM は使い回す。作り直すとノードの View が
+            // 破棄され、ドラッグ中のマウスキャプチャや選択、編集中のコントロールの状態が失われる。
+            var existing = new Dictionary<Guid, NodeViewModel>();
+            foreach (var oldVm in Nodes)
+                existing[oldVm.Id] = oldVm;
+
+            var resolved = new Dictionary<Guid, NodeViewModel>();
+            var order = new List<NodeViewModel>();
             foreach (var node in _graph.Nodes.Values)
             {
                 NodeViewModel vm;
-                try
-                {
-                    vm = new NodeViewModel(node, _graph, this);
-                }
-                catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-                {
-                    Debug.WriteLine($"[GraphViewModel] Failed to build NodeViewModel for {node.Id}: {ex}");
-                    continue;
-                }
+                if (existing.TryGetValue(node.Id, out var reusable) && reusable.IsBackedBy(node))
+                    vm = reusable;
+                else
+                    try
+                    {
+                        vm = new NodeViewModel(node, _graph, this);
+                    }
+                    catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+                    {
+                        Debug.WriteLine($"[GraphViewModel] Failed to build NodeViewModel for {node.Id}: {ex}");
+                        continue;
+                    }
 
-                Nodes.Add(vm);
-                nodeViewModels[node.Id] = vm;
-                if (selectedIds.Contains(vm.Id))
+                resolved[node.Id] = vm;
+                order.Add(vm);
+            }
+
+            // Nodes の並びは描画順（前面に出した順）。既存の並びを保ったまま差分だけを反映する。
+            var keep = order.ToHashSet();
+            var claimed = new HashSet<Guid>();
+            for (var i = Nodes.Count - 1; i >= 0; i--)
+            {
+                var vm = Nodes[i];
+                if (resolved.TryGetValue(vm.Id, out var next) && claimed.Add(vm.Id))
                 {
-                    vm.IsSelected = true;
-                    SelectedNodes.Add(vm);
+                    if (ReferenceEquals(vm, next)) continue;
+                    vm.Dispose();
+                    Nodes[i] = next;
+                }
+                else
+                {
+                    if (!keep.Contains(vm))
+                        vm.Dispose();
+                    Nodes.RemoveAt(i);
                 }
             }
 
-            foreach (var node in Nodes)
-            foreach (var port in node.InputPorts)
-                port.IsConnected = false;
+            var present = Nodes.ToHashSet();
+            foreach (var vm in order)
+                if (!present.Contains(vm))
+                    Nodes.Add(vm);
 
+            var newSelection = new List<NodeViewModel>();
+            foreach (var vm in Nodes)
+            {
+                var selected = selectedIds.Contains(vm.Id);
+                vm.IsSelected = selected;
+                if (selected)
+                    newSelection.Add(vm);
+            }
+
+            if (!SelectedNodes.SequenceEqual(newSelection))
+            {
+                SelectedNodes.Clear();
+                foreach (var vm in newSelection)
+                    SelectedNodes.Add(vm);
+            }
+
+            foreach (var oldConnection in Connections)
+                oldConnection.Dispose();
             Connections.Clear();
+
             foreach (var conn in _graph.Connections)
             {
-                if (!nodeViewModels.ContainsKey(conn.FromId) || !nodeViewModels.ContainsKey(conn.ToId))
+                if (!resolved.ContainsKey(conn.FromId) || !resolved.ContainsKey(conn.ToId))
                     continue;
 
-                var vm = new ConnectionViewModel(conn, nodeViewModels);
-                Connections.Add(vm);
+                Connections.Add(new ConnectionViewModel(conn, resolved));
             }
+
+            // IsConnected は一度 false に戻さず、結果が変わる端子だけを更新する（View のちらつきを避ける）。
+            var connectedPorts = Connections.Select(c => c.ToPort).OfType<PortViewModel>().ToHashSet();
+            foreach (var node in Nodes)
+            foreach (var port in node.InputPorts)
+                port.IsConnected = connectedPorts.Contains(port);
         }
     }
 
@@ -251,7 +332,7 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
 
             case ConnectionChangedEventArgs:
             {
-                SyncFromGraph();
+                RequestSync();
                 break;
             }
 
@@ -371,7 +452,8 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
                     : _graph.Connections.Where(c => c.ToId == nodeId).ToList();
 
                 foreach (var connection in affectedConnections)
-                    _graph.DisconnectSilently(connection.FromId, connection.FromPort, connection.ToId, connection.ToPort);
+                    _graph.DisconnectSilently(connection.FromId, connection.FromPort, connection.ToId,
+                        connection.ToPort);
 
                 if (!node.Graph.ReplaceArgumentPorts(childNode.Id, definitions))
                 {

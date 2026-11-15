@@ -22,6 +22,7 @@ public sealed class TextStylePort : PortControlBase
     private readonly StackPanel _panel = new() { Orientation = Orientation.Vertical };
     private bool _rebuilding;
     private bool _suppressValueRebuild;
+    private bool _rebuildQueued;
     private TextStyle? _working;
 
     public TextStylePort()
@@ -49,9 +50,23 @@ public sealed class TextStylePort : PortControlBase
         if (!ReferenceEquals(e.OldValue, e.NewValue))
         {
             if (!control._suppressValueRebuild)
-                control.Rebuild();
+                control.QueueRebuild();
             control.ValueChanged?.Invoke(control, EventArgs.Empty);
         }
+    }
+
+    private void QueueRebuild()
+    {
+        if (_rebuildQueued)
+            return;
+
+        _rebuildQueued = true;
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            _rebuildQueued = false;
+            if (IsLoaded)
+                Rebuild();
+        }), System.Windows.Threading.DispatcherPriority.DataBind);
     }
 
     private void Rebuild()
