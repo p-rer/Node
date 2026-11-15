@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
@@ -49,21 +50,16 @@ public static class DynamicBrushNodeFactory
                 var nodeType = GetOrCreate(plugin.GetType());
                 Registry.RegisterType(nodeType);
                 result.Add(nodeType);
-#if DEBUG
-                Console.WriteLine($@"[DynamicBrushNodeFactory] OK: {plugin.GetType().Name} -> {nodeType.FullName}");
-#endif
+                Debug.WriteLine($@"[DynamicBrushNodeFactory] OK: {plugin.GetType().Name} -> {nodeType.FullName}");
             }
             catch (Exception ex)
             {
-#if DEBUG
-                Console.WriteLine(
+                Debug.WriteLine(
                     $@"[DynamicBrushNodeFactory] FAIL: {plugin.GetType().Name} -- {ex.GetType().Name}: {ex.Message}");
-#endif
             }
-#if DEBUG
-        Console.WriteLine(
+
+        Debug.WriteLine(
             $@"[DynamicBrushNodeFactory] Generated {result.Count} / {PluginLoader.BrushPlugins.Count()} brushes.");
-#endif
         return result.ToArray();
     }
 
@@ -87,11 +83,11 @@ public static class DynamicBrushNodeFactory
         }
 
         var pluginType = PluginLoader.BrushPlugins
-                              .Select(p => p.GetType())
-                              .FirstOrDefault(t => MatchesPluginName(t, pluginName)) ??
-                          PluginLoader.BrushPlugins
-                              .Select(p => p.GetType())
-                              .FirstOrDefault(t => MatchesPluginNameLoosely(t, pluginName));
+                             .Select(p => p.GetType())
+                             .FirstOrDefault(t => MatchesPluginName(t, pluginName)) ??
+                         PluginLoader.BrushPlugins
+                             .Select(p => p.GetType())
+                             .FirstOrDefault(t => MatchesPluginNameLoosely(t, pluginName));
 
         if (pluginType == null) return null;
 
@@ -318,11 +314,9 @@ public static class BrushNodeTypeBuilder
                     }
                     catch (Exception ex)
                     {
-#if DEBUG
-                        Console.WriteLine(
+                        Debug.WriteLine(
                             $@"[BrushNodeTypeBuilder] Failed to attach custom editor to '{def.PropName}': " +
                             $@"{ex.GetType().Name}: {ex.Message}");
-#endif
                     }
 
                 break;
@@ -772,10 +766,8 @@ public static class BrushNodeCalculator
         }
         catch (Exception exception)
         {
-#if DEBUG
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"  BrushNodeCalculator EXCEPTION: {exception.GetType().Name}: {exception.Message}");
-#endif
             return Task.FromException(exception);
         }
     }

@@ -210,17 +210,13 @@ internal static class ControlReplacementEngine
                 }
                 catch (Exception ex)
                 {
-#if DEBUG
                     Debug.WriteLine($"[ControlReplacementEngine] 置換失敗: {ex}");
-#endif
                 }
             }));
         }
         catch (Exception ex)
         {
-#if DEBUG
             Debug.WriteLine($"[ControlReplacementEngine] 置換失敗: {ex}");
-#endif
         }
     }
 
@@ -445,13 +441,11 @@ internal static class ControlReplacementEngine
             }
             catch (Exception ex)
             {
-#if DEBUG
                 Debug.WriteLine(
                     $"[ControlReplacementEngine] ApplyValueBinding: {oldControl.GetType().Name}.{rule.SourceValuePropertyName} "
                     + $"({currentValue?.GetType().FullName ?? "null"} = {currentValue}) -> "
                     + $"{rule.TargetValueProperty.OwnerType.Name}.{rule.TargetValueProperty.Name} "
                     + $"(期待型: {rule.TargetValueProperty.PropertyType.FullName}, converter: {converter?.GetType().Name ?? "なし"}) で失敗: {ex.Message}");
-#endif
                 throw;
             }
         }

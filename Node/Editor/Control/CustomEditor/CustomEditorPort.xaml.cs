@@ -214,10 +214,8 @@ public partial class CustomEditorPort
         }
         catch (Exception ex)
         {
-#if DEBUG
             Debug.WriteLine(
                 $@"[CustomEditorPort] Failed to create shadow instance of {ownerType.FullName}: {ex}");
-#endif
             return null;
         }
 
@@ -226,10 +224,8 @@ public partial class CustomEditorPort
         shadowProperty = ownerType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
         if (shadowProperty == null)
         {
-#if DEBUG
             Debug.WriteLine(
                 $@"[CustomEditorPort] {ownerType.FullName} has no public property named '{propertyName}'.");
-#endif
             return null;
         }
 
@@ -315,11 +311,8 @@ public partial class CustomEditorPort
         }
         catch (Exception ex)
         {
-#if DEBUG
-            var inner = ex.InnerException != null ? $" / Inner: {ex.InnerException}" : "";
             Debug.WriteLine(
-                $"[CustomEditorPort:{portId:X8}] CopyProperties: {fromProp.Name} のコピーに失敗: {ex.Message}{inner}");
-#endif
+                $"[CustomEditorPort:{portId:X8}] CopyProperties: {fromProp.Name} のコピーに失敗: {ex.Message}{(ex.InnerException != null ? $" / Inner: {ex.InnerException}" : "")}");
         }
     }
 

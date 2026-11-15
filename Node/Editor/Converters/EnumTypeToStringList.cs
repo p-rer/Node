@@ -4,11 +4,13 @@ using System.Windows.Data;
 
 namespace Node.Editor.Converters;
 
+// ReSharper disable NotAccessedPositionalProperty.Global
 public sealed record EnumPortItem(int Value, string Label);
+// ReSharper restore NotAccessedPositionalProperty.Global
 
 public class EnumTypeToStringList : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not Type { IsEnum: true } type)
             return new List<EnumPortItem>();
@@ -27,7 +29,7 @@ public class EnumTypeToStringList : IValueConverter
             .ToList();
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

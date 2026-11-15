@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
@@ -112,10 +113,8 @@ public class VideoEffectsLoader : IDisposable
         await _semaphore.WaitAsync().ConfigureAwait(false);
         try
         {
-#if DEBUG
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"SetValue ENTER {propertyName} Thread={Environment.CurrentManagedThreadId}");
-#endif
             switch (_type)
             {
                 case EffectType.ShaderEffect when _shaderEffect != null:
@@ -127,10 +126,8 @@ public class VideoEffectsLoader : IDisposable
                     break;
                 case EffectType.VideoEffect when _videoEffect != null:
                 {
-#if DEBUG
-                    Console.WriteLine(
+                    Debug.WriteLine(
                         $@"BeginEdit {propertyName}");
-#endif
                     _videoEffect.BeginEdit();
 
                     try
@@ -182,23 +179,19 @@ public class VideoEffectsLoader : IDisposable
                                 throw new InvalidOperationException(
                                     string.Format(TextUi.PropertyReadOnly, propertyName));
 
-#if DEBUG
-                            Console.WriteLine(
+                            Debug.WriteLine(
                                 $@"  Brush.SetValue: incoming={value?.GetType().Name ?? "null"}, " +
                                 $@"currentParameter={brushObj.Parameter.GetType().Name}, " +
                                 $@"Type={brushObj.Type.Name}");
-#endif
 
                             if (value is IBrushParameter brushParameter)
                             {
                                 brushObj.BeginEdit();
                                 brushObj.Parameter = brushParameter;
                                 await brushObj.EndEditAsync();
-#if DEBUG
-                                Console.WriteLine(
+                                Debug.WriteLine(
                                     $@"  Brush.SetValue: after assign, Parameter={brushObj.Parameter.GetType().Name}, " +
                                     $@"sameRef={ReferenceEquals(brushObj.Parameter, brushParameter)}");
-#endif
                             }
                             else
                             {
@@ -210,11 +203,10 @@ public class VideoEffectsLoader : IDisposable
                                     brushObj.Parameter = defaultParameter;
                                     await brushObj.EndEditAsync();
                                 }
-#if DEBUG
-                                Console.WriteLine(
+
+                                Debug.WriteLine(
                                     $@"  Brush.SetValue: value is NOT IBrushParameter (actual={value?.GetType().FullName ?? "null"}), " +
                                     $@"reset to default={defaultParameter?.GetType().Name ?? "null"}");
-#endif
                             }
                         }
                         else
@@ -244,15 +236,13 @@ public class VideoEffectsLoader : IDisposable
                         var result = FindPropertyByDisplay(_brushParameter, propertyName);
                         if (result == null)
                         {
-#if DEBUG
-                            Console.WriteLine(
+                            Debug.WriteLine(
                                 $@"  BrushEffect SetValue FAILED for '{propertyName}'. " +
                                 $@"_brushParameter type={_brushParameter.GetType().Name}, direct properties: " +
                                 string.Join(", ", _brushParameter.GetType()
                                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                     .Select(p =>
                                         $"{p.Name}({(p.GetCustomAttribute<DisplayAttribute>() != null ? "Display" : "no-Display")})")));
-#endif
                             throw new ArgumentException(string.Format(TextUi.PropertyNotFound, propertyName),
                                 nameof(propertyName));
                         }
@@ -314,10 +304,9 @@ public class VideoEffectsLoader : IDisposable
         {
             _semaphore.Release();
         }
-#if DEBUG
-        Console.WriteLine(
+
+        Debug.WriteLine(
             $@"SetValue EXIT {propertyName} Thread={Environment.CurrentManagedThreadId}");
-#endif
         return this;
 
         (object target, PropertyInfo property)? FindPropertyByDisplay(object? obj, string name,

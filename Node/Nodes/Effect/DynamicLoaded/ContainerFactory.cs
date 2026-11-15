@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Media;
-using Node.Graph.Attributes;
 using Node.Graph.Port;
 using Node.Localize;
 using Node.ValueTypes;
@@ -342,11 +342,9 @@ public class ContainerFactory
                         }
                         catch (Exception ex)
                         {
-#if DEBUG
-                            Console.WriteLine(
+                            Debug.WriteLine(
                                 $@"[ContainerFactory] Failed to attach custom editor to '{port.PropName}': " +
                                 $@"{ex.GetType().Name}: {ex.Message}");
-#endif
                         }
 
                     break;
@@ -361,7 +359,7 @@ public class ContainerFactory
         foreach (var p in type.GetProperties())
         {
             var hasAttr = Attribute.IsDefined(p, typeof(InputPortAttribute));
-            Console.WriteLine($@"[ContainerFactory] {type.Name}.{p.Name} HasInputPort={hasAttr}");
+            Debug.WriteLine($@"[ContainerFactory] {type.Name}.{p.Name} HasInputPort={hasAttr}");
         }
 #endif
         TypeCache[name] = type;

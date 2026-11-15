@@ -7,7 +7,8 @@ using Node.Localize;
 
 namespace Node.Nodes.Generator.Outline;
 
-[Node(typeof(OutlineCategory), nameof(TextNode.UnicodeTextStyleNode), nameof(TextNode.UnicodeTextStyleNodeDescription), typeof(TextNode))]
+[Node(typeof(OutlineCategory), nameof(TextNode.UnicodeTextStyleNode), nameof(TextNode.UnicodeTextStyleNodeDescription),
+    typeof(TextNode))]
 public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 {
     private PortDefinition[] _rangeDefinitions = [];
@@ -21,7 +22,8 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
         set => SetInput(value);
     }
 
-    [OutputPort(nameof(TextNode.TextStyleMapOutputLabel), nameof(TextNode.TextStyleMapOutputDescription), typeof(TextNode))]
+    [OutputPort(nameof(TextNode.TextStyleMapOutputLabel), nameof(TextNode.TextStyleMapOutputDescription),
+        typeof(TextNode))]
     [TextStylePortControl]
     [PortColorSetting(nameof(Colors.MediumPurple))]
     public TextStyle? Output
@@ -102,8 +104,6 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
         Output = baseStyle;
         return Task.CompletedTask;
     }
-
-    public override void Dispose() => base.Dispose();
 }
 
 internal sealed class UnicodeTextStyleRangeContainer : InputsContainer

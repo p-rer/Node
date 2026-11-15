@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Node.Localize;
 using Node.Nodes.Generator.Outline;
 using YukkuriMovieMaker.Commons;
@@ -21,8 +22,8 @@ public sealed class TextStylePort : PortControlBase
 
     private readonly StackPanel _panel = new() { Orientation = Orientation.Vertical };
     private bool _rebuilding;
-    private bool _suppressValueRebuild;
     private bool _rebuildQueued;
+    private bool _suppressValueRebuild;
     private TextStyle? _working;
 
     public TextStylePort()
@@ -66,7 +67,7 @@ public sealed class TextStylePort : PortControlBase
             _rebuildQueued = false;
             if (IsLoaded)
                 Rebuild();
-        }), System.Windows.Threading.DispatcherPriority.DataBind);
+        }), DispatcherPriority.DataBind);
     }
 
     private void Rebuild()
@@ -293,7 +294,7 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             _start.Value = value.StartCodePoint;
             _end.Value = value.EndCodePoint;
             _offset.Text = value.Offset.ToString(CultureInfo.CurrentCulture);
-            _style.Value = value.Style ?? new TextStyle();
+            _style.Value = value.Style;
         }
         finally
         {

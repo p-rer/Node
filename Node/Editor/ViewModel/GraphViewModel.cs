@@ -467,8 +467,6 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
                 foreach (var connection in affectedConnections)
                 {
                     var portName = outputs ? connection.FromPort : connection.ToPort;
-                    if (portName == null)
-                        continue;
 
                     var portExists = outputs
                         ? logic.Outputs.ContainsKey(portName)

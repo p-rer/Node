@@ -26,7 +26,7 @@ public static class ControlRegistrations
 
         _initialized = true;
 
-        ControlRegistry.Register<TextStylePort>(attr =>
+        ControlRegistry.Register<TextStylePort>(_ =>
         {
             var template = new DataTemplate();
             var factory = new FrameworkElementFactory(typeof(TextStylePort));
@@ -34,12 +34,14 @@ public static class ControlRegistrations
             {
                 Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
             });
-            factory.SetBinding(PortControlBase.BeginEditCommandProperty, new Binding(nameof(PortViewModel.BeginEditCommand)));
-            factory.SetBinding(PortControlBase.EndEditCommandProperty, new Binding(nameof(PortViewModel.EndEditCommand)));
+            factory.SetBinding(PortControlBase.BeginEditCommandProperty,
+                new Binding(nameof(PortViewModel.BeginEditCommand)));
+            factory.SetBinding(PortControlBase.EndEditCommandProperty,
+                new Binding(nameof(PortViewModel.EndEditCommand)));
             template.VisualTree = factory;
             return template;
         });
-        ControlRegistry.Register<UnicodeRangeStylePort>(attr =>
+        ControlRegistry.Register<UnicodeRangeStylePort>(_ =>
         {
             var template = new DataTemplate();
             var factory = new FrameworkElementFactory(typeof(UnicodeRangeStylePort));
@@ -47,8 +49,10 @@ public static class ControlRegistrations
             {
                 Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
             });
-            factory.SetBinding(PortControlBase.BeginEditCommandProperty, new Binding(nameof(PortViewModel.BeginEditCommand)));
-            factory.SetBinding(PortControlBase.EndEditCommandProperty, new Binding(nameof(PortViewModel.EndEditCommand)));
+            factory.SetBinding(PortControlBase.BeginEditCommandProperty,
+                new Binding(nameof(PortViewModel.BeginEditCommand)));
+            factory.SetBinding(PortControlBase.EndEditCommandProperty,
+                new Binding(nameof(PortViewModel.EndEditCommand)));
             template.VisualTree = factory;
             return template;
         });

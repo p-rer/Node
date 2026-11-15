@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
@@ -51,20 +52,15 @@ public static class EffectNodeFactory
                 var nodeType = GetOrCreate(effectType);
                 Registry.RegisterType(nodeType);
                 result.Add(nodeType);
-#if DEBUG
-                Console.WriteLine($@"[EffectNodeFactory] OK: {effectType.Name} -> {nodeType.FullName}");
-#endif
+                Debug.WriteLine($@"[EffectNodeFactory] OK: {effectType.Name} -> {nodeType.FullName}");
             }
             catch (Exception ex)
             {
-#if DEBUG
-                Console.WriteLine($@"[EffectNodeFactory] FAIL: {effectType.Name} -- {ex.GetType().Name}: {ex.Message}");
-#endif
+                Debug.WriteLine($@"[EffectNodeFactory] FAIL: {effectType.Name} -- {ex.GetType().Name}: {ex.Message}");
             }
-#if DEBUG
-        Console.WriteLine(
+
+        Debug.WriteLine(
             $@"[EffectNodeFactory] Generated {result.Count} / {PluginLoader.VideoEffects.Count()} effects.");
-#endif
         return result.ToArray();
     }
 
@@ -81,9 +77,7 @@ public static class EffectNodeFactory
 
             if (TypeCache.TryGetValue(effectKey, out var cached))
             {
-#if DEBUG
-                Console.WriteLine($@"[EffectNodeFactory]   cache hit: {effectType.Name}");
-#endif
+                Debug.WriteLine($@"[EffectNodeFactory]   cache hit: {effectType.Name}");
                 return cached;
             }
 
@@ -92,15 +86,13 @@ public static class EffectNodeFactory
 
             var (staticPortDefs, dynamicParams) = EffectPortCollector.Collect(effectInstance);
 
-#if DEBUG
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"[EffectNodeFactory]   {effectType.Name}: {staticPortDefs.Count + dynamicParams.Count} port(s) collected (including {dynamicParams.Count} dynamics)");
             foreach (var d in staticPortDefs)
-                Console.WriteLine($@"[EffectNodeFactory]     {d.PortType,-6} {d.PropName} (label={d.LabelKey})");
+                Debug.WriteLine($@"[EffectNodeFactory]     {d.PortType,-6} {d.PropName} (label={d.LabelKey})");
             foreach (var d in dynamicParams)
-                Console.WriteLine(
+                Debug.WriteLine(
                     $@"[EffectNodeFactory]     {d.Item1.PortType,-6} {d.Item1.PropName} (Dynamic, label={d.Item1.LabelKey})");
-#endif
 
             var veAttr = effectType.GetCustomAttribute<VideoEffectAttribute>();
             var categoryKey = veAttr?.Categories.FirstOrDefault() ?? "Effect";
@@ -365,12 +357,10 @@ public static class EffectPortCollector
             .FirstOrDefault(ad => typeof(PropertyEditorAttribute2).IsAssignableFrom(ad.AttributeType));
         var editorAttrInstance = editorAttrData == null ? null : Attr.CreateEditorAttributeInstance(editorAttrData);
 
-#if DEBUG
         if (editorAttrData != null)
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"[EffectPortCollector] '{prop.Name}' (type={prop.PropertyType.FullName}) uses custom editor " +
                 $@"{editorAttrData.AttributeType.FullName} (instance={(editorAttrInstance != null ? "OK" : "FAILED")})");
-#endif
 
         return new PortDefinition
         {
@@ -627,11 +617,9 @@ public static class EffectNodeTypeBuilder
                     }
                     catch (Exception ex)
                     {
-#if DEBUG
-                        Console.WriteLine(
+                        Debug.WriteLine(
                             $@"[EffectNodeTypeBuilder] Failed to attach custom editor to '{def.PropName}': " +
                             $@"{ex.GetType().Name}: {ex.Message}");
-#endif
                     }
 
                 break;
@@ -1017,11 +1005,9 @@ public static class EffectNodeCalculator
                 foreach (var def in portDefs)
                 {
                     var value = GetPortValue(self, def, ctx);
-#if DEBUG
                     if (def.PortType == PortType.Brush)
-                        Console.WriteLine(
+                        Debug.WriteLine(
                             $@"  CalculateAsync Brush port '{def.PropName}': value={value?.GetType().Name ?? "null"}");
-#endif
                     loader.SetValue(def.PropName, value)
                         .GetAwaiter()
                         .GetResult();
@@ -1112,13 +1098,11 @@ public static class EffectNodeCalculator
         }
         catch (Exception exception)
         {
-#if DEBUG
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"  CalculateAsync EXCEPTION: {exception.GetType().Name}: {exception.Message}" +
                 (exception.InnerException != null
                     ? $@" --> Inner: {exception.InnerException.GetType().Name}: {exception.InnerException.Message}"
                     : ""));
-#endif
             return Task.FromException(exception);
         }
     }
@@ -1253,12 +1237,10 @@ public static class EffectNodeCalculator
 
     private static IBrushParameter? ConvertBrush(object? raw)
     {
-#if DEBUG
-        Console.WriteLine(
+        Debug.WriteLine(
             $@"  ConvertBrush: raw={raw?.GetType().Name ?? "null"}, " +
             $@"isBrushWrapper={raw is BrushWrapper}, " +
             $@"innerBrushIsNull={(raw as BrushWrapper)?.Brush == null}");
-#endif
         if (raw is not BrushWrapper wrapper)
             return null;
 
@@ -1370,11 +1352,9 @@ internal static class Attr
         }
         catch (Exception ex)
         {
-#if DEBUG
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"[Attr.CreateEditorAttributeInstance] Failed to construct {attributeData.AttributeType.FullName}: " +
                 $@"{ex.GetType().Name}: {ex.Message}");
-#endif
             return null;
         }
     }
@@ -1419,11 +1399,9 @@ internal static class Attr
         }
         catch (Exception ex)
         {
-#if DEBUG
-            Console.WriteLine(
+            Debug.WriteLine(
                 $@"[Attr.CustomEditorControl] Failed to re-emit {attributeData.AttributeType.FullName} " +
                 $@"onto property '{pb.Name}': {ex.GetType().Name}: {ex.Message}");
-#endif
             throw;
         }
     }

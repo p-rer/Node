@@ -2,7 +2,6 @@ using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Graph.Snapshot;
 using Node.Nodes.Func;
-using Node.Nodes.Value;
 
 namespace Node.Graph;
 
@@ -284,11 +283,9 @@ public sealed class NodeGraph
 
         var connections = node.DynamicPortsAreOutputs
             ? Connections.Where(c => c.FromId == nodeLogic.Id &&
-                                     c.FromPort is not null &&
                                      node.GetPortDefinitions().Any(d => d.Name == c.FromPort))
                 .ToList()
             : Connections.Where(c => c.ToId == nodeLogic.Id &&
-                                     c.ToPort is not null &&
                                      node.GetPortDefinitions().Any(d => d.Name == c.ToPort))
                 .ToList();
 

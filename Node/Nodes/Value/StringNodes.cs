@@ -418,6 +418,29 @@ public class StringConcatNode : NodeLogic, ISerializableNode, IPortDefinitionNod
         set => SetOutput(value);
     }
 
+    public PortDefinition[] GetPortDefinitions()
+    {
+        return _textPorts;
+    }
+
+    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
+    {
+        return IsValidTextPortSet(definitions);
+    }
+
+    bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
+
+    DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.Text;
+
+    void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
+    {
+        InitializeTextPorts(definitions);
+    }
+
+    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
+    {
+    }
+
     public Dictionary<string, object?> SerializeCustomData()
     {
         var entries = _textPorts.Select(definition => new[] { definition.Name, definition.Label });
@@ -445,29 +468,6 @@ public class StringConcatNode : NodeLogic, ISerializableNode, IPortDefinitionNod
             .Select(entry => CreateTextPort(entry[0], entry[1]))
             .ToArray();
         if (IsValidTextPortSet(definitions)) InitializeTextPorts(definitions);
-    }
-
-    public PortDefinition[] GetPortDefinitions()
-    {
-        return _textPorts;
-    }
-
-    bool IPortDefinitionNode.IsValidPortSet(PortDefinition[] definitions)
-    {
-        return IsValidTextPortSet(definitions);
-    }
-
-    bool IPortDefinitionNode.DynamicPortsAreOutputs => false;
-
-    DynamicPortKind IPortDefinitionNode.DynamicPortKind => DynamicPortKind.Text;
-
-    void IPortDefinitionNode.Initialize(PortDefinition[] definitions)
-    {
-        InitializeTextPorts(definitions);
-    }
-
-    void IPortDefinitionNode.NotifyPortDefinitionsChanged()
-    {
     }
 
     /// <summary>
@@ -515,7 +515,7 @@ public class StringConcatNode : NodeLogic, ISerializableNode, IPortDefinitionNod
 
     private static PortDefinition CreateTextPort(string name, string label)
     {
-        return new PortDefinition(name, typeof(string), label ?? "", "", null, true);
+        return new PortDefinition(name, typeof(string), label, "", null, true);
     }
 
     private static PortDefinition[] CreateDefaultTextPorts()

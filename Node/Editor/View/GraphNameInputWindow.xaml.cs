@@ -2,7 +2,7 @@ using System.Windows;
 
 namespace Node.Editor.View;
 
-public partial class GraphNameInputWindow : Window
+public partial class GraphNameInputWindow
 {
     public GraphNameInputWindow(string prompt, string defaultName)
     {

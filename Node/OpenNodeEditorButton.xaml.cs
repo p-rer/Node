@@ -6,7 +6,6 @@ using AvalonDock.Layout;
 using Node.Editor.ViewModel;
 using Node.Graph;
 using Node.Graph.Events;
-using Node.Graph.Port;
 using Node.Graph.Snapshot;
 using Node.Localize;
 using Node.Nodes.Effect.DynamicLoaded;

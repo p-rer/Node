@@ -2,6 +2,7 @@ using System.Windows.Media;
 using Node.Localize;
 using Node.Nodes.Effect;
 using Node.Nodes.Func;
+using Node.Nodes.Generator.Outline;
 using Node.ValueTypes;
 
 namespace Node.Editor.View;
@@ -40,9 +41,11 @@ public sealed class PortEditOptions(
 
     /// <summary>Unicode 範囲スタイルノードの追加端子。</summary>
     public static PortEditOptions UnicodeRanges =>
-        new([new PortTypeOption(typeof(Node.Nodes.Generator.Outline.UnicodeRangeStyle),
-                TextUi.UnicodeRangeStylePortName,
-                () => new Node.Nodes.Generator.Outline.UnicodeRangeStyle())],
+        new([
+                new PortTypeOption(typeof(UnicodeRangeStyle),
+                    TextUi.UnicodeRangeStylePortName,
+                    () => new UnicodeRangeStyle())
+            ],
             TextUi.EditUnicodeRangePortsTitle, TextUi.UnicodeRangePortDialogTitle, false);
 
     /// <summary>Node エフェクトノードの入力端子。</summary>

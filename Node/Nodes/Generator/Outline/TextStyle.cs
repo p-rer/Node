@@ -56,7 +56,7 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _size, value);
     }
 
-    [Display(Name = nameof(TextNode.TextFontWeightLabel), Description = nameof(TextNode.TextFontWeightDescription),
+    [Display(Name = nameof(TextNode.BoldLabel), Description = nameof(TextNode.BoldDescription),
         ResourceType = typeof(TextNode))]
     [FontWeightPortControl]
     public int Weight
@@ -160,16 +160,16 @@ public sealed class TextStyleMap
         for (var i = Ranges.Count - 1; i >= 0; i--)
         {
             var range = Ranges[i];
-            if (range == null || range.StartCodePoint < 0 ||
+            if (range.StartCodePoint < 0 ||
                 range.EndCodePoint > 0x10FFFF || range.StartCodePoint > range.EndCodePoint)
                 continue;
             if (codePoint < range.StartCodePoint || codePoint > range.EndCodePoint)
                 continue;
             offset = range.Offset;
-            return range.Style ?? DefaultStyle ?? new TextStyle();
+            return range.Style;
         }
 
         offset = 0f;
-        return DefaultStyle ?? new TextStyle();
+        return DefaultStyle;
     }
 }

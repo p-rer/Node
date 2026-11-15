@@ -78,13 +78,13 @@ public sealed class NodeEffect : VideoEffectBase
     public string ArgumentValues
     {
         get => _argumentValues;
-        set => Set(ref _argumentValues, value ?? "{}");
+        set => Set(ref _argumentValues, value);
     }
 
     public Dictionary<string, int> ArgumentAnimationSlots
     {
         get => _argumentAnimationSlots;
-        set => _argumentAnimationSlots = value ?? new Dictionary<string, int>();
+        set => _argumentAnimationSlots = value;
     }
 
     public Animation ArgumentSlot00 => _argumentSlots[0];
@@ -243,7 +243,7 @@ public sealed class NodeEffect : VideoEffectBase
         return null;
     }
 
-    internal static System.Reflection.PropertyInfo GetArgumentSlotProperty(int slot)
+    internal static PropertyInfo GetArgumentSlotProperty(int slot)
     {
         return typeof(NodeEffect).GetProperty($"ArgumentSlot{slot:00}")!;
     }

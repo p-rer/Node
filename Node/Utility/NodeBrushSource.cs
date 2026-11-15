@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using Node.ValueTypes;
 using Vortice.Direct2D1;
 using YukkuriMovieMaker.Commons;
@@ -39,10 +40,8 @@ internal sealed class NodeBrushParameter : IBrushParameter
     public IBrushSource CreateBrush(
         IGraphicsDevicesAndContext devices)
     {
-#if DEBUG
-        Console.WriteLine(
+        Debug.WriteLine(
             $@"  NodeBrushParameter.CreateBrush called, _brush={_brush.NativePointer:x8}");
-#endif
         return new NodeBrushSource(_brush);
     }
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -400,62 +401,69 @@ public partial class ColorPicker
     // Update the triangle gradient
     private async void UpdateTriangleGradient()
     {
-        // Compute the bounding box of the triangle
-        var minX = Math.Min(_a.X, Math.Min(_b.X, _c.X));
-        var minY = Math.Min(_a.Y, Math.Min(_b.Y, _c.Y));
-        var maxX = Math.Max(_a.X, Math.Max(_b.X, _c.X));
-        var maxY = Math.Max(_a.Y, Math.Max(_b.Y, _c.Y));
-        var bmpWidth = (int)Math.Ceiling(maxX - minX);
-        var bmpHeight = (int)Math.Ceiling(maxY - minY);
-        if (bmpWidth <= 0 || bmpHeight <= 0)
+        try
         {
-            Dispatcher.BeginInvoke(new Action(UpdateTriangleGradient),
-                DispatcherPriority.Render);
-            return;
-        }
-
-        var a = _a;
-        var b = _b;
-        var c = _c;
-        var hue = _currentHue;
-
-        var bmp = await Task.Run(() =>
-        {
-            var result = new WriteableBitmap(bmpWidth, bmpHeight, 96, 96, PixelFormats.Bgra32, null);
-            var stride = bmpWidth * 4;
-            var pixels = new byte[bmpHeight * stride];
-            var pureHue = ColorFromHsv(hue, 1, 1);
-
-            for (var y = 0; y < bmpHeight; y++)
-            for (var x = 0; x < bmpWidth; x++)
+            // Compute the bounding box of the triangle
+            var minX = Math.Min(_a.X, Math.Min(_b.X, _c.X));
+            var minY = Math.Min(_a.Y, Math.Min(_b.Y, _c.Y));
+            var maxX = Math.Max(_a.X, Math.Max(_b.X, _c.X));
+            var maxY = Math.Max(_a.Y, Math.Max(_b.Y, _c.Y));
+            var bmpWidth = (int)Math.Ceiling(maxX - minX);
+            var bmpHeight = (int)Math.Ceiling(maxY - minY);
+            if (bmpWidth <= 0 || bmpHeight <= 0)
             {
-                var p = new Point(minX + x, minY + y);
-                ComputeBarycentricCoordinates(p, a, b, c, out var wA, out var wB, out var wC);
-                var index = y * stride + x * 4;
-                if (wA >= 0 && wB >= 0 && wC >= 0)
-                {
-                    pixels[index + 0] = (byte)Math.Clamp(wA * 255 + wB * pureHue.B, 0, 255);
-                    pixels[index + 1] = (byte)Math.Clamp(wA * 255 + wB * pureHue.G, 0, 255);
-                    pixels[index + 2] = (byte)Math.Clamp(wA * 255 + wB * pureHue.R, 0, 255);
-                    pixels[index + 3] = 255;
-                }
+                await Dispatcher.BeginInvoke(new Action(UpdateTriangleGradient),
+                    DispatcherPriority.Render);
+                return;
             }
 
-            result.WritePixels(new Int32Rect(0, 0, bmpWidth, bmpHeight), pixels, stride, 0);
-            if (result.CanFreeze) result.Freeze();
-            return result;
-        });
+            var a = _a;
+            var b = _b;
+            var c = _c;
+            var hue = _currentHue;
 
-        if (!IsLoaded) return;
-        var brush = new ImageBrush(bmp)
+            var bmp = await Task.Run(() =>
+            {
+                var result = new WriteableBitmap(bmpWidth, bmpHeight, 96, 96, PixelFormats.Bgra32, null);
+                var stride = bmpWidth * 4;
+                var pixels = new byte[bmpHeight * stride];
+                var pureHue = ColorFromHsv(hue, 1, 1);
+
+                for (var y = 0; y < bmpHeight; y++)
+                for (var x = 0; x < bmpWidth; x++)
+                {
+                    var p = new Point(minX + x, minY + y);
+                    ComputeBarycentricCoordinates(p, a, b, c, out var wA, out var wB, out var wC);
+                    var index = y * stride + x * 4;
+                    if (wA >= 0 && wB >= 0 && wC >= 0)
+                    {
+                        pixels[index + 0] = (byte)Math.Clamp(wA * 255 + wB * pureHue.B, 0, 255);
+                        pixels[index + 1] = (byte)Math.Clamp(wA * 255 + wB * pureHue.G, 0, 255);
+                        pixels[index + 2] = (byte)Math.Clamp(wA * 255 + wB * pureHue.R, 0, 255);
+                        pixels[index + 3] = 255;
+                    }
+                }
+
+                result.WritePixels(new Int32Rect(0, 0, bmpWidth, bmpHeight), pixels, stride, 0);
+                if (result.CanFreeze) result.Freeze();
+                return result;
+            });
+
+            if (!IsLoaded) return;
+            var brush = new ImageBrush(bmp)
+            {
+                Viewbox = new Rect(0, 0, bmpWidth, bmpHeight),
+                ViewboxUnits = BrushMappingMode.Absolute,
+                Viewport = new Rect(minX, minY, bmpWidth, bmpHeight),
+                ViewportUnits = BrushMappingMode.Absolute,
+                Stretch = Stretch.Fill
+            };
+            SvTriangle.Fill = brush;
+        }
+        catch (Exception e)
         {
-            Viewbox = new Rect(0, 0, bmpWidth, bmpHeight),
-            ViewboxUnits = BrushMappingMode.Absolute,
-            Viewport = new Rect(minX, minY, bmpWidth, bmpHeight),
-            ViewportUnits = BrushMappingMode.Absolute,
-            Stretch = Stretch.Fill
-        };
-        SvTriangle.Fill = brush;
+            Debug.WriteLine(e.Message);
+        }
     }
 
     // Update the indicator position
@@ -532,14 +540,21 @@ public partial class ColorPicker
 
     private async void UpdateHueRingBrush()
     {
-        var bmp = await Task.Run(GenerateHueRingBitmap);
-        var brush = new ImageBrush(bmp)
+        try
         {
-            Stretch = Stretch.None,
-            AlignmentX = AlignmentX.Left,
-            AlignmentY = AlignmentY.Top
-        };
-        HueRing.Stroke = brush;
+            var bmp = await Task.Run(GenerateHueRingBitmap);
+            var brush = new ImageBrush(bmp)
+            {
+                Stretch = Stretch.None,
+                AlignmentX = AlignmentX.Left,
+                AlignmentY = AlignmentY.Top
+            };
+            HueRing.Stroke = brush;
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+        }
     }
 
     #endregion
@@ -562,6 +577,7 @@ public partial class ColorPicker
                 EndColorDrag();
                 return;
             }
+
             UpdateHueFromPoint(pos);
         }
         else if (PointInTriangle(pos, _a, _b, _c))
@@ -573,6 +589,7 @@ public partial class ColorPicker
                 EndColorDrag();
                 return;
             }
+
             UpdateSvFromPoint(pos);
         }
 

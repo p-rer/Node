@@ -1,9 +1,10 @@
 using System.Windows;
 using Node.Graph.Port;
+using Node.Nodes.Generator.Outline;
 
 namespace Node.Editor.View;
 
-public partial class ArgumentPortEditWindow : Window
+public partial class ArgumentPortEditWindow
 {
     private readonly PortDefinition? _existing;
     private readonly PortEditOptions _options;
@@ -56,7 +57,10 @@ public partial class ArgumentPortEditWindow : Window
 
         if (_existing == null)
             Result = new PortDefinition(
-                (_options.Types.Count == 1 && _options.Types[0].ValueType == typeof(Node.Nodes.Generator.Outline.UnicodeRangeStyle) ? "Range_" : "Arg_") + Guid.NewGuid().ToString("N")[..8],
+                (_options.Types.Count == 1 &&
+                 _options.Types[0].ValueType == typeof(UnicodeRangeStyle)
+                    ? "Range_"
+                    : "Arg_") + Guid.NewGuid().ToString("N")[..8],
                 portType,
                 label,
                 "",
