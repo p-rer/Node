@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -12,9 +13,8 @@ using Node.Graph.Attributes;
 using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Localize;
-using Node.Nodes.Effect;
 using Node.Nodes.Func;
-using Node.Nodes.Value;
+using Node.Utility;
 using Node.ValueTypes;
 using YukkuriMovieMaker.Commons;
 using VisualStateChangedEventArgs = Node.Graph.Events.VisualStateChangedEventArgs;
@@ -29,6 +29,11 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     private readonly EventHandler<NeedToReinitializeInputPortsEvent> _needToReinitializeInputPortsHandler;
     internal readonly NodeLogic NodeLogic;
     private bool _isDisposed;
+
+    /// <summary>
+    ///     この VM が表示している端子構成の識別子。GraphViewModel が VM を使い回してよいかの判定に使う。
+    /// </summary>
+    private string _portSignature = "";
 
     private double _x;
     private double _y;
@@ -61,6 +66,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         SubGraphs = new ObservableCollection<SubGraphViewModel>(
             CreateSubGraphs(nodeLogic)
         );
+        _portSignature = CreatePortSignature(nodeLogic);
 
         HasSubGraph = nodeLogic.SubGraphs.Count > 0;
 
@@ -82,17 +88,7 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         };
         nodeLogic.ErrorStateChanged += _errorStateChangedHandler;
 
-        _needToReinitializeInputPortsHandler = (sender, @event) =>
-        {
-            var dispatcher = Application.Current?.Dispatcher;
-            if (dispatcher != null && !dispatcher.CheckAccess())
-            {
-                dispatcher.Invoke(new Action(() => HandleNeedToReinitializeInputPorts(sender, @event)));
-                return;
-            }
-
-            HandleNeedToReinitializeInputPorts(sender, @event);
-        };
+        _needToReinitializeInputPortsHandler = QueueReinitializeInputPorts;
         nodeLogic.NeedToReinitializeInputPorts += _needToReinitializeInputPortsHandler;
     }
 
@@ -190,17 +186,107 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         internal set => SetField(ref field, value);
     }
 
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+
+        NodeLogic.ErrorStateChanged -= _errorStateChangedHandler;
+        NodeLogic.NeedToReinitializeInputPorts -= _needToReinitializeInputPortsHandler;
+
+        foreach (var subGraph in SubGraphs)
+            subGraph.Dispose();
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    ///     端子の再構築要求は必ず後続のディスパッチャー処理へ回す。要求は値のバインディング更新
+    ///     （レイアウト中のテンプレート適用を含む）から同期的に届くことがあり、その場で InputPorts を
+    ///     書き換えると、測定中の StackPanel の子要素が消えて ArgumentOutOfRangeException になる。
+    ///     処理が走る時点でこの VM が GraphViewModel に作り直されていた場合は、同じ NodeLogic の現在の VM へ渡す。
+    /// </summary>
+    private void QueueReinitializeInputPorts(object? sender, NeedToReinitializeInputPortsEvent @event)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null)
+        {
+            HandleNeedToReinitializeInputPorts(sender, @event);
+            return;
+        }
+
+        dispatcher.BeginInvoke(new Action(() =>
+        {
+            var target = _isDisposed
+                ? _graphViewModel.Nodes.FirstOrDefault(n => n.Id == Id && ReferenceEquals(n.NodeLogic, NodeLogic))
+                : this;
+            target?.HandleNeedToReinitializeInputPorts(sender, @event);
+        }));
+    }
+
+    /// <summary>
+    ///     NodeLogic が同一で、表示中の端子構成が現在の NodeLogic と一致している場合のみ true。
+    /// </summary>
+    internal bool IsBackedBy(NodeLogic node)
+    {
+        return ReferenceEquals(NodeLogic, node) && _portSignature == CreatePortSignature(node);
+    }
+
+    private static string CreatePortSignature(NodeLogic node)
+    {
+        try
+        {
+            var builder = new StringBuilder();
+            foreach (var (name, port) in node.Inputs)
+                builder.Append(name).Append(':').Append(RuntimeHelpers.GetHashCode(port.ValueType)).Append(';');
+            builder.Append('|');
+            foreach (var (name, port) in node.Outputs)
+                builder.Append(name).Append(':').Append(RuntimeHelpers.GetHashCode(port.ValueType)).Append(';');
+            builder.Append('|');
+
+            var subGraphNode = node as ISubGraphPortNode;
+            AppendDefinitions(builder, (node as IPortDefinitionNode)?.GetPortDefinitions());
+            AppendDefinitions(builder, subGraphNode?.InnerArguments?.GetPortDefinitions());
+            AppendDefinitions(builder, subGraphNode?.InnerReturn?.GetPortDefinitions());
+            builder.Append('|');
+
+            foreach (var (name, subGraph) in node.SubGraphs)
+                builder.Append(name).Append(':').Append(RuntimeHelpers.GetHashCode(subGraph)).Append(';');
+            return builder.ToString();
+        }
+        catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+        {
+            // 別スレッドが Inputs を書き換えている最中などで読み取れない場合は、再利用せず作り直す側に倒す。
+            return Guid.NewGuid().ToString();
+        }
+    }
+
+    private static void AppendDefinitions(StringBuilder builder, PortDefinition[]? definitions)
+    {
+        builder.Append('[');
+        if (definitions != null)
+            foreach (var definition in definitions)
+                builder.Append(definition.Name).Append(':')
+                    .Append(RuntimeHelpers.GetHashCode(definition.ValueType)).Append(':')
+                    .Append(definition.GetDisplayLabel()).Append(':')
+                    .Append(definition.IsCustom).Append(';');
+        builder.Append(']');
+    }
+
     private void HandleNeedToReinitializeInputPorts(object? sender, NeedToReinitializeInputPortsEvent @event)
     {
         var logic = (NodeLogic)sender!;
 
         if (logic is IPortDefinitionNode { DynamicPortKind: not DynamicPortKind.Default })
         {
+            // 先に新しい端子を作り切ってから差し替える。途中で例外が出ても InputPorts が空のまま残らない。
+            var newPorts = CreateInputPorts(logic, _graph).ToList();
             InputPorts.Clear();
-            foreach (var portVm in CreateInputPorts(logic, _graph))
+            foreach (var portVm in newPorts)
                 InputPorts.Add(portVm);
             foreach (var portVm in InputPorts)
                 portVm.ApplyDefaultToGraph();
+            _portSignature = CreatePortSignature(logic);
             _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
             return;
         }
@@ -237,8 +323,9 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
         logic.SwapDynamicContainer(@event.PropName, @event.NewContainer);
 
+        var rebuiltPorts = CreateInputPorts(logic, _graph).ToList();
         InputPorts.Clear();
-        foreach (var portVm in CreateInputPorts(logic, _graph))
+        foreach (var portVm in rebuiltPorts)
             InputPorts.Add(portVm);
 
         var newPortsByName = InputPorts.ToDictionary(p => p.Name);
@@ -266,22 +353,9 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
         foreach (var portVm in InputPorts)
             portVm.ApplyDefaultToGraph();
 
+        _portSignature = CreatePortSignature(logic);
         _graph.OnGraphChanged(new ConnectionChangedEventArgs(null, null, Id, null));
     }
-
-    public void Dispose()
-    {
-        if (_isDisposed) return;
-        _isDisposed = true;
-
-        NodeLogic.ErrorStateChanged -= _errorStateChangedHandler;
-        NodeLogic.NeedToReinitializeInputPorts -= _needToReinitializeInputPortsHandler;
-
-        foreach (var subGraph in SubGraphs)
-            subGraph.Dispose();
-    }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     internal PortDefinition[] GetArgumentPortDefinitions()
     {

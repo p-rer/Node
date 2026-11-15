@@ -8,7 +8,7 @@ using Node.Localize;
 
 namespace Node.Editor.ViewModel;
 
-public sealed class ConnectionViewModel : INotifyPropertyChanged
+public sealed class ConnectionViewModel : INotifyPropertyChanged, IDisposable
 {
     private static readonly Dictionary<Type, string> TypeAliases = new()
     {
@@ -27,6 +27,8 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
         [typeof(string)] = "string",
         [typeof(object)] = "object"
     };
+
+    private readonly PropertyChangedEventHandler _portPropertyChangedHandler;
 
     public ConnectionViewModel(
         NodeConnection connection,
@@ -50,25 +52,20 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
         if (FromPort != null && ToPort != null)
             ProblemMessage = CreateProblemMessage(FromPort.ValueType, ToPort.ValueType);
 
-        if (FromPort != null)
-            FromPort.PropertyChanged += (_, e) =>
+        _portPropertyChangedHandler = (_, e) =>
+        {
+            if (e.PropertyName == nameof(PortViewModel.Position))
             {
-                if (e.PropertyName == nameof(PortViewModel.Position))
-                {
-                    OnPropertyChanged(nameof(Geometry));
-                    OnPropertyChanged(nameof(Brush));
-                }
-            };
+                OnPropertyChanged(nameof(Geometry));
+                OnPropertyChanged(nameof(Brush));
+            }
+        };
+
+        if (FromPort != null)
+            FromPort.PropertyChanged += _portPropertyChangedHandler;
 
         if (ToPort != null)
-            ToPort.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(PortViewModel.Position))
-                {
-                    OnPropertyChanged(nameof(Geometry));
-                    OnPropertyChanged(nameof(Brush));
-                }
-            };
+            ToPort.PropertyChanged += _portPropertyChangedHandler;
     }
 
     public Guid FromNodeId { get; }
@@ -128,6 +125,18 @@ public sealed class ConnectionViewModel : INotifyPropertyChanged
             brush.GradientStops.Add(new GradientStop(toColor, 0.6));
             return brush;
         }
+    }
+
+    /// <summary>
+    ///     GraphViewModel がノードの VM を使い回すようになったため、端子の PropertyChanged への購読を
+    ///     接続の VM を捨てるたびに解除する。解除しないと、古い接続の VM が端子の位置変更に反応し続ける。
+    /// </summary>
+    public void Dispose()
+    {
+        if (FromPort != null)
+            FromPort.PropertyChanged -= _portPropertyChangedHandler;
+        if (ToPort != null)
+            ToPort.PropertyChanged -= _portPropertyChangedHandler;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
