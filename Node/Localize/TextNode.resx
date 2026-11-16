@@ -635,8 +635,6 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>0未満の小数を表示する際に整数部の0を表示するかどうか。</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>0を表示</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>0を省略</value></data>
-<data name="TextStyleLabel" xml:space="preserve"><value>文字スタイル</value></data>
-<data name="TextStyleDescription" xml:space="preserve"><value>フォント、サイズ、太さ、幅、傾きなどの文字スタイルです。</value></data>
 <data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode文字スタイル</value></data>
 <data name="TextStyleMapDescription" xml:space="preserve"><value>Unicode範囲ごとの文字スタイルを指定します。</value></data>
 <data name="TextWritingDirectionLabel" xml:space="preserve"><value>文字列方向</value></data>
@@ -652,7 +650,8 @@
 <data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode範囲スタイル</value></data>
 <data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode範囲スタイル</value></data>
 <data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode範囲スタイル</value></data>
-<data name="TextFontWeightLabel" xml:space="preserve"><value>太さ</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>スタイルのオーバーライド</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>Unicode範囲ごとの文字スタイルを指定します。範囲に一致した文字にのみ適用されます。</value></data>
 <data name="TextFontWeightDescription" xml:space="preserve"><value>文字の太さを指定します。</value></data>
 <data name="TextScaleLabel" xml:space="preserve"><value>文字方向倍率</value></data>
 <data name="TextScaleDescription" xml:space="preserve"><value>文字列の進行方向に対する文字の倍率です。</value></data>

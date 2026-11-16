@@ -81,6 +81,7 @@
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142"/>
         <PackageReference Include="SkiaSharp" Version="4.151.1"/>
         <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.151.1"/>
+        <PackageReference Include="LibNMeCab.IpaDicBin" Version="0.10.0"/>
     </ItemGroup>
 
     <!--ビルド後、YMM4フォルダに関連ファイルをコピーする-->

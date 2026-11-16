@@ -400,7 +400,6 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.FontFamilyLabel), nameof(TextNode.FontFamilyDescription), typeof(TextNode))]
-    [LegacyInputPort]
     [FontComboBox]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public string FontFamily
@@ -416,7 +415,6 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.FontSizeLabel), nameof(TextNode.FontSizeDescription), typeof(TextNode))]
-    [LegacyInputPort]
     [NumberPortControl(Min = 1, Max = 2000, Default = 64)]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public float Size
@@ -426,7 +424,6 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.BoldLabel), nameof(TextNode.BoldDescription), typeof(TextNode))]
-    [LegacyInputPort]
     [BoolPortControl(Default = false)]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public bool Bold
@@ -436,7 +433,6 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.ItalicLabel), nameof(TextNode.ItalicDescription), typeof(TextNode))]
-    [LegacyInputPort]
     [BoolPortControl(Default = false)]
     [PortColorSetting(nameof(Colors.DarkOrange))]
     public bool Italic
@@ -446,21 +442,10 @@ public class TextOutlineNode : NodeLogic
     }
 
     [InputPort(nameof(TextNode.TextStyleLabel), nameof(TextNode.TextStyleDescription), typeof(TextNode))]
-    [TextStylePortControl]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public TextStyle Style
+    [PortColorSetting(nameof(Colors.DarkSlateGray))]
+    public TextStyleMap? StyleOverride
     {
-        get
-        {
-            var value = GetInput<TextStyle>();
-            return value ?? new TextStyle
-            {
-                FontFamily = FontFamily,
-                Size = Math.Max(1f, Size),
-                Weight = Bold ? 700 : 400,
-                Slant = Italic ? TextFontSlant.Italic : TextFontSlant.Upright
-            };
-        }
+        get => GetInput<TextStyleMap>();
         set => SetInput(value);
     }
 
@@ -522,52 +507,72 @@ public class TextOutlineNode : NodeLogic
 
     protected override Task Calculate()
     {
-        var style = Style;
-        var weight = (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000);
-        var slant = style.Slant switch
+        var baseStyle = new TextStyle
+        {
+            FontFamily = FontFamily,
+            Size = Math.Max(1f, Size),
+            Weight = Bold ? 700 : 400,
+            Slant = Italic ? TextFontSlant.Italic : TextFontSlant.Upright
+        };
+
+        var styleOverride = StyleOverride;
+        var weight = (SKFontStyleWeight)Math.Clamp(baseStyle.Weight, 1, 1000);
+        var slant = baseStyle.Slant switch
         {
             TextFontSlant.Italic => SKFontStyleSlant.Italic,
             TextFontSlant.Oblique => SKFontStyleSlant.Oblique,
             _ => SKFontStyleSlant.Upright
         };
+
         using var typeface = SKTypeface.FromFamilyName(
-            string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
+            string.IsNullOrWhiteSpace(baseStyle.FontFamily) ? null : baseStyle.FontFamily,
             weight, SKFontStyleWidth.Normal, slant);
-        using var font = new SKFont(typeface, Math.Max(1f, style.Size));
-        font.ScaleX = Math.Max(0.01f, style.Scale);
-        font.SkewX = style.SkewX;
+        using var font = new SKFont(typeface, baseStyle.Size);
+        font.ScaleX = Math.Max(0.01f, baseStyle.Scale);
+        font.SkewX = baseStyle.SkewX;
 
         var path = WritingDirection == TextWritingDirection.Horizontal
-            ? BuildHorizontalPath(font, Text, style.UnicodeMap)
-            : BuildVerticalPath(style, Text);
+            ? BuildHorizontalPath(font, baseStyle, Text, styleOverride)
+            : BuildVerticalPath(baseStyle, Text, styleOverride);
+
         var bounds = path.Bounds;
         var horizontalRatio = Math.Clamp((HorizontalOffset + 1f) / 2f, 0f, 1f);
         var verticalRatio = Math.Clamp((VerticalOffset + 1f) / 2f, 0f, 1f);
         var anchorX = bounds.Left + (bounds.Right - bounds.Left) * horizontalRatio;
         var anchorY = bounds.Top + (bounds.Bottom - bounds.Top) * verticalRatio;
+
         path.Transform(SKMatrix.CreateTranslation(OriginX - anchorX, OriginY - anchorY));
+
         _path?.Dispose();
         _path = path;
         Output = new OutlineWrapper { Path = _path };
+
         return Task.CompletedTask;
     }
 
-    private static SKPath BuildHorizontalPath(SKFont fallbackFont, string text, TextStyleMap? map)
+    private static SKPath BuildHorizontalPath(
+        SKFont fallbackFont, TextStyle baseStyle, string text, TextStyleMap? map)
     {
-        if (map == null || map.Ranges.Count == 0) return fallbackFont.GetTextPath(text, new SKPoint(0, 0));
+        if (map == null || map.Ranges.Count == 0)
+            return fallbackFont.GetTextPath(text, new SKPoint(0, 0));
+
         var result = new SKPath();
         var x = 0f;
+
         foreach (var rune in text.EnumerateRunes())
         {
-            var style = map.Resolve(rune.Value, out var offset);
+            var style = map.Resolve(rune.Value, out var offset) ?? baseStyle;
+
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
                 (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000), SKFontStyleWidth.Normal,
                 style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
                 style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
+
             using var font = new SKFont(tf, Math.Max(1f, style.Size));
             font.ScaleX = Math.Max(0.01f, style.Scale);
             font.SkewX = style.SkewX;
+
             using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(x, offset));
             result.AddPath(glyph);
             x += font.MeasureText(rune.ToString());
@@ -576,9 +581,8 @@ public class TextOutlineNode : NodeLogic
         return result;
     }
 
-    private static SKPath BuildVerticalPath(TextStyle baseStyle, string text)
+    private static SKPath BuildVerticalPath(TextStyle baseStyle, string text, TextStyleMap? map)
     {
-        var map = baseStyle.UnicodeMap;
         var result = new SKPath();
         var y = 0f;
 
@@ -586,13 +590,13 @@ public class TextOutlineNode : NodeLogic
         {
             var offset = 0f;
             var style = map?.Resolve(rune.Value, out offset) ?? baseStyle;
-            offset = map == null ? 0f : offset;
 
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
                 (SKFontStyleWeight)Math.Clamp(style.Weight, 1, 1000), SKFontStyleWidth.Normal,
                 style.Slant == TextFontSlant.Italic ? SKFontStyleSlant.Italic :
                 style.Slant == TextFontSlant.Oblique ? SKFontStyleSlant.Oblique : SKFontStyleSlant.Upright);
+
             using var font = new SKFont(tf, Math.Max(1f, style.Size));
             font.ScaleX = 1f;
             font.SkewX = style.SkewX;

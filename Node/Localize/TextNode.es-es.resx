@@ -635,24 +635,23 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>Indica si se muestra el cero inicial al mostrar un valor decimal menor que 1.</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>Mostrar cero</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>Omitir cero</value></data>
-<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
-<data name="TextStyleDescription" xml:space="preserve"><value>slant and other text style settings.</value></data>
-<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
-<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
-<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>Mapa de estilos de texto Unicode</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>Estilos de texto seleccionados según el rango de puntos de código Unicode.</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Dirección del texto</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Coloca el texto en horizontal o vertical.</value></data>
 <data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
 <data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
-<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
-<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
-<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
-<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
-<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
-<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
-<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="TextFontWeightLabel" xml:space="preserve"><value>Peso</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Estilo de texto predeterminado</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Estilo aplicado a los caracteres que no pertenecen a ningún rango Unicode.</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Mapa de estilos de texto Unicode</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Estilos de texto agrupados por rango de puntos de código Unicode.</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Estilo de texto Unicode</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Especifica estilos de texto y desplazamientos perpendiculares a la dirección del texto para cada rango de puntos de código Unicode.</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Estilo de rango Unicode</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Estilos de rangos Unicode</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Estilo de rango Unicode</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>Sobrescritura de estilo</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>Especifica los estilos de texto para cada rango Unicode. Se aplica solo a los caracteres que coinciden con un rango.</value></data>
 <data name="TextFontWeightDescription" xml:space="preserve"><value>Especifica el peso de la fuente.</value></data>
 <data name="TextScaleLabel" xml:space="preserve"><value>Escala de dirección del texto</value></data>
 <data name="TextScaleDescription" xml:space="preserve"><value>Escala aplicada en la dirección de escritura del texto.</value></data>

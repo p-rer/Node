@@ -13,22 +13,12 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 {
     private PortDefinition[] _rangeDefinitions = [];
 
-    [InputPort(nameof(TextNode.TextStyleDefaultLabel), nameof(TextNode.TextStyleDefaultDescription), typeof(TextNode))]
-    [TextStylePortControl]
-    [PortColorSetting(nameof(Colors.DarkOrange))]
-    public TextStyle Style
-    {
-        get => GetInput<TextStyle>() ?? new TextStyle();
-        set => SetInput(value);
-    }
-
     [OutputPort(nameof(TextNode.TextStyleMapOutputLabel), nameof(TextNode.TextStyleMapOutputDescription),
         typeof(TextNode))]
-    [TextStylePortControl]
-    [PortColorSetting(nameof(Colors.MediumPurple))]
-    public TextStyle? Output
+    [PortColorSetting(nameof(Colors.DarkSlateGray))]
+    public TextStyleMap? Output
     {
-        get => GetOutput<TextStyle>();
+        get => GetOutput<TextStyleMap>();
         set => SetOutput(value);
     }
 
@@ -55,6 +45,7 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
     public void Initialize(PortDefinition[] definitions)
     {
         _rangeDefinitions = definitions;
+
         foreach (var key in Inputs.Keys.Where(k => k.StartsWith("Range_", StringComparison.Ordinal)).ToList())
             Inputs.Remove(key);
 
@@ -70,13 +61,11 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
 
     internal void NotifyPortDefinitionsChanged()
     {
-        RequestInputPortReinitialization(nameof(Style),
-            new UnicodeTextStyleRangeContainer(_rangeDefinitions));
+        InvalidateForce();
     }
 
     protected override Task Calculate()
     {
-        var baseStyle = Style.CloneWithoutUnicodeMap();
         var ranges = new List<UnicodeRangeStyle>();
 
         foreach (var definition in _rangeDefinitions)
@@ -85,6 +74,7 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
                 continue;
 
             var value = input.GetValue(EvaluationContext).GetAwaiter().GetResult();
+
             if (value is UnicodeRangeStyle range)
                 ranges.Add(new UnicodeRangeStyle
                 {
@@ -95,25 +85,11 @@ public sealed class UnicodeTextStyleNode : NodeLogic, IPortDefinitionNode
                 });
         }
 
-        baseStyle.UnicodeMap = new TextStyleMap
+        Output = new TextStyleMap
         {
-            DefaultStyle = baseStyle.CloneWithoutUnicodeMap(),
             Ranges = ranges
         };
 
-        Output = baseStyle;
         return Task.CompletedTask;
     }
-}
-
-internal sealed class UnicodeTextStyleRangeContainer : InputsContainer
-{
-    private readonly PortDefinition[] _definitions;
-
-    public UnicodeTextStyleRangeContainer(PortDefinition[] definitions)
-    {
-        _definitions = definitions;
-    }
-
-    public PortDefinition[] Definitions => _definitions;
 }

@@ -85,7 +85,7 @@ public sealed class TextStylePort : PortControlBase
 
             AddYmmEditor(nameof(TextStyle.FontFamily), TextNode.FontFamilyLabel);
             AddNumberEditor(nameof(TextStyle.Size), TextNode.FontSizeLabel, 1, 2000, 0, "px", 64);
-            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.TextFontWeightLabel, new FontWeightPort());
+            AddCompositeEditor(nameof(TextStyle.Weight), TextNode.BoldLabel, new FontWeightPort());
             AddEnumEditor(nameof(TextStyle.Slant), TextNode.TextSlantLabel, typeof(TextFontSlant));
             AddNumberEditor(nameof(TextStyle.Scale), TextNode.TextScaleLabel, 0.1f, 10, 2, "", 1);
             AddNumberEditor(nameof(TextStyle.SkewX), TextNode.TextSkewLabel, -2, 2, 2, "", 0);

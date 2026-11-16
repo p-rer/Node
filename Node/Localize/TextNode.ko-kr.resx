@@ -635,24 +635,23 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>1 미만의 소수를 표시할 때 정수 부분의 0을 표시할지 여부입니다.</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>0 표시</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>0 생략</value></data>
-<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
-<data name="TextStyleDescription" xml:space="preserve"><value>width</value></data>
-<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
-<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
-<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
-<data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
-<data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
-<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
-<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
-<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
-<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
-<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
-<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
-<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="TextFontWeightLabel" xml:space="preserve"><value>글꼴 굵기</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>유니코드 텍스트 스타일 맵</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>유니코드 코드 포인트 범위에 따라 문자 스타일을 지정합니다.</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>텍스트 방향</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>텍스트를 가로 또는 세로 방향으로 배치합니다.</value></data>
+<data name="TextDirectionHorizontal" xml:space="preserve"><value>가로</value></data>
+<data name="TextDirectionVertical" xml:space="preserve"><value>세로</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>기본 텍스트 스타일</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>어떤 유니코드 범위에도 해당하지 않는 문자에 적용되는 스타일입니다.</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>유니코드 텍스트 스타일 맵</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>유니코드 코드 포인트 범위별로 그룹화된 문자 스타일입니다.</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>유니코드 텍스트 스타일</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>각 유니코드 코드 포인트 범위별로 문자 스타일과 텍스트 방향에 수직인 오프셋을 지정합니다.</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>유니코드 범위 스타일</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>유니코드 범위 스타일</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>유니코드 범위 스타일</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>스타일 재정의</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>각 유니코드 범위별 문자 스타일을 지정합니다. 해당 범위와 일치하는 문자에만 적용됩니다.</value></data>
 <data name="TextFontWeightDescription" xml:space="preserve"><value>글꼴 굵기를 지정합니다.</value></data>
 <data name="TextScaleLabel" xml:space="preserve"><value>글자 방향 배율</value></data>
 <data name="TextScaleDescription" xml:space="preserve"><value>텍스트 진행 방향에 적용되는 배율입니다.</value></data>

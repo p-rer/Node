@@ -635,24 +635,23 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>ما إذا كان سيتم عرض الصفر البادئ عند عرض قيمة عشرية أقل من 1.</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>إظهار الصفر</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>حذف الصفر</value></data>
-<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
-<data name="TextStyleDescription" xml:space="preserve"><value>Font family</value></data>
-<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
-<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
-<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
-<data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
-<data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
-<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
-<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
-<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
-<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
-<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
-<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
-<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="TextFontWeightLabel" xml:space="preserve"><value>سماكة الخط</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>خريطة أنماط النصوص لـ Unicode</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>أنماط النص المحددة وفقًا لنطاق نقاط ترميز Unicode.</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>اتجاه النص</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>يعرض النص أفقيًا أو عموديًا.</value></data>
+<data name="TextDirectionHorizontal" xml:space="preserve"><value>أفقي</value></data>
+<data name="TextDirectionVertical" xml:space="preserve"><value>عمودي</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>نمط النص الافتراضي</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>النمط المطبق على الأحرف التي لا تقع ضمن أي نطاق من نطاقات Unicode.</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>خريطة أنماط النصوص لـ Unicode</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>أنماط النص المجمّعة حسب نطاق نقاط ترميز Unicode.</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>نمط نص Unicode</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>يحدد أنماط النص والإزاحات العمودية على اتجاه النص لكل نطاق من نقاط ترميز Unicode.</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>نمط نطاق Unicode</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>أنماط نطاقات Unicode</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>نمط نطاق Unicode</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>تجاوز النمط</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>يحدد أنماط النص لكل نطاق Unicode. يُطبّق فقط على الأحرف المطابقة للنطاق.</value></data>
 <data name="TextFontWeightDescription" xml:space="preserve"><value>يحدد سماكة الخط.</value></data>
 <data name="TextScaleLabel" xml:space="preserve"><value>مقياس اتجاه النص</value></data>
 <data name="TextScaleDescription" xml:space="preserve"><value>المقياس المطبق على اتجاه كتابة النص.</value></data>

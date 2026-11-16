@@ -635,24 +635,23 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>Apakah nol di depan ditampilkan saat menampilkan nilai pecahan kurang dari 1.</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>Tampilkan nol</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>Abaikan nol</value></data>
-<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
-<data name="TextStyleDescription" xml:space="preserve"><value>size</value></data>
-<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
-<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
-<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>Peta Gaya Teks Unicode</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>Gaya teks yang dipilih berdasarkan rentang titik kode Unicode.</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Arah Teks</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Menempatkan teks secara horizontal atau vertikal.</value></data>
 <data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
-<data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
-<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
-<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
-<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
-<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
-<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
-<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
-<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="TextFontWeightLabel" xml:space="preserve"><value>Ketebalan</value></data>
+<data name="TextDirectionVertical" xml:space="preserve"><value>Vertikal</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Gaya Teks Default</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Gaya yang diterapkan pada karakter di luar semua rentang Unicode.</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Peta Gaya Teks Unicode</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Gaya teks yang dikelompokkan berdasarkan rentang titik kode Unicode.</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Gaya Teks Unicode</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Menentukan gaya teks dan offset yang tegak lurus terhadap arah teks untuk setiap rentang titik kode Unicode.</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Gaya Rentang Unicode</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Gaya Rentang Unicode</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Gaya Rentang UnicodeTextStyleLabel</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>Penggantian Gaya</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>Menentukan gaya teks untuk setiap rentang Unicode. Hanya diterapkan pada karakter yang cocok dengan rentang.TextFontWeightLabel</value></data>
 <data name="TextFontWeightDescription" xml:space="preserve"><value>Menentukan ketebalan font.</value></data>
 <data name="TextScaleLabel" xml:space="preserve"><value>Skala arah teks</value></data>
 <data name="TextScaleDescription" xml:space="preserve"><value>Skala yang diterapkan sepanjang arah penulisan teks.</value></data>

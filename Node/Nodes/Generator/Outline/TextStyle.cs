@@ -35,7 +35,6 @@ public sealed class TextStyle : INotifyPropertyChanged
     private float _size = 64f;
     private float _skewX;
     private TextFontSlant _slant = TextFontSlant.Upright;
-    private TextStyleMap? _unicodeMap;
     private int _weight = 400;
 
     [Display(Name = nameof(TextNode.FontFamilyLabel), Description = nameof(TextNode.FontFamilyDescription),
@@ -99,16 +98,6 @@ public sealed class TextStyle : INotifyPropertyChanged
         set => Set(ref _skewX, value);
     }
 
-    /// <summary>
-    /// Unicode 範囲による差分スタイル。編集UIは持たず、UnicodeTextStyleNodeからのみ構築する。
-    /// </summary>
-    [Browsable(false)]
-    public TextStyleMap? UnicodeMap
-    {
-        get => _unicodeMap;
-        set => Set(ref _unicodeMap, value);
-    }
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public TextStyle CloneWithoutUnicodeMap() => new()
@@ -128,8 +117,7 @@ public sealed class TextStyle : INotifyPropertyChanged
         Weight = Weight,
         Slant = Slant,
         ScaleX = ScaleX,
-        SkewX = SkewX,
-        UnicodeMap = UnicodeMap
+        SkewX = SkewX
     };
 
     private void Set<T>(ref T field, T value,
@@ -137,6 +125,7 @@ public sealed class TextStyle : INotifyPropertyChanged
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
             return;
+
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -152,24 +141,27 @@ public sealed class UnicodeRangeStyle
 
 public sealed class TextStyleMap
 {
-    public TextStyle DefaultStyle { get; set; } = new();
     public List<UnicodeRangeStyle> Ranges { get; set; } = [];
 
-    public TextStyle Resolve(int codePoint, out float offset)
+    public TextStyle? Resolve(int codePoint, out float offset)
     {
         for (var i = Ranges.Count - 1; i >= 0; i--)
         {
             var range = Ranges[i];
+
             if (range.StartCodePoint < 0 ||
-                range.EndCodePoint > 0x10FFFF || range.StartCodePoint > range.EndCodePoint)
+                range.EndCodePoint > 0x10FFFF ||
+                range.StartCodePoint > range.EndCodePoint)
                 continue;
+
             if (codePoint < range.StartCodePoint || codePoint > range.EndCodePoint)
                 continue;
+
             offset = range.Offset;
             return range.Style;
         }
 
         offset = 0f;
-        return DefaultStyle;
+        return null;
     }
 }

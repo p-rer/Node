@@ -635,24 +635,23 @@
 <data name="ZeroFormatDescription" xml:space="preserve"><value>显示小于1的小数时是否显示整数部分的0。</value></data>
 <data name="ZeroFormatInclude" xml:space="preserve"><value>显示0</value></data>
 <data name="ZeroFormatOmit" xml:space="preserve"><value>省略0</value></data>
-<data name="TextStyleLabel" xml:space="preserve"><value>Text Style</value></data>
-<data name="TextStyleDescription" xml:space="preserve"><value>size</value></data>
-<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapDescription" xml:space="preserve"><value>Text styles selected by Unicode code-point range.</value></data>
-<data name="TextWritingDirectionLabel" xml:space="preserve"><value>Text Direction</value></data>
-<data name="TextWritingDirectionDescription" xml:space="preserve"><value>Places the text horizontally or vertically.</value></data>
-<data name="TextDirectionHorizontal" xml:space="preserve"><value>Horizontal</value></data>
-<data name="TextDirectionVertical" xml:space="preserve"><value>Vertical</value></data>
-<data name="TextStyleDefaultLabel" xml:space="preserve"><value>Default Text Style</value></data>
-<data name="TextStyleDefaultDescription" xml:space="preserve"><value>Style applied to characters outside all Unicode ranges.</value></data>
-<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode Text Style Map</value></data>
-<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>Text styles grouped by Unicode code-point range.</value></data>
-<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode Text Style</value></data>
-<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>Specifies text style and orthogonal offset for each Unicode code-point range.</value></data>
-<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
-<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
-<data name="TextFontWeightLabel" xml:space="preserve"><value>字重</value></data>
+<data name="TextStyleMapLabel" xml:space="preserve"><value>Unicode 文本样式映射</value></data>
+<data name="TextStyleMapDescription" xml:space="preserve"><value>根据 Unicode 码位范围选择文字样式。</value></data>
+<data name="TextWritingDirectionLabel" xml:space="preserve"><value>文本方向</value></data>
+<data name="TextWritingDirectionDescription" xml:space="preserve"><value>将文本水平或垂直排列。</value></data>
+<data name="TextDirectionHorizontal" xml:space="preserve"><value>横排</value></data>
+<data name="TextDirectionVertical" xml:space="preserve"><value>竖排</value></data>
+<data name="TextStyleDefaultLabel" xml:space="preserve"><value>默认文本样式</value></data>
+<data name="TextStyleDefaultDescription" xml:space="preserve"><value>应用于不属于任何 Unicode 范围的字符的样式。</value></data>
+<data name="TextStyleMapOutputLabel" xml:space="preserve"><value>Unicode 文本样式映射</value></data>
+<data name="TextStyleMapOutputDescription" xml:space="preserve"><value>按 Unicode 码位范围分组的文本样式。</value></data>
+<data name="UnicodeTextStyleNode" xml:space="preserve"><value>Unicode 文本样式</value></data>
+<data name="UnicodeTextStyleNodeDescription" xml:space="preserve"><value>为每个 Unicode 码位范围指定文本样式和垂直于文本方向的偏移量。</value></data>
+<data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode 范围样式</value></data>
+<data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode 范围样式</value></data>
+<data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode 范围样式</value></data>
+<data name="TextStyleLabel" xml:space="preserve"><value>样式覆盖</value></data>
+<data name="TextStyleDescription" xml:space="preserve"><value>指定每个 Unicode 范围的文字样式。仅应用于与范围匹配的字符。</value></data>
 <data name="TextFontWeightDescription" xml:space="preserve"><value>指定字体粗细。</value></data>
 <data name="TextScaleLabel" xml:space="preserve"><value>文字方向缩放</value></data>
 <data name="TextScaleDescription" xml:space="preserve"><value>沿文字书写方向应用的缩放倍率。</value></data>
