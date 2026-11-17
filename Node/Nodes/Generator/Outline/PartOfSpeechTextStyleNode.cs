@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows.Media;
 using NMeCab.Specialized;
 using Node.Editor.Attributes;
@@ -32,7 +33,11 @@ internal readonly record struct JapanesePartOfSpeechToken(
 internal static class JapanesePartOfSpeechAnalyzer
 {
     // Tagger はスレッドセーフであるため、辞書を一度だけ読み込み再利用する。
-    private static readonly Lazy<MeCabIpaDicTagger> Tagger = new(() => MeCabIpaDicTagger.Create());
+    private static readonly Lazy<MeCabIpaDicTagger> Tagger = new(() =>
+        MeCabIpaDicTagger.Create(
+            Path.Combine(Path.GetDirectoryName(typeof(JapanesePartOfSpeechAnalyzer).Assembly.Location)!, "IpaDic")));
+
+    private static readonly Lock TaggerLock = new();
 
     static JapanesePartOfSpeechAnalyzer()
     {
@@ -49,7 +54,13 @@ internal static class JapanesePartOfSpeechAnalyzer
             yield break;
 
         var cursor = 0;
-        foreach (var node in Tagger.Value.Parse(text))
+        MeCabIpaDicNode[] nodes;
+        lock (TaggerLock)
+        {
+            nodes = Tagger.Value.Parse(text).ToArray();
+        }
+
+        foreach (var node in nodes)
         {
             var surface = node.Surface;
             if (string.IsNullOrEmpty(surface))

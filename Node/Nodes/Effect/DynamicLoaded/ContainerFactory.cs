@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Media;
+using Node.Graph.Attributes;
 using Node.Graph.Port;
 using Node.Localize;
 using Node.ValueTypes;
@@ -355,13 +356,12 @@ public class ContainerFactory
 
         var type = tb.CreateType()
                    ?? throw new InvalidOperationException();
-#if DEBUG
         foreach (var p in type.GetProperties())
         {
             var hasAttr = Attribute.IsDefined(p, typeof(InputPortAttribute));
             Debug.WriteLine($@"[ContainerFactory] {type.Name}.{p.Name} HasInputPort={hasAttr}");
         }
-#endif
+
         TypeCache[name] = type;
 
         return type;
