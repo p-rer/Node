@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>Tegak</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>Miring</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>Miring 비스듬히</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>Gaya teks berdasarkan kelas kata</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>Membagi teks menjadi kata menggunakan analisis morfologi dan menerapkan gaya teks berbeda untuk setiap kelas kata. Kategori yang tidak ditentukan menggunakan gaya dasar node teks.</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>Peta gaya teks berdasarkan kelas kata</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>Menyimpan gaya teks berdasarkan kelas kata dan menentukan gaya yang berlaku untuk setiap karakter dalam keseluruhan teks.</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>Kata benda</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>Kata kerja</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>Kata sifat</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>Kata keterangan</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>Kata tugas</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>Kata kerja bantu</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>Kata hubung</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>Kata seru</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>Kata atributif</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>Awalan</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>Akhiran</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>Simbol</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>Kata pengisi</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>Lainnya</value></data>
 </root>

@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>Normal</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>Cursiva</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>Oblicua</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>Estilo de texto por categoría gramatical</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>Divide el texto en palabras mediante análisis morfológico y aplica un estilo distinto a cada categoría gramatical. Las categorías no configuradas utilizan el estilo base del nodo de texto.</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>Mapa de estilos de texto por categoría gramatical</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>Almacena estilos de texto por categoría gramatical y resuelve el estilo aplicable a cada carácter del texto completo.</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>Sustantivo</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>Verbo</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>Adjetivo</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>Adverbio</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>Partícula</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>Verbo auxiliar</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>Conjunción</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>Interjección</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>Adnominal</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>Prefijo</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>Sufijo</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>Símbolo</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>Muletilla</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>Otros</value></data>
 </root>

@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>正立</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>斜体</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>斜傾</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>品詞別文字スタイル</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>形態素解析で文章を単語に分割し品詞ごとに異なる文字スタイルを適用します。未指定の品詞にはテキストノード側の基本スタイルが適用されます。</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>品詞別文字スタイルマップ</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>品詞ごとの文字スタイルを保持し文章全体から文字別の適用スタイルを解決する値です。</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>名詞</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>動詞</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>形容詞・形容動詞</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>副詞</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>助詞</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>助動詞</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>接続詞</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>感動詞</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>連体詞</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>接頭詞</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>接尾詞</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>記号</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>フィラー</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>その他</value></data>
 </root>

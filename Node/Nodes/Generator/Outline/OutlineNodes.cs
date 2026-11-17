@@ -553,15 +553,16 @@ public class TextOutlineNode : NodeLogic
     private static SKPath BuildHorizontalPath(
         SKFont fallbackFont, TextStyle baseStyle, string text, TextStyleMap? map)
     {
-        if (map == null || map.Ranges.Count == 0)
+        if (map == null || !map.HasRules)
             return fallbackFont.GetTextPath(text, new SKPoint(0, 0));
 
         var result = new SKPath();
         var x = 0f;
 
-        foreach (var rune in text.EnumerateRunes())
+        foreach (var styledCharacter in map.ResolveText(text, baseStyle))
         {
-            var style = map.Resolve(rune.Value, out var offset) ?? baseStyle;
+            var style = styledCharacter.Style;
+            var glyphText = styledCharacter.Character.ToString();
 
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
@@ -573,9 +574,9 @@ public class TextOutlineNode : NodeLogic
             font.ScaleX = Math.Max(0.01f, style.Scale);
             font.SkewX = style.SkewX;
 
-            using var glyph = font.GetTextPath(rune.ToString(), new SKPoint(x, offset));
+            using var glyph = font.GetTextPath(glyphText, new SKPoint(x, styledCharacter.Offset));
             result.AddPath(glyph);
-            x += font.MeasureText(rune.ToString());
+            x += font.MeasureText(glyphText);
         }
 
         return result;
@@ -585,11 +586,14 @@ public class TextOutlineNode : NodeLogic
     {
         var result = new SKPath();
         var y = 0f;
+        var styledCharacters = map != null && map.HasRules
+            ? map.ResolveText(text, baseStyle)
+            : text.EnumerateRunes().Select(rune => new StyledTextCharacter(rune, baseStyle, 0f));
 
-        foreach (var rune in text.EnumerateRunes())
+        foreach (var styledCharacter in styledCharacters)
         {
-            var offset = 0f;
-            var style = map?.Resolve(rune.Value, out offset) ?? baseStyle;
+            var rune = styledCharacter.Character;
+            var style = styledCharacter.Style;
 
             using var tf = SKTypeface.FromFamilyName(
                 string.IsNullOrWhiteSpace(style.FontFamily) ? null : style.FontFamily,
@@ -609,7 +613,7 @@ public class TextOutlineNode : NodeLogic
 
             var scale = Math.Max(0.01f, style.Scale);
             glyph.Transform(SKMatrix.CreateScale(1f, scale));
-            glyph.Transform(SKMatrix.CreateTranslation(offset, y));
+            glyph.Transform(SKMatrix.CreateTranslation(styledCharacter.Offset, y));
             result.AddPath(glyph);
 
             var advance = Math.Max(1f, font.MeasureText(glyphText));

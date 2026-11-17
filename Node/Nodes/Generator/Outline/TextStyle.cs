@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Node.Editor.Attributes;
 using Node.Localize;
 using YukkuriMovieMaker.Controls;
@@ -139,9 +140,15 @@ public sealed class UnicodeRangeStyle
     public float Offset { get; set; }
 }
 
+public readonly record struct StyledTextCharacter(Rune Character, TextStyle Style, float Offset);
+
 public sealed class TextStyleMap
 {
     public List<UnicodeRangeStyle> Ranges { get; set; } = [];
+
+    public Dictionary<JapanesePartOfSpeech, TextStyle> PartOfSpeechStyles { get; set; } = [];
+
+    public bool HasRules => Ranges.Count > 0 || PartOfSpeechStyles.Count > 0;
 
     public TextStyle? Resolve(int codePoint, out float offset)
     {
@@ -163,5 +170,41 @@ public sealed class TextStyleMap
 
         offset = 0f;
         return null;
+    }
+
+    /// <summary>
+    ///     テキスト全体を順番に解析し、各Unicodeスカラーに適用するスタイルを返す。
+    ///     品詞スタイルを優先し、該当する品詞スタイルがない文字にはUnicode範囲スタイルを適用する。
+    /// </summary>
+    public IEnumerable<StyledTextCharacter> ResolveText(string text, TextStyle fallbackStyle)
+    {
+        if (string.IsNullOrEmpty(text))
+            yield break;
+
+        if (PartOfSpeechStyles.Count == 0)
+        {
+            foreach (var rune in text.EnumerateRunes())
+            {
+                var style = Resolve(rune.Value, out var offset) ?? fallbackStyle;
+                yield return new StyledTextCharacter(rune, style, offset);
+            }
+
+            yield break;
+        }
+
+        foreach (var token in JapanesePartOfSpeechAnalyzer.Analyze(text))
+        {
+            var hasPartOfSpeechStyle = PartOfSpeechStyles.TryGetValue(token.PartOfSpeech, out var partOfSpeechStyle);
+
+            foreach (var rune in token.Surface.EnumerateRunes())
+            {
+                var rangeStyle = Resolve(rune.Value, out var offset);
+                var style = hasPartOfSpeechStyle
+                    ? partOfSpeechStyle!
+                    : rangeStyle ?? fallbackStyle;
+
+                yield return new StyledTextCharacter(rune, style, hasPartOfSpeechStyle ? 0f : offset);
+            }
+        }
     }
 }

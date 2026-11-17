@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>Upright</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>Italic</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>Oblique</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>Part-of-Speech Text Style</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>Segments text into words using morphological analysis and applies a different text style to each part of speech. Unspecified categories use the base style from the text node.</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>Part-of-Speech Text Style Map</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>Stores text styles by part of speech and resolves the applicable style for each character in the complete text.</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>Noun</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>Verb</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>Adjective</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>Adverb</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>Particle</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>Auxiliary Verb</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>Conjunction</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>Interjection</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>Adnominal</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>Prefix</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>Suffix</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>Symbol</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>Filler</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>Other</value></data>
 </root>

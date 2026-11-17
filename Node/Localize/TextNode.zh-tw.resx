@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>正體</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>斜體</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>偽斜體</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>詞性文字樣式</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>使用形態分析將文字切分為單詞並為不同詞性套用不同文字樣式。未指定的詞性使用文字節點的基本樣式。</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>詞性文字樣式對應</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>按詞性保存文字樣式並根據完整文字解析每個字元適用樣式的值。</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>名詞</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>動詞</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>形容詞</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>副詞</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>助詞</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>助動詞</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>連接詞</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>感嘆詞</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>連體詞</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>前綴</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>後綴</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>符號</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>語助詞</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>其他</value></data>
 </root>

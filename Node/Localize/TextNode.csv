@@ -601,3 +601,21 @@ TextSlantLabel,文字傾きラベル,傾き,Slant,倾斜,傾斜,기울기,Inclin
 TextSlantUpright,正立,正立,Upright,正体,正體,정자,Normal,مستقيم,Tegak
 TextSlantItalic,斜体,斜体,Italic,斜体,斜體,이탤릭,Cursiva,مائل,Miring
 TextSlantOblique,斜傾,斜傾,Oblique,伪斜体,偽斜體,기울임,Oblicua,مائل,Miring 비스듬히
+PartOfSpeechTextStyleNode,,品詞別文字スタイル,Part-of-Speech Text Style,词性文字样式,詞性文字樣式,품사별 텍스트 스타일,Estilo de texto por categoría gramatical,نمط النص حسب نوع الكلمة,Gaya teks berdasarkan kelas kata
+PartOfSpeechTextStyleNodeDescription,,形態素解析で文章を単語に分割し品詞ごとに異なる文字スタイルを適用します。未指定の品詞にはテキストノード側の基本スタイルが適用されます。,Segments text into words using morphological analysis and applies a different text style to each part of speech. Unspecified categories use the base style from the text node.,使用形态分析将文本切分为单词并为不同词性应用不同文字样式。未指定的词性使用文本节点的基本样式。,使用形態分析將文字切分為單詞並為不同詞性套用不同文字樣式。未指定的詞性使用文字節點的基本樣式。,형태소 분석으로 텍스트를 단어 단위로 분할하고 품사별로 다른 텍스트 스타일을 적용합니다. 지정하지 않은 범주는 텍스트 노드의 기본 스타일을 사용합니다.,Divide el texto en palabras mediante análisis morfológico y aplica un estilo distinto a cada categoría gramatical. Las categorías no configuradas utilizan el estilo base del nodo de texto.,يقسم النص إلى كلمات باستخدام التحليل الصرفي ويطبق نمط نص مختلفًا لكل فئة نحوية. تستخدم الفئات غير المحددة النمط الأساسي لعقدة النص.,Membagi teks menjadi kata menggunakan analisis morfologi dan menerapkan gaya teks berbeda untuk setiap kelas kata. Kategori yang tidak ditentukan menggunakan gaya dasar node teks.
+PartOfSpeechTextStyleMapOutputLabel,,品詞別文字スタイルマップ,Part-of-Speech Text Style Map,词性文字样式映射,詞性文字樣式對應,품사별 텍스트 스타일 맵,Mapa de estilos de texto por categoría gramatical,خريطة أنماط النص حسب الفئة النحوية,Peta gaya teks berdasarkan kelas kata
+PartOfSpeechTextStyleMapOutputDescription,,品詞ごとの文字スタイルを保持し文章全体から文字別の適用スタイルを解決する値です。,Stores text styles by part of speech and resolves the applicable style for each character in the complete text.,按词性保存文字样式并根据完整文本解析每个字符适用样式的值。,按詞性保存文字樣式並根據完整文字解析每個字元適用樣式的值。,품사별 텍스트 스타일을 저장하고 전체 텍스트에서 문자별 적용 스타일을 해석하는 값입니다.,Almacena estilos de texto por categoría gramatical y resuelve el estilo aplicable a cada carácter del texto completo.,يخزن أنماط النص حسب الفئة النحوية ويحدد النمط المطبق على كل حرف في النص الكامل.,Menyimpan gaya teks berdasarkan kelas kata dan menentukan gaya yang berlaku untuk setiap karakter dalam keseluruhan teks.
+NounStyleLabel,,名詞,Noun,名词,名詞,명사,Sustantivo,اسم,Kata benda
+VerbStyleLabel,,動詞,Verb,动词,動詞,동사,Verbo,فعل,Kata kerja
+AdjectiveStyleLabel,,形容詞・形容動詞,Adjective,形容词,形容詞,형용사,Adjetivo,صفة,Kata sifat
+AdverbStyleLabel,,副詞,Adverb,副词,副詞,부사,Adverbio,ظرف,Kata keterangan
+ParticleStyleLabel,,助詞,Particle,助词,助詞,조사,Partícula,أداة,Kata tugas
+AuxiliaryVerbStyleLabel,,助動詞,Auxiliary Verb,助动词,助動詞,보조 동사,Verbo auxiliar,فعل مساعد,Kata kerja bantu
+ConjunctionStyleLabel,,接続詞,Conjunction,连词,連接詞,접속사,Conjunción,حرف عطف,Kata hubung
+InterjectionStyleLabel,,感動詞,Interjection,感叹词,感嘆詞,감탄사,Interjección,أداة تعجب,Kata seru
+AdnominalStyleLabel,,連体詞,Adnominal,连体词,連體詞,관형사,Adnominal,اسم وصفي,Kata atributif
+PrefixStyleLabel,,接頭詞,Prefix,前缀,前綴,접두사,Prefijo,بادئة,Awalan
+SuffixStyleLabel,,接尾詞,Suffix,后缀,後綴,접미사,Sufijo,لاحقة,Akhiran
+SymbolStyleLabel,,記号,Symbol,符号,符號,기호,Símbolo,رمز,Simbol
+FillerStyleLabel,,フィラー,Filler,语气词,語助詞,필러,Muletilla,كلمة حشو,Kata pengisi
+OtherStyleLabel,,その他,Other,其他,其他,기타,Otros,أخرى,Lainnya

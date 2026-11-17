@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>مستقيم</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>مائل</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>مائل</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>نمط النص حسب نوع الكلمة</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>يقسم النص إلى كلمات باستخدام التحليل الصرفي ويطبق نمط نص مختلفًا لكل فئة نحوية. تستخدم الفئات غير المحددة النمط الأساسي لعقدة النص.</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>خريطة أنماط النص حسب الفئة النحوية</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>يخزن أنماط النص حسب الفئة النحوية ويحدد النمط المطبق على كل حرف في النص الكامل.</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>اسم</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>فعل</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>صفة</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>ظرف</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>أداة</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>فعل مساعد</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>حرف عطف</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>أداة تعجب</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>اسم وصفي</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>بادئة</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>لاحقة</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>رمز</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>كلمة حشو</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>أخرى</value></data>
 </root>

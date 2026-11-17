@@ -661,4 +661,22 @@
 <data name="TextSlantUpright" xml:space="preserve"><value>정자</value></data>
 <data name="TextSlantItalic" xml:space="preserve"><value>이탤릭</value></data>
 <data name="TextSlantOblique" xml:space="preserve"><value>기울임</value></data>
+<data name="PartOfSpeechTextStyleNode" xml:space="preserve"><value>품사별 텍스트 스타일</value></data>
+<data name="PartOfSpeechTextStyleNodeDescription" xml:space="preserve"><value>형태소 분석으로 텍스트를 단어 단위로 분할하고 품사별로 다른 텍스트 스타일을 적용합니다. 지정하지 않은 범주는 텍스트 노드의 기본 스타일을 사용합니다.</value></data>
+<data name="PartOfSpeechTextStyleMapOutputLabel" xml:space="preserve"><value>품사별 텍스트 스타일 맵</value></data>
+<data name="PartOfSpeechTextStyleMapOutputDescription" xml:space="preserve"><value>품사별 텍스트 스타일을 저장하고 전체 텍스트에서 문자별 적용 스타일을 해석하는 값입니다.</value></data>
+<data name="NounStyleLabel" xml:space="preserve"><value>명사</value></data>
+<data name="VerbStyleLabel" xml:space="preserve"><value>동사</value></data>
+<data name="AdjectiveStyleLabel" xml:space="preserve"><value>형용사</value></data>
+<data name="AdverbStyleLabel" xml:space="preserve"><value>부사</value></data>
+<data name="ParticleStyleLabel" xml:space="preserve"><value>조사</value></data>
+<data name="AuxiliaryVerbStyleLabel" xml:space="preserve"><value>보조 동사</value></data>
+<data name="ConjunctionStyleLabel" xml:space="preserve"><value>접속사</value></data>
+<data name="InterjectionStyleLabel" xml:space="preserve"><value>감탄사</value></data>
+<data name="AdnominalStyleLabel" xml:space="preserve"><value>관형사</value></data>
+<data name="PrefixStyleLabel" xml:space="preserve"><value>접두사</value></data>
+<data name="SuffixStyleLabel" xml:space="preserve"><value>접미사</value></data>
+<data name="SymbolStyleLabel" xml:space="preserve"><value>기호</value></data>
+<data name="FillerStyleLabel" xml:space="preserve"><value>필러</value></data>
+<data name="OtherStyleLabel" xml:space="preserve"><value>기타</value></data>
 </root>
