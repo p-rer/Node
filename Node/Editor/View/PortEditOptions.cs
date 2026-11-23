@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using Node.Graph.Port;
 using Node.Localize;
 using Node.Nodes.Effect;
 using Node.Nodes.Func;
@@ -19,11 +20,34 @@ public sealed class PortEditOptions(
     IReadOnlyList<PortTypeOption> types,
     string listTitle,
     string itemTitle,
-    bool hasLimit)
+    bool hasLimit,
+    string namePrefix = "Arg_",
+    string? kindLabel = null,
+    Func<IPortKindEditor>? kindEditorFactory = null,
+    Func<PortDefinition, string>? describeKind = null)
 {
     public IReadOnlyList<PortTypeOption> Types { get; } = types;
     public string ListTitle { get; } = listTitle;
     public string ItemTitle { get; } = itemTitle;
+
+    /// <summary>新しく追加する端子の内部名の接頭辞。</summary>
+    public string NamePrefix { get; } = namePrefix;
+
+    /// <summary>
+    ///     種類設定部分のラベル。null の場合は「型」。
+    /// </summary>
+    public string? KindLabel { get; } = kindLabel;
+
+    /// <summary>
+    ///     種類設定部分を差し替えるエディタの生成処理。指定すると、型の選択の代わりにそのエディタが表示される。
+    ///     ダイアログを開くたびに新しいエディタを作る。
+    /// </summary>
+    public Func<IPortKindEditor>? KindEditorFactory { get; } = kindEditorFactory;
+
+    /// <summary>
+    ///     端子の一覧で、型名の代わりに表示する種類の説明。null の場合は型名を表示する。
+    /// </summary>
+    public Func<PortDefinition, string>? DescribeKind { get; } = describeKind;
 
     /// <summary>
     ///     数の上限（NodeEffect の引数スロット数）を適用するか。
@@ -39,14 +63,31 @@ public sealed class PortEditOptions(
     public static PortEditOptions Text =>
         new([FromKind(ArgumentPortKind.Text)], TextUi.EditStringPortsTitle, TextUi.StringPortDialogTitle, false);
 
-    /// <summary>Unicode 範囲スタイルノードの追加端子。</summary>
+    /// <summary>Unicode 範囲スタイルノードの追加端子。1つの端子に複数の範囲を指定できる。</summary>
     public static PortEditOptions UnicodeRanges =>
         new([
                 new PortTypeOption(typeof(UnicodeRangeStyle),
                     TextUi.UnicodeRangeStylePortName,
-                    () => new UnicodeRangeStyle())
+                    () => null)
             ],
-            TextUi.EditUnicodeRangePortsTitle, TextUi.UnicodeRangePortDialogTitle, false);
+            TextUi.EditUnicodeRangePortsTitle, TextUi.UnicodeRangePortDialogTitle, false,
+            UnicodeTextStyleNode.PortNamePrefix,
+            TextUi.UnicodeRangePortKindLabel,
+            () => new UnicodeRangeKindEditor(),
+            UnicodeRangePortSettings.Describe);
+
+    /// <summary>品詞別文字スタイルノードの追加端子。1つの端子に複数の品詞を指定できる。</summary>
+    public static PortEditOptions PartsOfSpeech =>
+        new([
+                new PortTypeOption(typeof(TextStyle),
+                    TextUi.PartOfSpeechStylePortName,
+                    () => null)
+            ],
+            TextUi.EditPartOfSpeechPortsTitle, TextUi.PartOfSpeechPortDialogTitle, false,
+            PartOfSpeechTextStyleNode.PortNamePrefix,
+            TextUi.PartOfSpeechPortKindLabel,
+            () => new PartOfSpeechKindEditor(),
+            PartOfSpeechPortSettings.Describe);
 
     /// <summary>Node エフェクトノードの入力端子。</summary>
     public static PortEditOptions SubGraphInput =>

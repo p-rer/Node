@@ -140,7 +140,8 @@ public partial class ArgumentPortsWindow
         {
             get
             {
-                var typeName = options.Types.FirstOrDefault(type => type.ValueType == Definition.ValueType)?.Name
+                var typeName = options.DescribeKind?.Invoke(Definition)
+                               ?? options.Types.FirstOrDefault(type => type.ValueType == Definition.ValueType)?.Name
                                ?? Definition.ValueType.Name;
                 var fixedSuffix = Definition.IsCustom ? "" : $" [{TextUi.ArgumentPortFixedLabel}]";
                 return $"{Label} ({typeName}){fixedSuffix}";

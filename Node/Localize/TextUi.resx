@@ -167,4 +167,14 @@
 <data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode範囲スタイル</value></data>
 <data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode範囲スタイル</value></data>
 <data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode範囲スタイル</value></data>
+<data name="AddPartOfSpeechPortButton" xml:space="preserve"><value>+ 品詞スタイルを追加</value></data>
+<data name="AddUnicodeRangePortButton" xml:space="preserve"><value>+ 範囲スタイルを追加</value></data>
+<data name="EditPartOfSpeechPortsTitle" xml:space="preserve"><value>品詞スタイルの編集</value></data>
+<data name="PartOfSpeechPortDialogTitle" xml:space="preserve"><value>品詞スタイル</value></data>
+<data name="PartOfSpeechStylePortName" xml:space="preserve"><value>品詞スタイル</value></data>
+<data name="PartOfSpeechPortKindLabel" xml:space="preserve"><value>対象の品詞</value></data>
+<data name="PartOfSpeechPortNoneSelected" xml:space="preserve"><value>品詞を1つ以上選択してください。</value></data>
+<data name="UnicodeRangePortKindLabel" xml:space="preserve"><value>対象のUnicode範囲</value></data>
+<data name="UnicodeRangeAddLabel" xml:space="preserve"><value>範囲を追加</value></data>
+<data name="UnicodeRangeInvalid" xml:space="preserve"><value>範囲は16進数のコードポイント（0～10FFFF）で、開始が終了以下になるよう入力してください。</value></data>
 </root>

@@ -9,17 +9,12 @@ public enum DynamicPortKind
 {
     Default,
     Text,
-    UnicodeRange
+    UnicodeRange,
+    PartOfSpeech
 }
 
 public interface IPortDefinitionNode
 {
-    PortDefinition[] GetPortDefinitions();
-
-    bool IsValidPortSet(PortDefinition[] definitions);
-
-    void Initialize(PortDefinition[] definitions);
-
     /// <summary>
     /// 動的端子が出力側ならtrue、入力側ならfalse。
     /// </summary>
@@ -29,6 +24,12 @@ public interface IPortDefinitionNode
     /// 動的端子の編集UIが解釈する意味。
     /// </summary>
     DynamicPortKind DynamicPortKind { get; }
+
+    PortDefinition[] GetPortDefinitions();
+
+    bool IsValidPortSet(PortDefinition[] definitions);
+
+    void Initialize(PortDefinition[] definitions);
 
     /// <summary>
     /// 動的端子定義の変更後に、エディタなどへ再構築を通知する。

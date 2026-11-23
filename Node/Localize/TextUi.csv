@@ -107,3 +107,13 @@ OutputPortDialogTitle,出力端子の追加・編集ダイアログのタイト�
 UnicodeRangeStylePortName,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style
 EditUnicodeRangePortsTitle,Unicode範囲スタイルの編集,Unicode範囲スタイル,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles,Unicode Range Styles
 UnicodeRangePortDialogTitle,Unicode範囲スタイル,Unicode範囲スタイル,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style,Unicode Range Style
+AddPartOfSpeechPortButton,品詞別文字スタイルノード上のスタイル端子追加ボタン,+ 品詞スタイルを追加,+ Add Part-of-Speech Style,+ 添加词性样式,+ 新增詞性樣式,+ 품사 스타일 추가,+ Añadir estilo por categoría,+ إضافة نمط نوع الكلمة,+ Tambah Gaya Kelas Kata
+AddUnicodeRangePortButton,Unicode範囲スタイルノード上の範囲端子追加ボタン,+ 範囲スタイルを追加,+ Add Range Style,+ 添加范围样式,+ 新增範圍樣式,+ 범위 스타일 추가,+ Añadir estilo de rango,+ إضافة نمط نطاق,+ Tambah Gaya Rentang
+EditPartOfSpeechPortsTitle,品詞スタイル端子編集ダイアログのタイトル,品詞スタイルの編集,Edit Part-of-Speech Styles,编辑词性样式,編輯詞性樣式,품사 스타일 편집,Editar estilos por categoría,تحرير أنماط نوع الكلمة,Edit Gaya Kelas Kata
+PartOfSpeechPortDialogTitle,品詞スタイル端子の追加・編集ダイアログのタイトル,品詞スタイル,Part-of-Speech Style,词性样式,詞性樣式,품사 스타일,Estilo por categoría,نمط نوع الكلمة,Gaya Kelas Kata
+PartOfSpeechStylePortName,品詞スタイル端子の種類名,品詞スタイル,Part-of-Speech Style,词性样式,詞性樣式,품사 스타일,Estilo por categoría,نمط نوع الكلمة,Gaya Kelas Kata
+PartOfSpeechPortKindLabel,品詞スタイル端子の種類設定ラベル,対象の品詞,Parts of Speech,目标词性,目標詞性,대상 품사,Categorías gramaticales,أنواع الكلمات,Kelas Kata
+PartOfSpeechPortNoneSelected,品詞が未選択の場合のメッセージ,品詞を1つ以上選択してください。,Select at least one part of speech.,请至少选择一个词性。,請至少選擇一個詞性。,품사를 하나 이상 선택하세요.,Selecciona al menos una categoría gramatical.,حدد نوع كلمة واحدًا على الأقل.,Pilih setidaknya satu kelas kata.
+UnicodeRangePortKindLabel,Unicode範囲端子の種類設定ラベル,対象のUnicode範囲,Unicode Ranges,目标 Unicode 范围,目標 Unicode 範圍,대상 유니코드 범위,Rangos Unicode,نطاقات Unicode,Rentang Unicode
+UnicodeRangeAddLabel,Unicode範囲の追加ボタン,範囲を追加,Add Range,添加范围,新增範圍,범위 추가,Añadir rango,إضافة نطاق,Tambah Rentang
+UnicodeRangeInvalid,Unicode範囲が不正な場合のメッセージ,範囲は16進数のコードポイント（0～10FFFF）で、開始が終了以下になるよう入力してください。,Enter each range as hexadecimal code points (0 to 10FFFF) with the start not greater than the end.,请以十六进制码位（0～10FFFF）输入范围，且起始值不大于结束值。,請以十六進位碼位（0～10FFFF）輸入範圍，且起始值不大於結束值。,각 범위를 16진수 코드 포인트(0~10FFFF)로 입력하고 시작값이 끝값보다 크지 않게 하세요.,Introduce cada rango como puntos de código hexadecimales (0 a 10FFFF) con el inicio no mayor que el final.,أدخل كل نطاق كنقاط ترميز سداسية عشرية (من 0 إلى 10FFFF) بحيث لا تكون البداية أكبر من النهاية.,Masukkan setiap rentang sebagai titik kode heksadesimal (0 hingga 10FFFF) dengan awal tidak lebih besar dari akhir.

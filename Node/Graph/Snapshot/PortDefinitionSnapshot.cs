@@ -16,9 +16,14 @@ public sealed class PortDefinitionSnapshot
     /// </summary>
     public bool IsCustom { get; init; }
 
+    /// <summary>
+    ///     端子ごとの追加設定（品詞の選択やUnicode範囲など）。古いスナップショットには存在せず、その場合は空。
+    /// </summary>
+    public string Settings { get; init; } = "";
+
     public PortDefinition ToDefinition()
     {
-        return new PortDefinition(Name, ResolveType(), Label, Description, DefaultValue, IsCustom);
+        return new PortDefinition(Name, ResolveType(), Label, Description, DefaultValue, IsCustom, Settings ?? "");
     }
 
     private Type ResolveType()

@@ -1,12 +1,13 @@
 using System.Windows;
 using Node.Graph.Port;
-using Node.Nodes.Generator.Outline;
+using Node.Localize;
 
 namespace Node.Editor.View;
 
 public partial class ArgumentPortEditWindow
 {
     private readonly PortDefinition? _existing;
+    private readonly IPortKindEditor? _kindEditor;
     private readonly PortEditOptions _options;
     private readonly IReadOnlyCollection<string> _takenLabels;
 
@@ -30,6 +31,20 @@ public partial class ArgumentPortEditWindow
 
         KindComboBox.SelectedValue = initialType;
         KindComboBox.IsEnabled = options.Types.Count > 1;
+
+        // 種類設定部分を差し替えるエディタがある場合は、型の選択の代わりにそのエディタを表示する。
+        if (options.KindEditorFactory != null)
+        {
+            _kindEditor = options.KindEditorFactory();
+            _kindEditor.Load(existing);
+            KindComboBox.Visibility = Visibility.Collapsed;
+            KindEditorHost.Content = _kindEditor.Content;
+            KindEditorHost.Visibility = Visibility.Visible;
+            Width = 360;
+        }
+
+        if (options.KindLabel != null)
+            KindLabelTextBlock.Text = options.KindLabel;
         Title = options.ItemTitle;
         NameTextBox.Text = existing?.GetDisplayLabel() ?? "";
         NameTextBox.SelectAll();
@@ -43,7 +58,13 @@ public partial class ArgumentPortEditWindow
         var label = NameTextBox.Text.Trim();
         if (label.Length == 0 || _takenLabels.Contains(label))
         {
-            ErrorTextBlock.Visibility = Visibility.Visible;
+            ShowError(TextUi.ArgumentPortNameInvalid);
+            return;
+        }
+
+        if (_kindEditor?.Validate() is { } kindError)
+        {
+            ShowError(kindError);
             return;
         }
 
@@ -57,10 +78,7 @@ public partial class ArgumentPortEditWindow
 
         if (_existing == null)
             Result = new PortDefinition(
-                (_options.Types.Count == 1 &&
-                 _options.Types[0].ValueType == typeof(UnicodeRangeStyle)
-                    ? "Range_"
-                    : "Arg_") + Guid.NewGuid().ToString("N")[..8],
+                _options.NamePrefix + Guid.NewGuid().ToString("N")[..8],
                 portType,
                 label,
                 "",
@@ -76,7 +94,16 @@ public partial class ArgumentPortEditWindow
                     : selectedType.CreateDefault()
             };
 
+        if (_kindEditor != null)
+            Result = _kindEditor.Apply(Result);
+
         DialogResult = true;
+    }
+
+    private void ShowError(string message)
+    {
+        ErrorTextBlock.Text = message;
+        ErrorTextBlock.Visibility = Visibility.Visible;
     }
 
     public static bool TryCreate(Window owner, IReadOnlyCollection<string> takenLabels, out PortDefinition definition,

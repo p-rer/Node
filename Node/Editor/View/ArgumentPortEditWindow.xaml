@@ -10,11 +10,16 @@
     <StackPanel Margin="12">
         <TextBlock Text="{x:Static loc:TextUi.ArgumentPortNameLabel}" Margin="0,0,0,4" />
         <TextBox x:Name="NameTextBox" Margin="0,0,0,8" />
-        <TextBlock Text="{x:Static loc:TextUi.ArgumentPortTypeLabel}" Margin="0,0,0,4" />
+        <TextBlock x:Name="KindLabelTextBlock"
+                   Text="{x:Static loc:TextUi.ArgumentPortTypeLabel}" Margin="0,0,0,4" />
         <ComboBox x:Name="KindComboBox"
                   DisplayMemberPath="Name"
                   SelectedValuePath="Kind"
                   Margin="0,0,0,8" />
+        <ContentControl x:Name="KindEditorHost"
+                        Visibility="Collapsed"
+                        IsTabStop="False"
+                        Margin="0,0,0,8" />
         <TextBlock x:Name="ErrorTextBlock"
                    Text="{x:Static loc:TextUi.ArgumentPortNameInvalid}"
                    Foreground="Red"

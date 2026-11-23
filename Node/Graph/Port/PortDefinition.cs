@@ -8,7 +8,8 @@ public record PortDefinition(
     string Label = "",
     string Description = "",
     object? DefaultValue = null,
-    bool IsCustom = false
+    bool IsCustom = false,
+    string Settings = ""
 )
 {
     /// <summary>
@@ -24,13 +25,29 @@ public record PortDefinition(
         ["Text1"] = () => TextNode.StringConcatInput1,
         ["Text2"] = () => TextNode.StringConcatInput2,
         ["Text3"] = () => TextNode.StringConcatInput3,
-        ["Text4"] = () => TextNode.StringConcatInput4
+        ["Text4"] = () => TextNode.StringConcatInput4,
+        ["NounStyle"] = () => TextNode.NounStyleLabel,
+        ["VerbStyle"] = () => TextNode.VerbStyleLabel,
+        ["AdjectiveStyle"] = () => TextNode.AdjectiveStyleLabel,
+        ["AdverbStyle"] = () => TextNode.AdverbStyleLabel,
+        ["ParticleStyle"] = () => TextNode.ParticleStyleLabel,
+        ["AuxiliaryVerbStyle"] = () => TextNode.AuxiliaryVerbStyleLabel,
+        ["ConjunctionStyle"] = () => TextNode.ConjunctionStyleLabel,
+        ["InterjectionStyle"] = () => TextNode.InterjectionStyleLabel,
+        ["AdnominalStyle"] = () => TextNode.AdnominalStyleLabel,
+        ["PrefixStyle"] = () => TextNode.PrefixStyleLabel,
+        ["SuffixStyle"] = () => TextNode.SuffixStyleLabel,
+        ["SymbolStyle"] = () => TextNode.SymbolStyleLabel,
+        ["FillerStyle"] = () => TextNode.FillerStyleLabel,
+        ["OtherStyle"] = () => TextNode.OtherStyleLabel
     };
 
     /// <summary>
     ///     ノード上やダイアログに表示するポート名。Label があればそれを、
     ///     なければ組み込みポートのローカライズ名、それも無ければ Name を返す。
     /// </summary>
+    // Settings: 端子ごとの追加設定（JSON文字列）。品詞ノードの対象品詞、Unicode範囲ノードの範囲一覧など、
+    // 端子の種類ごとに意味が決まる。使わない端子は空文字列のまま。
     public string GetDisplayLabel()
     {
         if (!string.IsNullOrEmpty(Label)) return Label;

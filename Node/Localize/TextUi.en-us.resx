@@ -167,4 +167,14 @@
 <data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
 <data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
 <data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="AddPartOfSpeechPortButton" xml:space="preserve"><value>+ Add Part-of-Speech Style</value></data>
+<data name="AddUnicodeRangePortButton" xml:space="preserve"><value>+ Add Range Style</value></data>
+<data name="EditPartOfSpeechPortsTitle" xml:space="preserve"><value>Edit Part-of-Speech Styles</value></data>
+<data name="PartOfSpeechPortDialogTitle" xml:space="preserve"><value>Part-of-Speech Style</value></data>
+<data name="PartOfSpeechStylePortName" xml:space="preserve"><value>Part-of-Speech Style</value></data>
+<data name="PartOfSpeechPortKindLabel" xml:space="preserve"><value>Parts of Speech</value></data>
+<data name="PartOfSpeechPortNoneSelected" xml:space="preserve"><value>Select at least one part of speech.</value></data>
+<data name="UnicodeRangePortKindLabel" xml:space="preserve"><value>Unicode Ranges</value></data>
+<data name="UnicodeRangeAddLabel" xml:space="preserve"><value>Add Range</value></data>
+<data name="UnicodeRangeInvalid" xml:space="preserve"><value>Enter each range as hexadecimal code points (0 to 10FFFF) with the start not greater than the end.</value></data>
 </root>

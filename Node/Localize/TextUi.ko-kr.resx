@@ -167,4 +167,14 @@
 <data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
 <data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
 <data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="AddPartOfSpeechPortButton" xml:space="preserve"><value>+ 품사 스타일 추가</value></data>
+<data name="AddUnicodeRangePortButton" xml:space="preserve"><value>+ 범위 스타일 추가</value></data>
+<data name="EditPartOfSpeechPortsTitle" xml:space="preserve"><value>품사 스타일 편집</value></data>
+<data name="PartOfSpeechPortDialogTitle" xml:space="preserve"><value>품사 스타일</value></data>
+<data name="PartOfSpeechStylePortName" xml:space="preserve"><value>품사 스타일</value></data>
+<data name="PartOfSpeechPortKindLabel" xml:space="preserve"><value>대상 품사</value></data>
+<data name="PartOfSpeechPortNoneSelected" xml:space="preserve"><value>품사를 하나 이상 선택하세요.</value></data>
+<data name="UnicodeRangePortKindLabel" xml:space="preserve"><value>대상 유니코드 범위</value></data>
+<data name="UnicodeRangeAddLabel" xml:space="preserve"><value>범위 추가</value></data>
+<data name="UnicodeRangeInvalid" xml:space="preserve"><value>각 범위를 16진수 코드 포인트(0~10FFFF)로 입력하고 시작값이 끝값보다 크지 않게 하세요.</value></data>
 </root>

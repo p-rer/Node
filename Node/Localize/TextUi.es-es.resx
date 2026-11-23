@@ -167,4 +167,14 @@
 <data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
 <data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
 <data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="AddPartOfSpeechPortButton" xml:space="preserve"><value>+ Añadir estilo por categoría</value></data>
+<data name="AddUnicodeRangePortButton" xml:space="preserve"><value>+ Añadir estilo de rango</value></data>
+<data name="EditPartOfSpeechPortsTitle" xml:space="preserve"><value>Editar estilos por categoría</value></data>
+<data name="PartOfSpeechPortDialogTitle" xml:space="preserve"><value>Estilo por categoría</value></data>
+<data name="PartOfSpeechStylePortName" xml:space="preserve"><value>Estilo por categoría</value></data>
+<data name="PartOfSpeechPortKindLabel" xml:space="preserve"><value>Categorías gramaticales</value></data>
+<data name="PartOfSpeechPortNoneSelected" xml:space="preserve"><value>Selecciona al menos una categoría gramatical.</value></data>
+<data name="UnicodeRangePortKindLabel" xml:space="preserve"><value>Rangos Unicode</value></data>
+<data name="UnicodeRangeAddLabel" xml:space="preserve"><value>Añadir rango</value></data>
+<data name="UnicodeRangeInvalid" xml:space="preserve"><value>Introduce cada rango como puntos de código hexadecimales (0 a 10FFFF) con el inicio no mayor que el final.</value></data>
 </root>

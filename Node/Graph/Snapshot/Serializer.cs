@@ -94,7 +94,8 @@ public static class Serializer
                     Label = portDef.Label,
                     Description = portDef.Description,
                     DefaultValue = portDef.DefaultValue,
-                    IsCustom = portDef.IsCustom
+                    IsCustom = portDef.IsCustom,
+                    Settings = portDef.Settings
                 };
         }
     }

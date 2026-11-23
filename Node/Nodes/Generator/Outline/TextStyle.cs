@@ -134,6 +134,9 @@ public sealed class TextStyle : INotifyPropertyChanged
 
 public sealed class UnicodeRangeStyle
 {
+    // Unicode範囲スタイルノードの端子の値としては、スタイルとオフセットだけを使う。
+    // 範囲は端子の設定（PortDefinition.Settings）で持ち、開始・終了は出力時にここへ詰める。
+    // 古いグラフの端子は、この開始・終了を範囲として読み取る。
     public int StartCodePoint { get; set; }
     public int EndCodePoint { get; set; } = 0x7F;
     public TextStyle Style { get; set; } = new();

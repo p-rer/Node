@@ -233,6 +233,10 @@ public sealed class TextStylePort : PortControlBase
     }
 }
 
+/// <summary>
+///     Unicode範囲スタイルノードの端子のコントロール。スタイルと直交方向のオフセットだけを編集する。
+///     対象の範囲は端子の追加・編集ダイアログで指定する。
+/// </summary>
 public sealed class UnicodeRangeStylePort : PortControlBase
 {
     public static readonly DependencyProperty ValueProperty =
@@ -243,30 +247,24 @@ public sealed class UnicodeRangeStylePort : PortControlBase
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                 OnValueChanged));
 
-    private readonly NumberPort _end = new()
-        { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0x10FFFF, Hexadecimal = true, Prefix = "U+" };
-
     private readonly TextBox _offset = new() { MinWidth = 78 };
 
-    private readonly NumberPort _start = new()
-        { Min = 0, Max = 0x10FFFF, Digits = 0, Default = 0, Hexadecimal = true, Prefix = "U+" };
-
     private readonly TextStylePort _style = new();
+
+    // 古いグラフでは値の開始・終了が範囲として使われるため、編集しても失わないよう保持する。
+    private int _endCodePoint = 0x7F;
+    private int _startCodePoint;
     private bool _updating;
 
     public UnicodeRangeStylePort()
     {
         var panel = new StackPanel { Orientation = Orientation.Vertical };
 
-        panel.Children.Add(CreateRow("開始", _start));
-        panel.Children.Add(CreateRow("終了", _end));
         panel.Children.Add(CreateRow("直交", _offset));
         panel.Children.Add(_style);
 
         Content = panel;
 
-        _start.LostFocus += (_, _) => Commit();
-        _end.LostFocus += (_, _) => Commit();
         _offset.LostFocus += (_, _) => Commit();
         _style.ValueChanged += StyleChanged;
     }
@@ -291,8 +289,8 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         try
         {
             var value = Value ?? new UnicodeRangeStyle();
-            _start.Value = value.StartCodePoint;
-            _end.Value = value.EndCodePoint;
+            _startCodePoint = value.StartCodePoint;
+            _endCodePoint = value.EndCodePoint;
             _offset.Text = value.Offset.ToString(CultureInfo.CurrentCulture);
             _style.Value = value.Style;
         }
@@ -304,17 +302,12 @@ public sealed class UnicodeRangeStylePort : PortControlBase
 
     private void StyleChanged(object? sender, EventArgs e)
     {
-        CommitPreservingEditor();
+        Commit();
     }
 
-    private void CommitPreservingEditor()
+    private void Commit()
     {
         if (_updating)
-            return;
-
-        var start = (int)Math.Clamp(MathF.Round(_start.Value), 0, 0x10FFFF);
-        var end = (int)Math.Clamp(MathF.Round(_end.Value), 0, 0x10FFFF);
-        if (start > end)
             return;
 
         if (!float.TryParse(_offset.Text,
@@ -328,8 +321,8 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         {
             Value = new UnicodeRangeStyle
             {
-                StartCodePoint = start,
-                EndCodePoint = end,
+                StartCodePoint = _startCodePoint,
+                EndCodePoint = _endCodePoint,
                 Offset = offset,
                 Style = _style.Value?.CloneWithoutUnicodeMap() ?? new TextStyle()
             };
@@ -338,31 +331,6 @@ public sealed class UnicodeRangeStylePort : PortControlBase
         {
             _updating = false;
         }
-    }
-
-    private void Commit()
-    {
-        if (_updating)
-            return;
-
-        var start = (int)Math.Clamp(MathF.Round(_start.Value), 0, 0x10FFFF);
-        var end = (int)Math.Clamp(MathF.Round(_end.Value), 0, 0x10FFFF);
-        if (start > end)
-            return;
-
-        if (!float.TryParse(_offset.Text,
-                NumberStyles.Float,
-                CultureInfo.CurrentCulture,
-                out var offset))
-            return;
-
-        Value = new UnicodeRangeStyle
-        {
-            StartCodePoint = start,
-            EndCodePoint = end,
-            Offset = offset,
-            Style = _style.Value?.CloneWithoutUnicodeMap() ?? new TextStyle()
-        };
     }
 
     private static Grid CreateRow(string label, FrameworkElement editor)

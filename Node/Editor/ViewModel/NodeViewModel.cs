@@ -8,12 +8,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Node.Editor.Attributes;
 using Node.Editor.Command;
+using Node.Editor.View;
 using Node.Graph;
 using Node.Graph.Attributes;
 using Node.Graph.Events;
 using Node.Graph.Port;
 using Node.Localize;
 using Node.Nodes.Func;
+using Node.Nodes.Generator.Outline;
 using Node.Utility;
 using Node.ValueTypes;
 using YukkuriMovieMaker.Commons;
@@ -131,13 +133,20 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     public bool IsUnicodeStylePorts =>
         NodeLogic is IPortDefinitionNode { DynamicPortKind: DynamicPortKind.UnicodeRange };
 
+    public bool IsPartOfSpeechPorts =>
+        NodeLogic is IPortDefinitionNode { DynamicPortKind: DynamicPortKind.PartOfSpeech };
+
     public bool CanEditSubGraphPorts => NodeLogic is ISubGraphPortNode;
 
     public string AddPortButtonLabel =>
-        IsTextPortsOnly ? TextUi.AddStringPortButton : TextUi.AddArgumentPortButton;
+        IsTextPortsOnly ? TextUi.AddStringPortButton :
+        IsPartOfSpeechPorts ? TextUi.AddPartOfSpeechPortButton :
+        IsUnicodeStylePorts ? TextUi.AddUnicodeRangePortButton :
+        TextUi.AddArgumentPortButton;
 
     public bool CanAddArgumentPort =>
         IsUnicodeStylePorts ||
+        IsPartOfSpeechPorts ||
         IsTextPortsOnly ||
         (NodeLogic is ArgumentsNode { AllowCustomPorts: true } argumentsNode &&
          argumentsNode.GetPortDefinitions().Count(definition => definition.IsCustom) <
@@ -199,6 +208,21 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    ///     端子の追加・編集ダイアログに渡す設定。種類ごとの専用の設定がないノードは null（既定の設定を使う）。
+    /// </summary>
+    internal PortEditOptions? GetPortEditOptions()
+    {
+        return NodeLogic is IPortDefinitionNode { DynamicPortKind: var kind }
+            ? kind switch
+            {
+                DynamicPortKind.UnicodeRange => PortEditOptions.UnicodeRanges,
+                DynamicPortKind.PartOfSpeech => PortEditOptions.PartsOfSpeech,
+                _ => null
+            }
+            : null;
+    }
 
     /// <summary>
     ///     端子の再構築要求は必ず後続のディスパッチャー処理へ回す。要求は値のバインディング更新
@@ -269,7 +293,8 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
                 builder.Append(definition.Name).Append(':')
                     .Append(RuntimeHelpers.GetHashCode(definition.ValueType)).Append(':')
                     .Append(definition.GetDisplayLabel()).Append(':')
-                    .Append(definition.IsCustom).Append(';');
+                    .Append(definition.IsCustom).Append(':')
+                    .Append(definition.Settings).Append(';');
         builder.Append(']');
     }
 
@@ -429,6 +454,10 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
 
             var definition = definitions?.FirstOrDefault(d => d.Name == name);
             var isTextPort = dynamicNode?.DynamicPortKind == DynamicPortKind.Text && definition != null;
+            var isPartOfSpeechPort =
+                dynamicNode?.DynamicPortKind == DynamicPortKind.PartOfSpeech && definition != null;
+            var isUnicodeRangePort =
+                dynamicNode?.DynamicPortKind == DynamicPortKind.UnicodeRange && definition != null;
 
             if (prop?.GetCustomAttribute<LegacyInputPortAttribute>() != null)
                 continue;
@@ -436,9 +465,8 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             var portAttr = prop?.GetCustomAttribute<InputPortAttribute>();
             var portColorAttr = prop?.GetCustomAttribute<PortColorSettingAttribute>();
             var controlAttr = prop?.GetCustomAttribute<PropertyControlBaseAttribute>()
-                              ?? (dynamicNode?.DynamicPortKind == DynamicPortKind.UnicodeRange
-                                  ? new UnicodeRangeStylePortControlAttribute()
-                                  : null)
+                              ?? (isUnicodeRangePort ? new UnicodeRangeStylePortControlAttribute() : null)
+                              ?? (isPartOfSpeechPort ? new OptionalTextStylePortControlAttribute() : null)
                               ?? (isTextPort ? new TextPortControlAttribute() : null)
                               ?? (subGraphNode != null
                                   ? CreateSubGraphControlAttribute(port.ValueType)
@@ -448,8 +476,10 @@ public sealed class NodeViewModel : INotifyPropertyChanged, IDisposable
             yield return new PortViewModel(
                 name,
                 portAttr?.GetLabel() ?? definition?.GetDisplayLabel() ?? name,
-                portAttr?.GetDescription() ?? (isTextPort ? TextNode.TextDescription : ""),
-                portColorAttr?.Color ?? (isTextPort ? nameof(Colors.DarkOrange) :
+                portAttr?.GetDescription() ?? (isTextPort ? TextNode.TextDescription :
+                    isPartOfSpeechPort ? PartOfSpeechPortSettings.Describe(definition!) :
+                    isUnicodeRangePort ? UnicodeRangePortSettings.Describe(definition!) : ""),
+                portColorAttr?.Color ?? (isTextPort || isPartOfSpeechPort ? nameof(Colors.DarkOrange) :
                     subGraphNode != null ? GetSubGraphPortColor(port.ValueType) :
                     nameof(Colors.SlateGray)),
                 port.ValueType,

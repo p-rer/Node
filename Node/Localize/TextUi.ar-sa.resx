@@ -167,4 +167,14 @@
 <data name="UnicodeRangeStylePortName" xml:space="preserve"><value>Unicode Range Style</value></data>
 <data name="EditUnicodeRangePortsTitle" xml:space="preserve"><value>Unicode Range Styles</value></data>
 <data name="UnicodeRangePortDialogTitle" xml:space="preserve"><value>Unicode Range Style</value></data>
+<data name="AddPartOfSpeechPortButton" xml:space="preserve"><value>+ إضافة نمط نوع الكلمة</value></data>
+<data name="AddUnicodeRangePortButton" xml:space="preserve"><value>+ إضافة نمط نطاق</value></data>
+<data name="EditPartOfSpeechPortsTitle" xml:space="preserve"><value>تحرير أنماط نوع الكلمة</value></data>
+<data name="PartOfSpeechPortDialogTitle" xml:space="preserve"><value>نمط نوع الكلمة</value></data>
+<data name="PartOfSpeechStylePortName" xml:space="preserve"><value>نمط نوع الكلمة</value></data>
+<data name="PartOfSpeechPortKindLabel" xml:space="preserve"><value>أنواع الكلمات</value></data>
+<data name="PartOfSpeechPortNoneSelected" xml:space="preserve"><value>حدد نوع كلمة واحدًا على الأقل.</value></data>
+<data name="UnicodeRangePortKindLabel" xml:space="preserve"><value>نطاقات Unicode</value></data>
+<data name="UnicodeRangeAddLabel" xml:space="preserve"><value>إضافة نطاق</value></data>
+<data name="UnicodeRangeInvalid" xml:space="preserve"><value>أدخل كل نطاق كنقاط ترميز سداسية عشرية (من 0 إلى 10FFFF) بحيث لا تكون البداية أكبر من النهاية.</value></data>
 </root>
