@@ -368,3 +368,8 @@ FodyWeavers.xsd
 
 # Project Settings for Rider
 .idea/
+
+# Server folders
+*/node_modules/
+*/.wrangler/
+*/.dev.vars

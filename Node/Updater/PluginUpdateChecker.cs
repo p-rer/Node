@@ -11,9 +11,6 @@ namespace Node.Updater;
 
 internal static class PluginUpdateChecker
 {
-    private const string RepositoryOwner = "p-rer";
-    private const string RepositoryName = "Node";
-
     private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(24);
 
     private static readonly HttpClient HttpClient = CreateHttpClient();
@@ -56,9 +53,6 @@ internal static class PluginUpdateChecker
 
             var result = await CheckForUpdateAsync(GetCurrentVersion(), CancellationToken.None)
                 .ConfigureAwait(false);
-
-            state.NextCheckNotBeforeUtc = DateTime.UtcNow + CheckInterval;
-            state.Save(pluginDirectory);
 
             if (result is not { HasUpdate: true })
                 return;
@@ -113,31 +107,40 @@ internal static class PluginUpdateChecker
     {
         try
         {
-            var url = $"https://api.github.com/repos/{RepositoryOwner}/{RepositoryName}/releases/latest";
+            var url = "https://github-releases-mirror.fodosoaodosoaoso.workers.dev/releases.json";
             using var response = await HttpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode) return null;
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            var release = JObject.Parse(json);
+            JObject? latest = null;
+            Version? latestVersion = null;
+            foreach (var r in JArray.Parse(json).OfType<JObject>())
+            {
+                if (r.Value<bool?>("draft") == true || r.Value<bool?>("prerelease") == true) continue;
 
-            var tagName = release.Value<string>("tag_name");
-            if (string.IsNullOrWhiteSpace(tagName)) return null;
-            if (!TryParseVersion(tagName, out var latestVersion)) return null;
+                var tag = r.Value<string>("tag_name");
+                if (string.IsNullOrWhiteSpace(tag) || !TryParseVersion(tag, out var v)) continue;
 
-            var assetUrl = release["assets"]?
+                if (latestVersion == null || v > latestVersion)
+                {
+                    latest = r;
+                    latestVersion = v;
+                }
+            }
+
+            if (latest == null || latestVersion == null) return null;
+
+            var assetUrl = latest["assets"]?
                 .FirstOrDefault(a =>
                     (a.Value<string>("name") ?? "").EndsWith(".ymme", StringComparison.OrdinalIgnoreCase))?
                 .Value<string>("browser_download_url");
 
-            var releasePageUrl = release.Value<string>("html_url");
-            var releaseNotes = release.Value<string>("body");
-
             return new UpdateCheckResult(
                 latestVersion > currentVersion,
                 latestVersion,
-                releasePageUrl,
+                latest.Value<string>("html_url"),
                 assetUrl,
-                releaseNotes);
+                latest.Value<string>("body"));
         }
         catch
         {
@@ -273,9 +276,10 @@ internal static class PluginUpdateChecker
 
     internal static bool TryParseVersion(string tagName, out Version version)
     {
-        var trimmed = tagName.TrimStart('v', 'V');
+        var start = 0;
+        while (start < tagName.Length && !char.IsAsciiDigit(tagName[start])) start++;
 
-        var span = trimmed.AsSpan();
+        var span = tagName.AsSpan(start);
         var end = 0;
         while (end < span.Length && (char.IsAsciiDigit(span[end]) || span[end] == '.')) end++;
 

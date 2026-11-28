@@ -1,0 +1,16 @@
+name = "github-releases-mirror"
+main = "index.js"
+compatibility_date = "2026-11-01"
+
+# 更新間隔
+[triggers]
+crons = ["*/30 * * * *"]
+
+[vars]
+GITHUB_REPO = "p-rer/Node"
+# 取得件数
+PER_PAGE = "30"
+
+[[kv_namespaces]]
+binding = "RELEASES_KV"
+id = "efa5c0a9b01a4e05945dae5302c1289b"
