@@ -569,6 +569,17 @@ public sealed class GraphViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public void SelectAll()
+    {
+        // AddToSelection は選択ノードを最前面へ並べ替えるため、全選択では使わない。
+        foreach (var node in Nodes)
+        {
+            if (SelectedNodes.Contains(node)) continue;
+            SelectedNodes.Add(node);
+            node.IsSelected = true;
+        }
+    }
+
     public void ClearSelection()
     {
         foreach (var n in SelectedNodes)

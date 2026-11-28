@@ -9,13 +9,15 @@ using Node.Editor.View;
 using Node.Graph;
 using Node.Graph.Attributes;
 using Node.Graph.Snapshot;
+using Node.Localize;
 using Node.Nodes.Effect.DynamicLoaded;
 using Node.Nodes.Func;
 using YukkuriMovieMaker.Commons;
+using YukkuriMovieMaker.Plugin;
 
 namespace Node.Editor.ViewModel;
 
-public sealed class NodeEditorViewModel : INotifyPropertyChanged
+public sealed class NodeEditorViewModel : IToolViewModel, INotifyPropertyChanged
 {
     private readonly Dictionary<string, List<NodeTypeInfo>> _nodeCategories;
     private AddNodePopup? _addNodePopup;
@@ -34,6 +36,7 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
         ResetZoomCommand = new RelayCommand(ResetZoom, () => SelectedTab != null);
         ZoomUpCommand = new RelayCommand(ZoomUp, () => SelectedTab != null);
         ZoomDownCommand = new RelayCommand(ZoomDown, () => SelectedTab != null);
+        SelectAllCommand = new RelayCommand(() => SelectedTab?.GraphViewModel.SelectAll(), () => SelectedTab != null);
         CopyCommand = new RelayCommand(Copy, () => SelectedTab?.GraphViewModel.SelectedNodes.Count > 0);
         CutCommand = new RelayCommand(Cut, () => SelectedTab?.GraphViewModel.SelectedNodes.Count > 0);
         PasteCommand = new RelayCommand(Paste, () => _clipboard != null);
@@ -60,6 +63,7 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
     public ICommand ResetZoomCommand { get; private set; }
     public ICommand ZoomUpCommand { get; private set; }
     public ICommand ZoomDownCommand { get; private set; }
+    public ICommand SelectAllCommand { get; private set; }
     public ICommand CopyCommand { get; private set; }
     public ICommand CutCommand { get; private set; }
     public ICommand PasteCommand { get; private set; }
@@ -72,7 +76,27 @@ public sealed class NodeEditorViewModel : INotifyPropertyChanged
         set => SetField(ref field, value);
     } = GraphControlMode.RectSelection;
 
+    public string? Title => TextUi.Node;
+
+    /// <summary>
+    ///     タブが裏に回ってもViewModelを破棄させない。
+    ///     開いているグラフタブや選択状態をViewModelが保持しているため、破棄されると失われる。
+    /// </summary>
+    public bool CanSuspend => false;
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public event EventHandler<CreateNewToolViewRequestedEventArgs>? CreateNewToolViewRequested;
+
+    public ToolState SaveState()
+    {
+        // グラフは各エフェクトが保持するため、ツール側で保存する状態は無い。
+        return new ToolState();
+    }
+
+    public void LoadState(ToolState stateData)
+    {
+    }
 
     public event EventHandler? GraphUpdated;
 

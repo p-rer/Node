@@ -13,6 +13,20 @@
     <UserControl.Resources>
         <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
     </UserControl.Resources>
+    <!-- ショートカットはツール自身のViewに持たせる。フォーカスがツール内にあるときだけ有効になる。 -->
+    <UserControl.InputBindings>
+        <KeyBinding Command="{Binding ZoomUpCommand}" Key="Add" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding ZoomUpCommand}" Key="OemPlus" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding ZoomDownCommand}" Key="Subtract" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding ZoomDownCommand}" Key="OemMinus" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding ResetZoomCommand}" Key="D0" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding DeleteSelectedCommand}" Key="Delete" />
+        <KeyBinding Command="{Binding DeleteSelectedCommand}" Key="Back" />
+        <KeyBinding Command="{Binding SelectAllCommand}" Key="A" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding CopyCommand}" Key="C" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding CutCommand}" Key="X" Modifiers="Ctrl" />
+        <KeyBinding Command="{Binding PasteCommand}" Key="V" Modifiers="Ctrl" />
+    </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20" />

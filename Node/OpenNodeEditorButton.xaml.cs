@@ -1,8 +1,6 @@
+using System.Collections;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Input;
-using AvalonDock;
-using AvalonDock.Layout;
 using Node.Editor.ViewModel;
 using Node.Graph;
 using Node.Graph.Events;
@@ -20,16 +18,11 @@ namespace Node;
 
 public partial class OpenNodeEditorButton : IPropertyEditorControl2
 {
-    private Window? _boundWindow;
     private EventHandler<CommittedEventArgs>? _committedHandler;
     private IEditorInfo? _editorInfo;
     private EventHandler? _graphUpdatedHandler;
     private NodeEditorViewModel? _lastResolvedViewModel;
-    private EventHandler? _layoutIsActiveChangedHandler;
-    private EventHandler? _layoutIsSelectedChangedHandler;
-    private KeyBinding[]? _nodeBindings;
     private NodeGraph? _subscribedGraph;
-    private LayoutAnchorable? _subscribedLayout;
     private NodeEffect? _subscribedNodeEffect;
 
     public OpenNodeEditorButton()
@@ -59,31 +52,11 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
             _subscribedGraph.Committed -= _committedHandler;
         if (_subscribedNodeEffect != null && _graphUpdatedHandler != null)
             _subscribedNodeEffect.GraphUpdated -= _graphUpdatedHandler;
-        ReleaseShortcutBindings();
-
         _committedHandler = null;
         _graphUpdatedHandler = null;
         _subscribedGraph = null;
         _subscribedNodeEffect = null;
         _lastResolvedViewModel = null;
-    }
-
-    private void ReleaseShortcutBindings()
-    {
-        if (_subscribedLayout != null && _layoutIsActiveChangedHandler != null)
-            _subscribedLayout.IsActiveChanged -= _layoutIsActiveChangedHandler;
-        if (_subscribedLayout != null && _layoutIsSelectedChangedHandler != null)
-            _subscribedLayout.IsSelectedChanged -= _layoutIsSelectedChangedHandler;
-
-        if (_boundWindow != null && _nodeBindings != null)
-            foreach (var kb in _nodeBindings)
-                _boundWindow.InputBindings.Remove(kb);
-
-        _subscribedLayout = null;
-        _layoutIsActiveChangedHandler = null;
-        _layoutIsSelectedChangedHandler = null;
-        _nodeBindings = null;
-        _boundWindow = null;
     }
 
     private static void EnsureInternalGraph(NodeEffect pluginItem)
@@ -149,24 +122,18 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
 
         var pluginItem = (NodeEffect)ItemProperties[0].Item;
 
+        // TODO: ツールウィンドウのハンドル取得・表示・アクティブ化は、YMM4本体側で公開APIが用意され次第、
+        //       リフレクションをやめてそちらへ置き換える。
         var parentWindow = Window.GetWindow(this)!;
         var mainViewModel = parentWindow.DataContext!;
 
         var toolAreaViewModels =
             mainViewModel.GetType().GetProperty("AnchorableAreaViewModels")!.GetValue(mainViewModel) as
-                System.Collections.IEnumerable;
+                IEnumerable;
         var toolAreaViewModel =
             toolAreaViewModels
                 ?.Cast<object>()
                 .FirstOrDefault(x => (string)x.GetType().GetProperty("Title")?.GetValue(x)! == TextUi.Node);
-
-        var layoutService = mainViewModel.GetType().GetProperty("LayoutService")!.GetValue(mainViewModel);
-        var dockingManager = layoutService?.GetType().GetProperty("Manager")!.GetValue(layoutService) as DockingManager;
-        var layout = dockingManager!.Layout.Descendents().OfType<LayoutAnchorable>().FirstOrDefault(anchorable =>
-        {
-            var id = toolAreaViewModel?.GetType().GetProperty("Id")!.GetValue(toolAreaViewModel) as string;
-            return anchorable.ContentId == id;
-        });
 
         toolAreaViewModel?.GetType().GetProperty("IsVisible")?.SetValue(toolAreaViewModel, true);
         toolAreaViewModel?.GetType().GetProperty("IsSelected")?.SetValue(toolAreaViewModel, true);
@@ -258,77 +225,5 @@ public partial class OpenNodeEditorButton : IPropertyEditorControl2
         pluginItem.GraphUpdated += _graphUpdatedHandler;
         _subscribedGraph = pluginItem.InternalGraph;
         _subscribedNodeEffect = pluginItem;
-
-        if (vm is null) return;
-        if (layout is null) return;
-
-        // 既存のショートカット登録・ハンドラを解除してから積み直す。
-        ReleaseShortcutBindings();
-
-        var nodeBindings = new[]
-        {
-            new KeyBinding(vm.ZoomUpCommand, Key.Add, ModifierKeys.Control),
-            new KeyBinding(vm.ZoomUpCommand, Key.OemPlus, ModifierKeys.Control),
-            new KeyBinding(vm.ZoomDownCommand, Key.Subtract, ModifierKeys.Control),
-            new KeyBinding(vm.ZoomDownCommand, Key.OemMinus, ModifierKeys.Control),
-            new KeyBinding(vm.ResetZoomCommand, Key.D0, ModifierKeys.Control),
-            new KeyBinding(vm.DeleteSelectedCommand, Key.Delete, ModifierKeys.None),
-            new KeyBinding(vm.DeleteSelectedCommand, Key.Back, ModifierKeys.None),
-            new KeyBinding(vm.CopyCommand, Key.C, ModifierKeys.Control),
-            new KeyBinding(vm.CutCommand, Key.X, ModifierKeys.Control),
-            new KeyBinding(vm.PasteCommand, Key.V, ModifierKeys.Control)
-        };
-
-        _nodeBindings = nodeBindings;
-        _boundWindow = parentWindow;
-        _subscribedLayout = layout;
-
-        _layoutIsSelectedChangedHandler = (_, _) =>
-        {
-            try
-            {
-                if (!layout.IsSelected)
-                    toolAreaViewModel?.GetType().GetProperty("ViewModel")?.SetValue(toolAreaViewModel, vm);
-                else
-                    vm.RefreshAllOpenGraphs();
-            }
-            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-            {
-                Debug.WriteLine($"[OpenNodeEditorButton] IsSelectedChanged handler failed: {ex}");
-            }
-        };
-        layout.IsSelectedChanged += _layoutIsSelectedChangedHandler;
-
-        _layoutIsActiveChangedHandler = (_, _) =>
-        {
-            try
-            {
-                if (layout.IsActive)
-                {
-                    foreach (var kb in nodeBindings)
-                        parentWindow.InputBindings.Add(kb);
-                    // フォーカスを取り戻したタイミングでも同様に再同期しておく。
-                    vm.RefreshAllOpenGraphs();
-                }
-                else
-                {
-                    foreach (var kb in nodeBindings)
-                        parentWindow.InputBindings.Remove(kb);
-                }
-            }
-            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-            {
-                Debug.WriteLine($"[OpenNodeEditorButton] IsActiveChanged handler failed: {ex}");
-            }
-        };
-        layout.IsActiveChanged += _layoutIsActiveChangedHandler;
-
-        if (layout.IsActive)
-        {
-            foreach (var kb in nodeBindings)
-                parentWindow.InputBindings.Add(kb);
-
-            vm.RefreshAllOpenGraphs();
-        }
     }
 }

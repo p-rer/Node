@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Node.Editor.View.Adorners;
 using Node.Editor.ViewModel;
 
@@ -37,6 +38,7 @@ public partial class GraphView
         DataContextChanged += OnDataContextChanged;
         SizeChanged += OnSizeChanged;
         LostMouseCapture += OnLostMouseCapture;
+        LostKeyboardFocus += OnLostKeyboardFocus;
     }
 
     public GraphControlMode Mode
@@ -180,6 +182,34 @@ public partial class GraphView
     private static bool IsAdditiveSelectionModifier()
     {
         return Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) || Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+    }
+
+    // 再描画などでフォーカスを持つ要素がツリーから消えると、フォーカスがどこにも無い状態になる。
+    // ウィンドウがアクティブなままそうなった場合は、キャンバスへフォーカスを戻す。
+    private void OnLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (e.NewFocus != null || !IsLoaded) return;
+
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            if (!IsLoaded || !IsVisible || Window.GetWindow(this) is not { IsActive: true }) return;
+            if (Keyboard.FocusedElement == null || ReferenceEquals(Keyboard.FocusedElement, Window.GetWindow(this)))
+                Focus();
+        });
+    }
+
+    // ノードキャンバスをクリックしたらキーボードフォーカスを取り、ツール内のショートカットを有効にする。
+    // すでに内側（テキストボックス等）にフォーカスがある場合は奪わない。
+    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (IsKeyboardFocusWithin) return;
+        Focus();
+        // AvalonDockはクリックでツールをアクティブ化した後、非同期でフォーカスを移すことがある。
+        // それに負けないよう、処理が一巡した後でもう一度フォーカスを取る。
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            if (!IsKeyboardFocusWithin) Keyboard.Focus(this);
+        });
     }
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
